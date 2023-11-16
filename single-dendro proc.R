@@ -151,6 +151,16 @@ checkplot_diam_raw
 
 ### TREENETPROC ###
 
+# Testing with small datasets
+dball<-db
+
+###
+db<-dball[5000:35000,]
+str(db)
+head(db)
+tail(db)
+
+
 # Subset the columns we want for treenetproc
 db<-subset(db, select = c(ts, value, series,  ID, site, sp, class, temp))
 
@@ -169,7 +179,7 @@ str(temp_data_L0)
 
 # dendro data
 dendro_data_L1 <- proc_L1(data_L0 = dendro_data_L0,
-                          reso = 60,
+                          reso = 15,
                           date_format = "%Y-%m-%d %H:%M:%S",
                           input = "long",
                           year = "asis",
@@ -180,7 +190,7 @@ str(dendro_data_L1)
 
 # temp data
 temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
-                          reso = 60,
+                          reso = 15,
                           date_format = "%Y-%m-%d %H:%M:%S",
                           input = "long",
                           year = "asis",
@@ -194,9 +204,10 @@ par(mar = c(5, 5, 5, 5))
 
 # detect errors
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
-                                 #temp_L1 = temp_data_L1,
-                                 tol_out = 5,
+                                 temp_L1 = temp_data_L1,
+                                 #tol_out = 5,
                                  #tol_jump = 16,
+                                 plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
                                  tz="Europe/Madrid")
@@ -204,14 +215,134 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
 head(dendro_data_L2)
 
 #highlight corrections made on the dendrometer data:
-View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
+#View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 
+### DATA AGGREGATION AND ANALYSIS ###
 
-## SOIL DATA ##
+# GROWING SEASON #
+# aggregate to growing season by year
+grow_seas_L2 <- grow_seas(dendro_L2 = dendro_data_L2,
+                          agg_yearly=TRUE)
+knitr::kable(grow_seas_L2,
+             caption = "Sample output data of the function `grow_seas`.")
 
-siteFiles <- paste(getwd(),"/Prec/",sep="")
+
+# PHASE STATISTICS #
+# calculate phase statistics #
+
+# create plot
+par(mfrow=c(1,1))
+par(mar = c(5, 5, 5, 5))
+
+phase_stats_L2 <- phase_stats(dendro_L2 = dendro_data_L2,
+                              plot_phase = TRUE,
+                              plot_export = TRUE)
+
+# view dalculated phase_stats:
+knitr::kable(phase_stats_L2[1:5, ],
+             caption = "Sample output data of the function `phase_stats`.")
+
+# ANALYSE RADIAL CHANGE PATTERS AND CAUSES #
+
+# calculate radial change patterns:
+options(warn = 1)
+
+trans_stats_L2 <- phase_stats_L2[which(phase_stats_L2$phase_class==1),]
+temp_stats_L2 <- phase_stats_L2[which(phase_stats_L2$phase_class==-1),]
+other_stats_L2 <- phase_stats_L2[which(is.na(phase_stats_L2$phase_class)==T),]
+other_stats_L2$phase_class <- 0
+
+trans <- aggregate(trans_stats_L2$phase_class,by=list(trans_stats_L2$doy),sum)
+temp <- aggregate(temp_stats_L2$phase_class,by=list(temp_stats_L2$doy),sum)
+temp$x <- sqrt(temp$x^2)
+other <- aggregate(other_stats_L2$phase_class,by=list(other_stats_L2$doy),sum)
+
+# plot causes of daily radial change patterns:
+par(mfrow=c(1,1))
+par(mar = c(5, 5, 5, 5))
+
+plot(trans$Group.1,trans$x,
+     pch=16,
+     col="black",
+     cex=2,
+     ylim=c(0,4),
+     ylab="Cumulative days",
+     xlab="Day of year")
+
+points(trans$Group.1,trans$x,pch=16,cex=1,col="cyan")
+points(temp$Group.1,temp$x,pch=16,cex=2,col="black")
+points(temp$Group.1,temp$x,pch=16,cex=1,col="darkorange")
+points(other$Group.1,other$x,pch=16,cex=2,col="black")
+points(other$Group.1,other$x,pch=16,cex=1,col="grey70")
+
+legend("topleft",
+       pch=16,
+       c("Transpiration","Temperature","Other"),
+       col=c("cyan","darkorange","grey70"),
+       bty="n",
+       pt.cex=1.5,
+       cex=1.5)
+
+
+## Tree water deficit (TWD) as an indicator of drought stress. ##
+# plot minimum daily twd against day of year
+par(mfrow=c(1,1))
+par(mar = c(5, 5, 5, 5))
+
+plot(1,
+     1,
+     ylim=c(0,max(dendro_data_L2$twd,na.rm=T)),
+     xlim=c(0,365),
+     ylab=expression("twd ("*mu*"m)"),
+     xlab="Day of year",
+     col="white")
+
+col_sel<-c("cyan","darkorange","purple")
+
+for(y in c(1:length(unique(left(dendro_data_L2$ts,4))))){
+  # selected year
+  sel<-dendro_data_L2[which(left(dendro_data_L2$ts,4)==unique(left(dendro_data_L2$ts,4))[y]),]
+  # calc twd
+  twd<-suppressWarnings(aggregate(sel$twd,list(as.Date(sel$ts)),min,na.rm=T))
+  twd$doy<-as.numeric(strftime(as.Date(twd$Group.1), format = "%j"))
+  
+  # clean
+  twd[which(twd$x=="Inf"),"x"]<-NA
+  
+  lines(twd$doy,twd$x,col=col_sel[y],lwd=1.5)
+  twd[which(is.na(twd$x)==T),"x"]<-0
+  polygon(c(c(0,twd$doy),c(rev(twd$doy),0)),
+          c(c(0,twd$x),rep(0,nrow(twd)+1)),
+          col=rgb(0,0,0,0.1),
+          border=rgb(0,0,0,0))
+}
+
+legend("topleft",
+       c(unique(left(dendro_data_L2$ts,4))),
+       col=col_sel,
+       lty=1,
+       bty="n")
+
+# Add growing season extent:
+grow_seas_L2 <- grow_seas(dendro_L2 = dendro_data_L2,
+                          agg_yearly=TRUE,
+                          tol_seas = 0.1)
+
+
+abline(v=c(mean(grow_seas_L2$gro_start),
+           mean(grow_seas_L2$gro_end)),
+       lty=2)
+text(mean(c(mean(grow_seas_L2$gro_start),
+            mean(grow_seas_L2$gro_end))),
+     max(dendro_data_L2$twd,na.rm=T),
+     "Growing season")
+
+
+### SOIL DATA ###
+
+#siteFiles <- paste(getwd(),"/Prec/",sep="")
 
 ###list the RWL files present in the folder
-ListFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
-ListFiles
+#ListFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
+#ListFiles
