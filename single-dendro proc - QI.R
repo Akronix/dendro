@@ -5,10 +5,6 @@ library(viridis)
 library(ggplot2)
 library(treenetproc)
 
-### DEFINE GLOBAL VARS ###
-PATH = '/home/akronix/workspace/dendro';
-setwd(PATH)
-
 ### DEFINE GLOBAL Functs ###
 left <-  function(string, char){substr(string, 1,char)}
 
@@ -53,8 +49,12 @@ db$series <- gsub("./dataD/","",db$series)
 db$series <- gsub("_2023_09_13_0.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
+# Correct some timestamps issues with this data:
+
+
+
 # In this script, we will work with one dendrometer series only
-db = db[db$series == "92222154",]
+db = db[db$series == "92222155",]
 db
 
 # Add tree information to each dendrometer (series)
@@ -161,7 +161,8 @@ checkplot_diam_raw
 dball<-db
 
 ### ! Me quedo con subconjunto donde no da error -> Hay que mirar qué pasa fuera de ese rango para que dé error.
-db<-dball[1450:35000,]#db<-dball[1500:35000,]
+db<-dball[1500:35000,]#db<-dball[1500:35000,]
+#db<-dball[0:35000,]
 str(db)
 head(db)
 tail(db)
@@ -170,8 +171,13 @@ tail(db)
 # Subset the columns we want for treenetproc
 db<-subset(db, select = c(ts, value, series,  ID, site, sp, class, temp))
 
+db$ts <- with_tz(db$ts, "UTC")
+
 # If I don't to the below code some NAs get filled inside proc_L1 when it check_ts(), throwing an error and messin up the timestamp
-db$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
+#db$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
+db$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "UTC" )
+
+
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value, ID, site, sp, class))
@@ -211,9 +217,9 @@ par(mar = c(5, 5, 5, 5))
 # detect errors
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 #tol_out = 1,
+                                 tol_out = 5,
                                  tol_jump = 10,
-                                 #plot_period = "monthly",
+                                 plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
                                  tz="Europe/Madrid")
