@@ -9,7 +9,7 @@ library(lubridate)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222154"
+SELECTED_DENDROMETER = "92222155" # 92222154 is pine, 92222155 is Qi
 
 
 ### DEFINE GLOBAL Functs ###
@@ -49,7 +49,9 @@ read.data.dendro <- function(nameFiles){
 
 # importing dendro data #
 list.files <- list.files(path="./dataD", pattern="*.csv", full.names=TRUE)
-db<-do.call(rbind.data.frame, read.data.dendro(list.files))
+dball<-do.call(rbind.data.frame, read.data.dendro(list.files))
+db <- dball
+
 
 # Clean name of field series
 db$series <- gsub("./dataD/","",db$series)
@@ -263,6 +265,21 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 ### PLOT CLEANED DATA ###
 
+# -> Open proc_L2_plot.pdf file
+
+# Plotting temperature monthly and export to PDF to compare with growth results:
+
+#for (year in c(2022, 2023) ) {
+  for(m in 3){
+    print(m)
+    temp_data_monthly = dball[ month(dball$ts) == m & year(dball$ts) == 2022,]
+    plot <- ggplot(data = temp_data_monthly, mapping = aes(x=ts, y=temp))  +
+      geom_line() +
+      scale_x_datetime(date_breaks = "1 day")
+    print(plot)
+  }
+#}
+# Exportar a pdf + poner fechas en número de días.
 
 
 ### DATA AGGREGATION AND ANALYSIS ###
@@ -388,8 +405,8 @@ text(mean(c(mean(grow_seas_L2$gro_start),
 
 ### SOIL DATA ###
 
-#siteFiles <- paste(getwd(),"/Prec/",sep="")
+siteFiles <- paste(getwd(),"/Prec/",sep="")
 
 ###list the RWL files present in the folder
-#ListFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
-#ListFiles
+ListFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
+ListFiles
