@@ -100,7 +100,7 @@ db.mean.Temp
 
 plot.Temp2<-
   ggplot(data = db.mean.Temp, aes(x=date, y=temp))+
-  ggtitle(paste0("Sensor con ID: ",db$ID[1])) +
+  ggtitle(paste0("Dendro data for sensor with ID: ",db$ID[1])) +
   geom_line(aes(color=site))+
   geom_ribbon(aes(ymin=temp-se, ymax=temp+se, fill=site),alpha=0.3)+
   labs(x=expression(''),
@@ -119,7 +119,7 @@ plot.Temp2
 checkplot_diam_raw<-
   ggplot(data = db,  aes(x=ts, y=value, color=ID))+
   geom_line( )+
-  ggtitle(paste0("Sensor con ID: ",db$ID[1])) +
+  ggtitle(paste0("TEmperature data for sensor with ID: ",db$ID[1])) +
   labs(x=expression(''),
        y=expression(Delta*"D (um)"))+
   theme_bw() +
@@ -136,46 +136,46 @@ checkplot_diam_raw
 
 # plotting by year #
 
-# # grab years
-# years <-left(db[,"ts"],4)
-# library(viridis)
-# 
-# dendro_data_L0 = db
-# # plotting
-# par(mfrow=c(1,1))
-# par(mar = c(5, 5, 5, 5))
-# for(y in 1:length(unique(years))){
-#   # selected year
-#   sel<-dendro_data_L0[which(years==unique(years)[y]),]
-#   # handle first year
-#   if(y==1){
-#     plot(difftime(as.POSIXct(sel$ts,format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
-#                   as.POSIXct(paste0(unique(years)[y],"-01-01 00:00:00"),
-#                              format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
-#                   units = "days"),
-#          sel$value,
-#          ylab=expression("L0 ("*mu*"m)"),
-#          xlab="Day of year",type="l",
-#          col=viridis(length(unique(years)))[y],
-#          xlim=c(0,365),
-#          ylim=c(min(dendro_data_L0$value,na.rm=T),
-#                 max(dendro_data_L0$value,na.rm=T)),
-#     )
-#     
-#     title(paste0("Sensor con ID: ",dendro_data_L0$ID[1]))
-#     
-#     legend("bottomright",
-#            as.character(unique(years)[-4]),
-#            col=viridis(length(unique(years))),
-#            bty="n",lty=1)
-#     # add other years
-#   }else{
-#     lines(difftime(as.POSIXct(sel$ts,format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
-#                    as.POSIXct(paste0(unique(years)[y],"-01-01 00:00:00"),
-#                               format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
-#                    units = "days"),
-#           sel$value,
-#           col=viridis(length(unique(years)))[y])}}
+# grab years
+years <-left(db[,"ts"],4)
+library(viridis)
+
+dendro_data_L0 = db
+# plotting
+par(mfrow=c(1,1))
+par(mar = c(5, 5, 5, 5))
+for(y in 1:length(unique(years))){
+  # selected year
+  sel<-dendro_data_L0[which(years==unique(years)[y]),]
+  # handle first year
+  if(y==1){
+    plot(difftime(as.POSIXct(sel$ts,format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
+                  as.POSIXct(paste0(unique(years)[y],"-01-01 00:00:00"),
+                             format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
+                  units = "days"),
+         sel$value,
+         ylab=expression("L0 ("*mu*"m)"),
+         xlab="Day of year",type="l",
+         col=viridis(length(unique(years)))[y],
+         xlim=c(0,365),
+         ylim=c(min(dendro_data_L0$value,na.rm=T),
+                max(dendro_data_L0$value,na.rm=T)),
+    )
+
+    title(paste0("Plotting by year sensor with ID: ",dendro_data_L0$ID[1]))
+
+    legend("bottomright",
+           as.character(unique(years)[-4]),
+           col=viridis(length(unique(years))),
+           bty="n",lty=1)
+    # add other years
+  }else{
+    lines(difftime(as.POSIXct(sel$ts,format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
+                   as.POSIXct(paste0(unique(years)[y],"-01-01 00:00:00"),
+                              format="%Y-%m-%d %H:%M:%S",tz="Europe/Madrid"),
+                   units = "days"),
+          sel$value,
+          col=viridis(length(unique(years)))[y])}}
 
 
 ### TREENETPROC ###
