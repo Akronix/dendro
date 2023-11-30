@@ -9,6 +9,8 @@ library(lubridate)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
+SELECTED_DENDROMETER = "92222154"
+
 
 ### DEFINE GLOBAL Functs ###
 left <-  function(string, char){substr(string, 1,char)}
@@ -55,7 +57,7 @@ db$series <- gsub("_2023_09_13_0.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
 # In this script, we will work with one dendrometer series only
-db = db[db$series == "92222154",]
+db = db[db$series == SELECTED_DENDROMETER,]
 db
 
 # Add tree information to each dendrometer (series)
@@ -100,7 +102,7 @@ db.mean.Temp
 
 plot.Temp2<-
   ggplot(data = db.mean.Temp, aes(x=date, y=temp))+
-  ggtitle(paste0("Dendro data for sensor with ID: ",db$ID[1])) +
+  ggtitle(paste0("Temperature data for sensor with ID: ",db$ID[1])) +
   geom_line(aes(color=site))+
   geom_ribbon(aes(ymin=temp-se, ymax=temp+se, fill=site),alpha=0.3)+
   labs(x=expression(''),
@@ -119,7 +121,7 @@ plot.Temp2
 checkplot_diam_raw<-
   ggplot(data = db,  aes(x=ts, y=value, color=ID))+
   geom_line( )+
-  ggtitle(paste0("TEmperature data for sensor with ID: ",db$ID[1])) +
+  ggtitle(paste0("Dendro data for sensor with ID: ",db$ID[1])) +
   labs(x=expression(''),
        y=expression(Delta*"D (um)"))+
   theme_bw() +
