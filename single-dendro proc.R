@@ -4,6 +4,7 @@ library(Rmisc)
 library(viridis)
 library(ggplot2)
 library(treenetproc)
+library(lubridate)
 
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
@@ -63,6 +64,28 @@ db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 str(db)
 head(db)
+
+
+## CLEAN DATA ##
+
+### BEGIN COMMENT ###
+## Remove duplicated dates, which corresponds actually to spring daylight saving shift ###
+
+# Daylight-saving times for the interval
+# dst_spring_start <- as.POSIXct("2022-03-27 01:00:00", tz="Europe/Madrid")
+# dst_spring_end <- as.POSIXct("2022-03-27 01:45:00", tz="Europe/Madrid")
+# 
+# within_dst_spring <- function(datetime) { return ((datetime >= dst_spring_start) & (datetime <= dst_spring_end)) }
+# 
+# dates_duplicated = within_dst_spring(db$ts) & (rownames(db) > which( within_dst_spring(db$ts) )[4])
+# 
+# nrow(db)
+# nrow(db[- which(out),])
+
+### END COMMENT ###
+
+# This removes duplicates on timestamps (presumably because of daylight savingtime issues)
+db = db[!duplicated(db$ts),];
 
 
 ### PLOT RAW DATA ###
@@ -157,11 +180,6 @@ checkplot_diam_raw
 
 ### TREENETPROC ###
 
-# Testing with small datasets
-dball<-db
-
-### ! Me quedo con subconjunto donde no da error -> Hay que mirar qué pasa fuera de ese rango para que dé error.
-db<-dball[1450:35000,]#db<-dball[1500:35000,]
 str(db)
 head(db)
 tail(db)
@@ -208,12 +226,30 @@ str(temp_data_L1)
 par(mfrow=c(1,1))
 par(mar = c(5, 5, 5, 5))
 
+
+### BEGIN COMMENT ###
+# !! No entiendo porqué treenetproc falla con el daylight saving time incluso con el TZ bien fijado aquí:
+#dendro_data_L1$ts = with_tz(dendro_data_L1$ts, tz="Europe/Madrid")
+#temp_data_L1$ts = with_tz(temp_data_L1$ts, tz="Europe/Madrid")
+# Pero es desesperante, así que voy a borrar los datos cuando se cambia la hora y palante.
+# Otra opción, forkear y arreglar. El problema está aquí: https://github.com/treenet/treenetproc/blob/6f0fa35df5b2e5e2096dfb0a42512da2163a8213/R/check_input_data.R#L188
+
+# Antes estaba obligado a coger un subset de los datos evitando las zonas donde se produce el daylight saving time:
+# Testing with small datasets
+#dball<-db
+
+### ! Me quedo con subconjunto donde no da error -> Hay que mirar qué pasa fuera de ese rango para que dé error.
+# Buscar cambio de hora alrededor de 1400-1450 (marzo 2022), borrar esos datos de la hora que se cambia y lo mismo en otoño.
+#db<-dball[1:10000,]#db<-dball[1400:35000,]#db<-dball[1500:35000,]
+
+### END COMMENT ###
+
 # detect errors
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  #tol_out = 1,
                                  tol_jump = 10,
-                                 #plot_period = "monthly",
+                                 plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
                                  tz="Europe/Madrid")
