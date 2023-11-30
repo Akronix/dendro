@@ -9,7 +9,7 @@ library(lubridate)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222155" # 92222154 is pine, 92222155 is Qi
+SELECTED_DENDROMETER = "92222174" # 92222174 is declining pine
 
 
 ### DEFINE GLOBAL Functs ###
@@ -267,21 +267,6 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 # -> Open proc_L2_plot.pdf file
 
-# Plotting temperature monthly and export to PDF to compare with growth results:
-
-#for (year in c(2022, 2023) ) {
-  for(m in 3){
-    print(m)
-    temp_data_monthly = dball[ month(dball$ts) == m & year(dball$ts) == 2022,]
-    plot <- ggplot(data = temp_data_monthly, mapping = aes(x=ts, y=temp))  +
-      geom_line() +
-      scale_x_datetime(date_breaks = "1 day")
-    print(plot)
-  }
-#}
-# Exportar a pdf + poner fechas en número de días.
-
-
 ### DATA AGGREGATION AND ANALYSIS ###
 
 # GROWING SEASON #
@@ -403,10 +388,124 @@ text(mean(c(mean(grow_seas_L2$gro_start),
      "Growing season")
 
 
-### SOIL DATA ###
+### PLOT TEMPERATURE DATA ###
+# Plotting temperature monthly and export to PDF to compare with growth results:
+
+pdf("dendrometer_temperature_plots.pdf", onefile = TRUE)
+for (year in c(2022,2023))
+  for(m in 1:12){
+    #print(m, year)
+    temp_data_monthly = subset(dball, month(ts) == m & year(ts) == year)
+    if (nrow(temp_data_monthly) == 0 ) next;
+    plot <- ggplot(data = temp_data_monthly, mapping = aes(x=ts, y=temp))  +
+      labs(x=expression('Day of month'),
+           y=expression("Temperature (ºC)")) +
+      geom_line() +
+      ggtitle(paste("Dendrometer registered temperature for", month.name[m], year)) +
+      scale_x_datetime(date_breaks = "1 day", date_labels = "%d")
+    print(plot)
+  }
+dev.off()
+
+### ENVIRONMENTAL DATA ###
 
 siteFiles <- paste(getwd(),"/Prec/",sep="")
 
 ###list the RWL files present in the folder
-ListFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
-ListFiles
+SoilFiles <- paste(siteFiles,list.files(siteFiles, pattern=".csv"),sep="")
+SoilFiles
+
+## Let's get the associated environmental sensor for this dendrometer, if there's one
+sensor.id = TreeList[TreeList$series == as.integer(SELECTED_DENDROMETER),]$soil.sensor
+if (!is.na(sensor.id)) {
+  
+  # 1. load environmental data
+  filename = paste0(siteFiles, "data_", sensor.id, "_2023_09_13_0.csv")
+  env.db <- read.csv(filename, sep = ";", header = FALSE, skip = 0, dec = ",", stringsAsFactors = FALSE)
+  env.db$ts<-as.POSIXct(env.db$V2, format="%Y.%m.%d %H:%M", tz="Europe/Madrid")
+  env.db$date <- as.Date(env.db$ts)
+  #File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
+  env.db$soil.temp <- env.db$V4
+  env.db$bottom.temp <- env.db$V5
+  env.db$top.temp <- env.db$V6
+  env.db$humidity <- env.db$V7
+  
+  env.db<-subset(env.db,select=c(ts,date,soil.temp,bottom.temp,top.temp,humidity))
+  str(env.db)
+  
+  # plot and export PDF monthly
+  
+  # plot temp monthly
+  pdf("air_temperature_plots.pdf", onefile = TRUE)
+  for (year in c(2022,2023))
+    for(m in 1:12){
+      #print(m, year)
+      temp2_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
+      if (nrow(temp2_data_monthly) == 0 ) next;
+      plot <- ggplot(data = temp2_data_monthly, mapping = aes(x=ts, y=top.temp)) +
+        labs(x=expression('Day of month'),
+             y=expression("Temperature (ºC)")) +
+        geom_line() +
+        ggtitle(paste("Air temperature for", month.name[m], year)) +
+        scale_x_datetime(date_breaks = "1 day", date_labels = "%d")
+      print(plot)
+    }
+  dev.off()
+  
+  # plot humidity monthly
+  pdf("humidity_plots.pdf", onefile = TRUE)
+  for (year in c(2022,2023) )
+    for(m in 1:12){
+    #print(m, year)
+    hum_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
+    if (nrow(hum_data_monthly) == 0 ) next;
+    plot <- ggplot(data = hum_data_monthly, mapping = aes(x=ts, y=humidity))  +
+      labs(x=expression('Day of month'),
+           y=expression("Humidity (mV)")) +
+      geom_line() +
+      ggtitle(paste("Humidity for", month.name[m], year)) +
+      scale_x_datetime(date_labels = "%d", date_breaks = "1 day")
+    print(plot)
+  }
+  dev.off()
+  
+  
+  # plot temp & humidity monthly in one pdf 
+  pdf("environmetal_plots.pdf", onefile = TRUE)
+  for (year in c(2022,2023))
+    for(m in 1:12){
+      #print(m, year)
+      temp2_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
+      if (nrow(temp2_data_monthly) == 0 ) next;
+      plot <- ggplot(data = temp2_data_monthly, mapping = aes(x=ts, y=top.temp)) +
+        labs(x=expression('Day of month'),
+             y=expression("Temperature (ºC)")) +
+        geom_line() +
+        ggtitle(paste("Air temperature for", month.name[m], year)) +
+        scale_x_datetime(date_breaks = "1 day", date_labels = "%d")
+      print(plot)
+    }
+  dev.off()
+  
+  # plot humidity monthly
+  pdf("humidity_plots.pdf", onefile = TRUE)
+  for (year in c(2022,2023) )
+    for(m in 1:12){
+      #print(m, year)
+      hum_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
+      if (nrow(hum_data_monthly) == 0 ) next;
+      plot <- ggplot(data = hum_data_monthly, mapping = aes(x=ts, y=humidity))  +
+        labs(x=expression('Day of month'),
+             y=expression("Humidity (mV)")) +
+        geom_line() +
+        ggtitle(paste("Humidity for", month.name[m], year)) +
+        scale_x_datetime(date_labels = "%d", date_breaks = "1 day")
+      print(plot)
+    }
+  dev.off()
+  
+  
+  
+  
+    
+}
