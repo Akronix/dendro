@@ -433,79 +433,31 @@ if (!is.na(sensor.id)) {
   env.db<-subset(env.db,select=c(ts,date,soil.temp,bottom.temp,top.temp,humidity))
   str(env.db)
   
-  # plot and export PDF monthly
-  
-  # plot temp monthly
-  pdf("air_temperature_plots.pdf", onefile = TRUE)
-  for (year in c(2022,2023))
-    for(m in 1:12){
-      #print(m, year)
-      temp2_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
-      if (nrow(temp2_data_monthly) == 0 ) next;
-      plot <- ggplot(data = temp2_data_monthly, mapping = aes(x=ts, y=top.temp)) +
-        labs(x=expression('Day of month'),
-             y=expression("Temperature (ºC)")) +
-        geom_line() +
-        ggtitle(paste("Air temperature for", month.name[m], year)) +
-        scale_x_datetime(date_breaks = "1 day", date_labels = "%d")
-      print(plot)
-    }
-  dev.off()
-  
-  # plot humidity monthly
-  pdf("humidity_plots.pdf", onefile = TRUE)
-  for (year in c(2022,2023) )
-    for(m in 1:12){
-    #print(m, year)
-    hum_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
-    if (nrow(hum_data_monthly) == 0 ) next;
-    plot <- ggplot(data = hum_data_monthly, mapping = aes(x=ts, y=humidity))  +
-      labs(x=expression('Day of month'),
-           y=expression("Humidity (mV)")) +
-      geom_line() +
-      ggtitle(paste("Humidity for", month.name[m], year)) +
-      scale_x_datetime(date_labels = "%d", date_breaks = "1 day")
-    print(plot)
-  }
-  dev.off()
-  
-  
-  # plot temp & humidity monthly in one pdf 
+  # plot temp & humidity of soil sensor monthly in one pdf 
   pdf("environmetal_plots.pdf", onefile = TRUE)
+  #par(mcol = c(1, 2))
   for (year in c(2022,2023))
     for(m in 1:12){
       #print(m, year)
-      temp2_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
-      if (nrow(temp2_data_monthly) == 0 ) next;
-      plot <- ggplot(data = temp2_data_monthly, mapping = aes(x=ts, y=top.temp)) +
+      env_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
+      if (nrow(env_data_monthly) == 0 ) next;
+      plot <- ggplot(data = env_data_monthly, mapping = aes(x=ts, y=top.temp)) +
         labs(x=expression('Day of month'),
              y=expression("Temperature (ºC)")) +
         geom_line() +
         ggtitle(paste("Air temperature for", month.name[m], year)) +
         scale_x_datetime(date_breaks = "1 day", date_labels = "%d")
       print(plot)
-    }
-  dev.off()
-  
-  # plot humidity monthly
-  pdf("humidity_plots.pdf", onefile = TRUE)
-  for (year in c(2022,2023) )
-    for(m in 1:12){
-      #print(m, year)
-      hum_data_monthly = subset(env.db, month(ts) == m & year(ts) == year)
-      if (nrow(hum_data_monthly) == 0 ) next;
-      plot <- ggplot(data = hum_data_monthly, mapping = aes(x=ts, y=humidity))  +
+      
+      plot <- ggplot(data = env_data_monthly, mapping = aes(x=ts, y=humidity))  +
         labs(x=expression('Day of month'),
              y=expression("Humidity (mV)")) +
         geom_line() +
         ggtitle(paste("Humidity for", month.name[m], year)) +
         scale_x_datetime(date_labels = "%d", date_breaks = "1 day")
       print(plot)
+      
     }
   dev.off()
   
-  
-  
-  
-    
 }
