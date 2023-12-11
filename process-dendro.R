@@ -4,12 +4,17 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222174" # 92222174 is declining pine
+SELECTED_DENDROMETER = "92222179" # 92222174 is declining pine, 92222155 is Quercus
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 # Set initial and final date and sampling dates
 ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
-ts_end<-"2023-09-14 00:00:00"
+
+if (SELECTED_DENDROMETER == 92222174) { # for dendro no 92222174, data is corrupted from "2023-07-06 18:45:00" to the end
+  ts_end<-"2023-07-06 18:30:00"   
+} else {
+  ts_end<-"2023-09-14 00:00:00" 
+}
 
 ### IMPORT DENDRO DATA ###
 
@@ -134,11 +139,12 @@ str(temp_data_L1)
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 #tol_out = 1,
-                                 tol_jump = 10,
+                                 tol_out = 5, # 5 for pine
+                                 tol_jump = 10, # 10 for pine
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
+                                 plot_name = paste0( db$series[1] ,"-proc_L2_plot"),
                                  tz="Europe/Madrid")
 # check the data
 head(dendro_data_L2)
@@ -154,5 +160,5 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 output_data <- subset(dendro_data_L2, select = c(series, ts, value, max, twd, gro_yr))
 OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
-write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], ".csv")), append = FALSE)
+write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
 

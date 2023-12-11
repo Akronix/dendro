@@ -1,0 +1,15 @@
+== 92222174 ==
+- Pino decaído
+  tol_out = 5, # 5 for pine
+  tol_jump = 10, # 10 for pine
+- A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar.
+
+== 92222155 ==
+- Quercus Ilex
+  tol_out = 10,
+  tol_jump = 50,
+- treenetproc quita algún outlier que no me parece que esté mal?? -> se podriá deshacer pero no parece muy relevante.
+- Faltan datos entre 2022-11-24 08:45:00 y 2022-11-24 10:00:00; y además el salto en crecimiento es relativamente grande (aunque no imposible). Pasa de 19 a 76 micrómetros
+
+== 92222179 ==
+- Pino no decaído
