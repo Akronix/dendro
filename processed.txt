@@ -1,8 +1,23 @@
+** Chuleta para filtrar por fecha: **
+ db [db$ts > ymd_hms("2022-10-25 13:00:00"),]
+
 == 92222174 ==
 - Pino decaído
-  tol_out = 5, # 5 for pine
-  tol_jump = 10, # 10 for pine
+  tol_out = 7,
+  tol_jump = 10,
 - A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar.
+- Tuve que hacer correcciones manuales para las fechas alrededor de "2022-11-24 10:30:00"; porque no detectaba un salto sino solamente dos outliers. De ahí el código siguiente:
+
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                              dendro_L2 = dendro_data_L2,
+                              reverse = 4:5,
+                              force = "2022-11-19 10:30:00",
+                              delete = c("2022-11-24 09:00:00", "2022-11-24 10:30:00"),
+                              plot = TRUE,
+                              plot_export = TRUE,
+                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                              tz="Europe/Madrid")
+
 
 == 92222155 ==
 - Quercus Ilex
@@ -12,4 +27,8 @@
 - Faltan datos entre 2022-11-24 08:45:00 y 2022-11-24 10:00:00; y además el salto en crecimiento es relativamente grande (aunque no imposible). Pasa de 19 a 76 micrómetros
 
 == 92222179 ==
+- Pino no decaído
+- No tengo datos descargados.
+
+== 92222154 ==
 - Pino no decaído

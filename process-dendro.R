@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222179" # 92222174 is declining pine, 92222155 is Quercus
+SELECTED_DENDROMETER = "92222174" # 92222174 is declining pine, 92222155 is Quercus
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 # Set initial and final date and sampling dates
@@ -139,7 +139,7 @@ str(temp_data_L1)
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 tol_out = 5, # 5 for pine
+                                 tol_out = 7, # 7 for pine
                                  tol_jump = 10, # 10 for pine
                                  plot_period = "monthly",
                                  plot = TRUE,
@@ -155,7 +155,23 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 # -> Open proc_L2_plot.pdf file to see results
 
-### SAVE PROCESSED DATA ###
+# DANGER! MANUAL CORRECTIONS #
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                              dendro_L2 = dendro_data_L2,
+                              reverse = 4:5,
+                              force = "2022-11-19 10:30:00",
+                              delete = c("2022-11-24 09:00:00", "2022-11-24 10:30:00"),
+                              plot = TRUE,
+                              plot_export = TRUE,
+                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                              tz="Europe/Madrid")
+
+
+# highlight manual corrections made on the dendrometer data:
+View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+
+
+  ### SAVE PROCESSED DATA ###
 
 output_data <- subset(dendro_data_L2, select = c(series, ts, value, max, twd, gro_yr))
 OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
