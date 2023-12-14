@@ -1,5 +1,5 @@
 ** Chuleta para filtrar por fecha: **
- db [db$ts > ymd_hms("2022-10-25 13:00:00"),]
+ db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2023-01-01 00:00:00"),]
 
 == 92222174 ==
 - Pino decaído
@@ -32,3 +32,65 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 == 92222154 ==
 - Pino no decaído
+  tol_out = 7,
+  tol_jump = 10,
+- Mismo salto que *174 a las 2022-11-24 10:15:00, aunque este sí me lo detecta treenetproc como salto -> habría que comprobar si es una cosa generalizada y, por tanto, no ha de ser tan corregida.
+- Curioso que el mayor cambio de tendencia en el dendrómetro se dé en 11-2022? No está fuera de su periodo de crecimiento??
+- Unas puntitas el 01-03 y 02-03 del 2023 a mediodía, pero creo que son por descongelamiento.
+- Hay 0 crecimiento en todo 2023?????
+
+== 92222156 ==
+- Otro pino en decaimiento.
+  tol_out = 7,
+  tol_jump = 10,
+- vacío en mayo 2022 -> corregido a mano. !!!!! MALLL !!!! -> no sabemos ese salto donde colocarLo. PROBLEMA! -> apuntar en memoria -> corrección deshecha.
+
+
+
+
+- salto en agosto 2022 -> corregido a mano similarmente a caso *174, con este código:
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                              dendro_L2 = dendro_data_L2,
+                              reverse = 3,
+                              force = c("2022-05-04 07:30:00", "2022-08-19 07:15:00"),
+                              delete = c("2022-08-19 07:15:00", "2022-08-19 08:15:00"),
+                              plot = TRUE,
+                              plot_export = TRUE,
+                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                              tz="Europe/Madrid")
+
+== 92222157 ==
+- Pino no decaído.
+  tol_out = 10,
+  tol_jump = 8,
+- !! Mirar 08-22. -> Entre 2022-08-03 03:15:00 y 2022-08-04 14:30:00. Hay valor absolutametne cte de 124um; lo cual no puede ser :/. Luego da un bajón a las "2022-08-04 14:45:00" a 103 y ya vuelve a la normalidad
+- a finales de enero 2023 hace jump cuando parece más outliers -> Los borro y santas pascuas porque no sé si es descongelamiento pero añaden mucho ruido. Borrado manual:
+
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                              dendro_L2 = dendro_data_L2,
+                              reverse = c(6, 10, 11:15, 16:19, 20:21, 23:25),
+                              #force = c("2022-08-19 07:15:00"),
+                              delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
+                              plot = TRUE,
+                              plot_export = TRUE,
+                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                              tz="Europe/Madrid")
+
+
+- quizás no hay jumps que corregir en 02-23 y 03-23 y 06-23 -> revertidos
+- mirar caída en picado en 2023-04-07 y 2023-04-08 -> Me parece OK.
+- Después de revertir treenetproc me da mucho crecimiento en primavera 2023. Estará bien????
+- Seguramente sería interesante borrar también el bajón y subidón de finales de febrero parecido al de enero (añade mucho ruido).
+
+== 92222161 ==
+- Quercus Ilex
+- out de treenetproc del 19-08-2022 corregido también en *155 que es QI; tiene pinta que ese dato es válido.
+- De nuevo salto que corregir a mano el 24-11-2022. -> cambiando tol_jump = 10 ya lo coge.
+
+   tol_out = 10,
+   tol_jump = 10,
+
+- Muchos piquitos en ener, feb y marzo 
+- fijarse en 21-01-2023 y 30-01-2023. -> Tiene mucha pinta de ser descongelamiento. Se produce al acercarse a 0ºC.
+- valores cte entre 13-04-2023 y 15-04-2023. Tb entre alrededor del 30-05-2023
+- fijado ts_end a "2023-09-13 11:15:00"; xq el último valor era incorrecto.
