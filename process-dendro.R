@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222163"
+SELECTED_DENDROMETER = "92222164"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 
@@ -148,7 +148,7 @@ str(temp_data_L1)
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = 10,
-                                 tol_jump = 20,
+                                 tol_jump = 10,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -166,8 +166,8 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # DANGER! MANUAL CORRECTIONS #
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
-                                    reverse = c(8, 11:12, 13),
-                                    #force = c("2022-08-19 07:15:00"),
+                                    # reverse = c(8, 11:12, 13),
+                                    force = c("2022-05-02 08:00:00"),
                                     #delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
                                     plot = TRUE,
                                     plot_export = TRUE,
