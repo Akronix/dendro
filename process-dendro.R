@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222157"
+SELECTED_DENDROMETER = "92222162"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 # Set initial and final date and sampling dates
@@ -61,6 +61,8 @@ db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 db
 
 # This removes duplicates on timestamps (presumably because of daylight savingtime issues)
+print("These are the duplicated data by timestamp:")
+print(db[duplicated(db$ts),])
 db = db[!duplicated(db$ts),];
 
 ### PLOT RAW DATA ###

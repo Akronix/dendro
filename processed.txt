@@ -5,7 +5,7 @@
 - Pino decaído
   tol_out = 7,
   tol_jump = 10,
-- A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar.
+- A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar. por tanto fijamos ts_end: ts_end<-"2023-07-06 18:30:00"
 - Tuve que hacer correcciones manuales para las fechas alrededor de "2022-11-24 10:30:00"; porque no detectaba un salto sino solamente dos outliers. De ahí el código siguiente:
 
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
@@ -97,6 +97,7 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 == 92222162 ==
 - Pp Decaído
+- NOTA IMPORTANTE: Para este dendrómetro hay dos ficheros csvs. El que acaba en _1 es más largo (tiene unas cuantas filas más), pero las fechas de esos datos finales son incorrectas: "1899.12.30 00:00:00". Además, el fichero _0.csv tiene muchísimos datos duplicados. Todo esto lleva a pensar que ha habido algún problema con la descarga de los datos.
 Brutos:
 - Subida tocha en ago-22.
 - Otra subida en dic-22.
@@ -121,4 +122,5 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               tz="Europe/Madrid")
 
 
-
+== 92222163 ==
+- Quercus Ilex
