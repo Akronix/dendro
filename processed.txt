@@ -1,5 +1,5 @@
 ** Chuleta para filtrar por fecha: **
- db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2023-01-01 00:00:00"),]
+ db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2022-12-31 23:45:00"),]
 
 == 92222174 ==
 - Pino decaído
@@ -94,3 +94,31 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - fijarse en 21-01-2023 y 30-01-2023. -> Tiene mucha pinta de ser descongelamiento. Se produce al acercarse a 0ºC.
 - valores cte entre 13-04-2023 y 15-04-2023. Tb entre alrededor del 30-05-2023
 - fijado ts_end a "2023-09-13 11:15:00"; xq el último valor era incorrecto.
+
+== 92222162 ==
+- Pp Decaído
+Brutos:
+- Subida tocha en ago-22.
+- Otra subida en dic-22.
+- Bajadas demasiado bajas en ago-23
+Analizando:
+- hacer salto a mano de 02-2023 (no 7)
+- Dendrómetro con muchíiiiiisimo ruido a partir de may-2023.
+- Treenetproc hace buen trabajo y corrige la mayoría de outliers dejándolo más plano.
+  tol_out = 7,
+  tol_jump = 10,
+
+- deshecho salto que en realidad era solo out en may-2023:
+
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                              dendro_L2 = dendro_data_L2,
+                              reverse = c(26,27),
+                              #force = c("2023-02-11 10:45:00"),
+                              #delete = c("2023-02-16 10:30:00", "2023-02-16 10:45:00"),
+                              plot = TRUE,
+                              plot_export = TRUE,
+                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                              tz="Europe/Madrid")
+
+
+
