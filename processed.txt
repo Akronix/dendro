@@ -97,7 +97,6 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 == 92222162 ==
 - Pp Decaído
-- NOTA IMPORTANTE: Para este dendrómetro hay dos ficheros csvs. El que acaba en _1 es más largo (tiene unas cuantas filas más), pero las fechas de esos datos finales son incorrectas: "1899.12.30 00:00:00". Además, el fichero _0.csv tiene muchísimos datos duplicados. Todo esto lleva a pensar que ha habido algún problema con la descarga de los datos.
 Brutos:
 - Subida tocha en ago-22.
 - Otra subida en dic-22.
@@ -121,6 +120,14 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
                               tz="Europe/Madrid")
 
+* NOTAS*
+- NOTA IMPORTANTE: Para este dendrómetro hay dos ficheros csvs. El que acaba en _1 es más largo (tiene unas cuantas filas más), pero las fechas de esos datos finales son incorrectas: "1899.12.30 00:00:00". Además, el fichero _0.csv tiene muchísimos datos duplicados. Todo esto lleva a pensar que ha habido algún problema con la descarga de los datos. Los 16000 filas más del fichero_1 no sabría muy bien donde ubicarlas por la ausencia de fecha, así que los dejo sin incorporar.
+
+- NOTA: También notar que en particular este dendrómetro hace subidas y bajadas muy raras o poco habituales que luego limpio como outliers y quizás pueda tener que ver con estos fallos de descarga de datos.
 
 == 92222163 ==
 - Quercus Ilex
+
+
+
+

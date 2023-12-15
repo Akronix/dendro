@@ -4,15 +4,19 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222162"
+SELECTED_DENDROMETER = "92222163"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
+
+#-----------------------------------------------#
+  
 # Set initial and final date and sampling dates
 ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
 
+
 if (SELECTED_DENDROMETER == 92222174) { # for dendro no 92222174, data is corrupted from "2023-07-06 18:45:00" to the end
-  ts_end<-"2023-07-06 18:30:00"   
-} else if (SELECTED_DENDROMETER == 92222161) {
+  ts_end<-"2023-07-06 18:30:00"
+} else if (SELECTED_DENDROMETER == 92222161) { # dendro 92222161
   ts_end <- ts_end<-"2023-09-13 11:15:00"
 } else {
   ts_end<-"2023-09-14 00:00:00" 
@@ -144,7 +148,7 @@ str(temp_data_L1)
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = 10,
-                                 tol_jump = 8,
+                                 tol_jump = 20,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -162,9 +166,9 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # DANGER! MANUAL CORRECTIONS #
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
-                                    reverse = c(6, 10, 11:15, 16:19, 20:21, 23:25),
+                                    reverse = c(8, 11:12, 13),
                                     #force = c("2022-08-19 07:15:00"),
-                                    delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
+                                    #delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
                                     plot = TRUE,
                                     plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
