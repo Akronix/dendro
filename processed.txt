@@ -86,13 +86,12 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - Quercus Ilex
 - out de treenetproc del 19-08-2022 corregido también en *155 que es QI; tiene pinta que ese dato es válido.
 - De nuevo salto que corregir a mano el 24-11-2022. -> cambiando tol_jump = 10 ya lo coge.
-
    tol_out = 10,
    tol_jump = 10,
 
 - Muchos piquitos en ener, feb y marzo 
 - fijarse en 21-01-2023 y 30-01-2023. -> Tiene mucha pinta de ser descongelamiento. Se produce al acercarse a 0ºC.
-- valores cte entre 13-04-2023 y 15-04-2023. Tb entre alrededor del 30-05-2023
+- valores cte entre 13-04-2023 y 15-04-2023. Tb entre alrededor del 30-05-2023.
 - fijado ts_end a "2023-09-13 11:15:00"; xq el último valor era incorrecto.
 
 == 92222162 ==
@@ -153,4 +152,34 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 - Llamativo que me da un crecimiento muy alto en 2023 para ser un Quercus: 1500um.
 
+== 92222169 ==
+- Pino en decaimiento.
+  tol_out = 10,
+  tol_jump = 10,
+
+obs. en BRUTO y analizando:
+- A principio may-22 salto parriba -> corregido autom.
+- agosto-22 (5 al 7 de agosto) también saltazo de negativo a positivo. -> Parece correcta y no algo a corregir, pero no deja de sorprender y resultar curioso. Más siendo agosto y habiendo grandes subidas de temperatura. ¿Tendrá que ver que sea un pino en decaimiento?
+- saltito en nov-22 de cuando toman las muestras. -> corregido autom.
+- 3 saltitos abajo en 2ª mitad diciembre (19, 25 y 31 de diciembre). -> Parecen correctas pero son muy curiosas.
+- saltito pabajo finales de enero (será el de la congelación). -> La congelación. Voy a deshacer la corrección que hace treenetproc.
+- salto parriba mediados febrero. -> Se trata de un outlier que pasa de 160 a 400, pero también en solo 15' cambia la temperatura de 2º a 5.5º, es decir, una subida de más de 3ºC en pco tiempo. Corregido con treenetproc, *aunque supongo que ese salto en temperatura ha tenido algo que ver. Quizás algún hielo adherido al muelle...
+- Revertidos cambios de treenetproc 9-10 que ponían un jump a finales de febrero cuando en realidad creo que son correctos y que tienen que ver con la congelación-descongelación.
+- 2 saltitos pabajo principio marzo 2023. -> Parecen de nuevo efectos de congelación-descongelación, puesto que coinciden con las mínimas de todo el año (-10ºC). Los corrige treenetproc -> deshacer.*			
+- último dato de septiembre-23 también parriba. -> Lo quito a mano con treenetproc.
+- salto en 2023−07 es salto o out? treenetproc lo detecta como out. -> examinándolo de cerca es el dato de "2023-07-06 13:15:00", sí parece un salto que no tiene sentido a nivel biológico, pero llama la atención de nuevo al contrastarlo con la temperatura, puesto que hay una bajada de 6ºC en 15' en ese dendrómetro. ¿Será una bajada de que le daba el sol y luego, no? -> Contrastar con Prec. Igualmente, ¿podría afectar al muelle que le dé el sol y se caliente?. -> De momento lo voy a deshacer y forzar el jump.
+
+Analisis:
+- Bajada brusca de temp de las "2023-07-06 13:00:00" a las "2023-07-06 13:15:00" es solo en dendrómetro ? -> No, En temperatura de Prec también hace lo mismo. No es el sol en el muelle porque en Prec también se dá ese salto de 5ºC (de 21 a 16ºC). Se me ocurre fijarme que pasa en otros árboles y también plantearme en serio si este salto podría ser correcto, aunque sea tan brusco.
+
+- inpeccionadas también fluctuaciones entre fechas 2023−07-18 y 2023−07-26. Tienen una amplitud más grande que otras fluctuaciones intradiarias, la causa es porque justo coincide con ola de calor y con las temperaturas más altas de todo el año. Sí que es cierto que siendo un pino en decaimiento podríamos estudiar más a fondo cuánto se hincha y se deshincha justamente durante olas de calor.
+
+* -> No consigo deshacer ese salto. El reverse de treenetproc me coloca el salto a 400µm, en lugar de a los 200 µm que es donde se sitúan los datos originales. Como ya me he peleado bastante con la librería y no quiero perder más tiempo, borro los datos del 1 al 3 de marzo y ya queda el resultado bien.
+
+* NOTAS*
+- Salto raro en Agosto y 3 saltitos en diciembre sin razón aparente pero que parecen totalmente correctos. Raro. ¿Tendrá que ver con que sea decaimiento?
+
+* NOTA IMPORTANTE *
+- No acabo de entender porqué cuando la madera se está congelando, los dendrómetros disminuyen su valor; y cuando la madera se está descongelando (a partir de 0ºC), los dendrómetros suben su valor. ¿¿No debería ser justamente al revés puesto que el agua ocupa más espacio congelada?? Puede que sea porque la savia o la madera se comportan al revés que el agua (ver https://elpais.com/ciencia/2021-04-06/por-que-el-agua-congelada-ocupa-mas-espacio-que-el-agua-liquida.html)-> preguntar a Roberto.
+- También curioso efecto de subida grande del dentrómetro coincidiendo con una bajada de temp. del dendro en 6ºC
 

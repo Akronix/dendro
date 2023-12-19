@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222164"
+SELECTED_DENDROMETER = "92222169"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 
@@ -17,7 +17,7 @@ ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
 if (SELECTED_DENDROMETER == 92222174) { # for dendro no 92222174, data is corrupted from "2023-07-06 18:45:00" to the end
   ts_end<-"2023-07-06 18:30:00"
 } else if (SELECTED_DENDROMETER == 92222161) { # dendro 92222161
-  ts_end <- ts_end<-"2023-09-13 11:15:00"
+  ts_end <-"2023-09-13 11:15:00"
 } else {
   ts_end<-"2023-09-14 00:00:00" 
 }
@@ -166,9 +166,10 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # DANGER! MANUAL CORRECTIONS #
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
-                                    # reverse = c(8, 11:12, 13),
-                                    force = c("2022-05-02 08:00:00"),
-                                    #delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
+                                    reverse = c(6, 9:10, 11:14, 15),
+                                    force = c("2023-07-01 13:15:00"),
+                                    delete = c("2023-09-13 10:00:00", "2023-09-13 10:15:00",
+                                               "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
                                     plot = TRUE,
                                     plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
