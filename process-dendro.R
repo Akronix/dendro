@@ -50,7 +50,7 @@ list.files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TR
 db<-do.call(rbind.data.frame, read.data.dendro(list.files))
 
 # Clean name of field series
-db$series <- gsub("./dataD/","",db$series)
+db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
 db$series <- gsub("_2023_09_13_0.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
