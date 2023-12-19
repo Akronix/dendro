@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222170"
+SELECTED_DENDROMETER = "92222171"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 
@@ -62,7 +62,7 @@ db = db[db$series == SELECTED_DENDROMETER,]
 # Add tree information to each dendrometer (series)
 TreeList<-read.table("TreeList.txt",header=T)
 db <- merge(db,TreeList[,c(1:4,6)],  by = "series") 
-db
+View(db)
 
 # This removes duplicates on timestamps (presumably because of daylight savingtime issues)
 print("These are the duplicated data by timestamp:")
@@ -108,12 +108,13 @@ tail(db)
 # Subset the columns we want for treenetproc
 db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
 
-# If I don't to the below code some NAs get filled inside proc_L1 when it check_ts(), throwing an error and messin up the timestamp
-db$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
-
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value, ID, site, sp, class))
 temp_data_L0 = subset(db, select = c(series, ts, temp, ID, site, sp, class))
+
+# If I don't to the below code some NAs get filled inside proc_L1 when it check_ts(), throwing an error and messin up the timestamp
+dendro_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
+temp_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
 
 colnames(temp_data_L0)<-colnames(dendro_data_L0)
 
@@ -164,18 +165,18 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # -> Open proc_L2_plot.pdf file to see results
 
 # DANGER! MANUAL CORRECTIONS #
-# corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                     dendro_L2 = dendro_data_L2,
-#                                     reverse = c(6, 9:10, 11:14, 15),
-#                                     force = c("2023-07-01 13:15:00"),
-#                                     delete = c("2023-09-13 10:00:00", "2023-09-13 10:15:00",
-#                                                "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
-#                                     plot = TRUE,
-#                                     plot_export = TRUE,
-#                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-#                                     tz="Europe/Madrid")
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(7, 8),
+                                    force = c("2023-07-01 13:15:00"),
+                                    delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+                                               # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-# View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###

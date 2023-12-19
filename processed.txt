@@ -173,6 +173,18 @@ Analisis:
 
 * -> No consigo deshacer ese salto. El reverse de treenetproc me coloca el salto a 400µm, en lugar de a los 200 µm que es donde se sitúan los datos originales. Como ya me he peleado bastante con la librería y no quiero perder más tiempo, borro los datos del 1 al 3 de marzo y ya queda el resultado bien.
 
+* codigo correciones *
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(6, 9:10, 11:14, 15),
+                                    force = c("2023-07-01 13:15:00"),
+                                    delete = c("2023-09-13 10:00:00", "2023-09-13 10:15:00",
+                                               "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
+
 * NOTAS*
 - Salto raro en Agosto y 3 saltitos en diciembre sin razón aparente pero que parecen totalmente correctos. Raro. ¿Tendrá que ver con que sea decaimiento?
 
@@ -182,7 +194,9 @@ Analisis:
 
 == 92222170 ==
 - Pino No Decaído.
-
+  tol_out = 10,
+  tol_jump = 10,
+  
 1) salto en mayo-22 -> hay missing data... difícil saber qué ha pasado ahí... igualmente no parece incorrecto.
 2) salto en agosto-22 -> Lo ha pillado autom. treenetproc con dos out.
 3) subida muyy pronunciada a finales de nov-22 -> treenetproc me ha pillado el salto del día de muestreo (famoso 24-11). El resto es verdad que tiene tendencia fuerte ascendente pero parece correcto a simple vista.
@@ -195,7 +209,18 @@ Analisis:
 * NOTAS IMPORTANTES *
 - llamativa gran subida a pcpios sept-23. Parece correcto. Se cumple en los otros 2 pinos no decaídos analizados hasta ahora y también en algunos otros pinos decaídos pero no en todos ni en la misma magnitud.
 
-== 
+== 92222171 ==
+- Quercus
+
+Analisis:
+- piquillo arriba 05-22 -> corregido autom. treenetproc.
+- pico arriba / subida fuerte  08-22 -> parece ok.
+- mayor bajón justo antes de llegar a 11-22 -> parece ok.
+-> coge bien automát. salto de muestreo del 11-22
+- subida fuerte y paulatina entre finales nov y pcpios dic-22 -> - 1ª mitad dic. valor cte y salto repentino. Valor casi cte alrededor de 250µm del 2022-12-10 03:45:00 al 2022-12-12 13:30:00. Son dos días sin apenas cambios y luego una pequeña subida de 252 a 266 y de nuevo valores que suben pero se mantienen muy ctes entorno a 270 y 280. Parecen datos correctos pero que llaman la atención la constancia en varios días del mismo valor, rompiendo la dinámica de subidas y bajadas intradiaria. -> Comentar con Antonio.
+- congelación-descongelación a finales de enero y feb 23. Tb principios marzo -> De momento los dejo. Hay que deshacer un salto a finales de feb. debido a esto.
+. Mirar de cerca out de jul-23. -> salto de 50 y se mantiene. treenetproc lo pone como out pero para mí es jump. Para corregirlo, me toca la combinación de rev + fjump + del los datos entre el force jump y el verdadero jump que no pilla bien treenetproc.
+- subida MUY pronunciada a principios de sept-2023. Parece correcto y en consonancia con lo que he ido viendo en otros árboles que dan un "estirón" a pcpios de sept-2023.
 
 
 
