@@ -1,6 +1,3 @@
-** Chuleta para filtrar por fecha: **
- db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2022-12-31 23:45:00"),]
-
 == 92222174 ==
 - Pino decaído
   tol_out = 7,
@@ -182,4 +179,27 @@ Analisis:
 * NOTA IMPORTANTE *
 - No acabo de entender porqué cuando la madera se está congelando, los dendrómetros disminuyen su valor; y cuando la madera se está descongelando (a partir de 0ºC), los dendrómetros suben su valor. ¿¿No debería ser justamente al revés puesto que el agua ocupa más espacio congelada?? Puede que sea porque la savia o la madera se comportan al revés que el agua (ver https://elpais.com/ciencia/2021-04-06/por-que-el-agua-congelada-ocupa-mas-espacio-que-el-agua-liquida.html)-> preguntar a Roberto.
 - También curioso efecto de subida grande del dentrómetro coincidiendo con una bajada de temp. del dendro en 6ºC
+
+== 92222170 ==
+- Pino No Decaído.
+
+1) salto en mayo-22 -> hay missing data... difícil saber qué ha pasado ahí... igualmente no parece incorrecto.
+2) salto en agosto-22 -> Lo ha pillado autom. treenetproc con dos out.
+3) subida muyy pronunciada a finales de nov-22 -> treenetproc me ha pillado el salto del día de muestreo (famoso 24-11). El resto es verdad que tiene tendencia fuerte ascendente pero parece correcto a simple vista.
+4) finales diciembre hay pico hacia abajo que parece correcto.
+5) conge-desconge de finales de enero-23 -> presente y de momento lo dejo.
+6) pico 2ª mitad feb-2023 -> Lo pilla autom. treenetproc como jump.
+7) conge-desconge finales de feb-23 -> Lo mismo que en enero (paso 5). Lo dejo.
+8) También hay piquitos hacia abajo a prpcios de marzo, como en el dendro anterior, debería borrarlos pero de momento los dejo porque treenetproc no ha puesto salto ahí. -> Decidir qué hacer con Antonio con estos casos.
+
+* NOTAS IMPORTANTES *
+- llamativa gran subida a pcpios sept-23. Parece correcto. Se cumple en los otros 2 pinos no decaídos analizados hasta ahora y también en algunos otros pinos decaídos pero no en todos ni en la misma magnitud.
+
+== 
+
+
+
+** Chuleta para filtrar por fecha: **
+ db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2022-12-31 23:45:00"),]
+
 
