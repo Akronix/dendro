@@ -9,3 +9,4 @@ Análisis:
 	* permitir poner nombre al plot salida de `corr_dendro_L2()`
 	* permitir hacer force jump pero en la fecha indicada y no cuando quiera treenetproc
 	* que detecte también largos valores ctes y los borre.
+	* permitir sacar output como plot de R para ggplot y no solo como pdf.
