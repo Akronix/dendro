@@ -1,21 +1,3 @@
-== 92222174 ==
-- Pino decaído
-  tol_out = 7,
-  tol_jump = 10,
-- A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar. por tanto fijamos ts_end: ts_end<-"2023-07-06 18:30:00"
-- Tuve que hacer correcciones manuales para las fechas alrededor de "2022-11-24 10:30:00"; porque no detectaba un salto sino solamente dos outliers. De ahí el código siguiente:
-
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                              dendro_L2 = dendro_data_L2,
-                              reverse = 4:5,
-                              force = "2022-11-19 10:30:00",
-                              delete = c("2022-11-24 09:00:00", "2022-11-24 10:30:00"),
-                              plot = TRUE,
-                              plot_export = TRUE,
-                              #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-                              tz="Europe/Madrid")
-
-
 == 92222155 ==
 - Quercus Ilex
   tol_out = 10,
@@ -252,6 +234,29 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
                                                "2022-06-14 15:30:00", "2022-06-14 15:45:00",
                                                "2022-08-19 08:00:00", "2022-08-19 08:45:00"
+                                               ),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
+== 92222174 ==
+- Pino decaído
+  tol_out = 7,
+  tol_jump = 10,
+- A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar. por tanto fijamos ts_end en: ts_end<-"2023-07-06 18:15:00"
+
+- pico arriba mayo-22 -> treenetproc lo pone como salto pero yo creo que son outliers. Lo deshago y borro ese trozo confuso a mano.
+- salto 2ª mitad agosto -> corregido autom. por treenetproc.
+- Tuve que hacer correcciones manuales para las fechas alrededor de "2022-11-24 10:30:00"; porque no detecta el salto del muestreo.
+- salto impte a mediados de feb-23. -> Idem.
+
+Código correcciones:
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(2,4,5),
+                                    force = "2022-11-19 10:30:00",
+                                    delete = c("2022-05-04 08:45:00", "2022-05-04 18:00:00",
+                                               "2022-11-24 09:00:00", "2022-11-24 10:30:00"
                                                ),
                                     plot = TRUE,
                                     plot_export = TRUE,
