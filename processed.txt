@@ -222,6 +222,41 @@ Analisis:
 . Mirar de cerca out de jul-23. -> salto de 50 y se mantiene. treenetproc lo pone como out pero para mí es jump. Para corregirlo, me toca la combinación de rev + fjump + del los datos entre el force jump y el verdadero jump que no pilla bien treenetproc.
 - subida MUY pronunciada a principios de sept-2023. Parece correcto y en consonancia con lo que he ido viendo en otros árboles que dan un "estirón" a pcpios de sept-2023.
 
+== 92222173 ==
+- Pino No Decaido
+  tol_out = 10,
+  tol_jump = 7,
+
+Análisis:
+- pico abajo a mediados de abril-22 -> Es raro y ruidoso. con tol_jump a 7 pone un jump que no es correcto. Lo deshago y borro esos datos.. 
+- mesetilla con valores ctes entre el 20 y el 22 de abril-22 -> De momento la dejo.
+- subida a pcpios de mayo-22 -> jump detectado por treenetproc.
+- 2 saltitos en jun-22 -> Uno lo pilla treenetproc con tol_jump=7 y el otro lo fuerzo a mano.
+- subida 2ª mitad de ago-22 -> treenetproc lo detecta como out pero para mí es claramente un jump. Lo fuerzo a mano.
+- subidón tipo salto a finales de nov-2 -> treenetproc pilla el muestreo del 24-11 y otro peq. más que...meh, lo vamos a dejar como jump.
+- piquito arriba a mediados de enero-23 -> treenetproc lo detecta como jump pero a mí no me parece tan incorrecto, lo deshago.
+mediados de feb-23 -> idem. lo deshago.
+- piquito abajo a mediados de marzo-23 -> parece OK.
+- piquito abajo finales de abril-23 -> parece OK.
+- piquito abajo 1 a mediados jul-23 y otro a finales jul-23 -> el primero parece OK, y el último lo pilla bien como jump treenetproc.
+- pico arriba último dato sept-23 -> no se ve nada en las gráficas de treenetproc así que lo dejo así.
+
+* NOTAS *
+- único dendrómetro que tengo que termina en _1 en lugar de en _0.csv (implica modificar código de process-dendro.R)
+
+- Muuuchas correcciones:
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(1,2:3,7,12,13),
+                                    force = c("2022-06-12 00:00:00", "2022-08-15 08:45:00"),
+                                    delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                                               "2022-06-14 15:30:00", "2022-06-14 15:45:00",
+                                               "2022-08-19 08:00:00", "2022-08-19 08:45:00"
+                                               ),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
 
 
 ** Chuleta para filtrar por fecha: **

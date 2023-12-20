@@ -4,7 +4,7 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222171"
+SELECTED_DENDROMETER = "92222173"
 DATA_DIR = 'dataD'
 OUTPUT_DATA_DIR = 'processed-dataD'
 
@@ -51,7 +51,7 @@ db<-do.call(rbind.data.frame, read.data.dendro(list.files))
 
 # Clean name of field series
 db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
-db$series <- gsub("_2023_09_13_0.csv","",db$series)
+db$series <- gsub("_2023_09_13_1.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
 ### CLEAN & PREPARE DATA ###
@@ -149,7 +149,7 @@ str(temp_data_L1)
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = 10,
-                                 tol_jump = 10,
+                                 tol_jump = 7,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -167,10 +167,12 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # DANGER! MANUAL CORRECTIONS #
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
-                                    reverse = c(7, 8),
-                                    force = c("2023-07-01 13:15:00"),
-                                    delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
-                                               # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    reverse = c(1,2:3,7,12,13),
+                                    force = c("2022-06-12 00:00:00", "2022-08-15 08:45:00"),
+                                    delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                                               "2022-06-14 15:30:00", "2022-06-14 15:45:00",
+                                               "2022-08-19 08:00:00", "2022-08-19 08:45:00"
+                                               ),
                                     plot = TRUE,
                                     plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
