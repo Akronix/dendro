@@ -2,8 +2,8 @@ import os
 import csv
 import re
 
-DATA_DIR = 'pre-dataD-dic'
-OUTPUT_DATA_DIR = 'dataD-dic'
+DATA_DIR = 'pre-dataCorbalan'
+OUTPUT_DATA_DIR = 'dataCorbalan'
 
 
 def is_valid_time_format(value):

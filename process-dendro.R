@@ -4,15 +4,15 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222171"
-DATA_DIR = 'dataD-dic'
-OUTPUT_DATA_DIR = 'processed-dataD-dic'
+SELECTED_DENDROMETER = "92222336"
+DATA_DIR = 'dataCorbalan'
+OUTPUT_DATA_DIR = 'processed-dataCorbalan'
 
 #-----------------------------------------------#
   
 # Set initial and final date and sampling dates
-ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
-ts_end<-"2023-12-13 11:45:00" # last timestamp of downloaded data
+ts_start<-"2022-03-19 00:00:00" #from March 19 (2 days after installation)
+ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
 
@@ -43,7 +43,7 @@ db<-do.call(rbind.data.frame, read.data.dendro(list.files))
 
 # Clean name of field series
 db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
-db$series <- gsub("_2023_12_13_0.csv","",db$series)
+db$series <- gsub("_2023_10_16_0.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
 ### CLEAN & PREPARE DATA ###
@@ -68,7 +68,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   labs(x=expression('date'),
        y=expression("Temperature (ºC)")) +
   geom_line() +
-  ggtitle(paste("Dendrometer temperature for sensor series: ",db$series[1])) +
+  ggtitle(paste("Dendrometer temperature for sensor series: ",db$series[1], " - ", db$sp[1])) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
@@ -81,7 +81,7 @@ plotTemp
 dendro_raw_plot <-
   ggplot(data = db, mapping = aes(x=ts, y=value))+
   geom_line( )+
-  ggtitle(paste0("Dendro data for sensor series: ",db$series[1])) +
+  ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
   labs(x=expression('Date'),
        y=expression(Delta*"D (um)"))+
   geom_hline(yintercept=0,lty=2,linewidth=0.2)+
@@ -145,7 +145,7 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
-                                 plot_name = paste0( db$series[1] ,"-proc_L2_plot"),
+                                 plot_name = paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot"),
                                  tz="Europe/Madrid")
 # check the data
 head(dendro_data_L2)
@@ -157,18 +157,18 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # -> Open proc_L2_plot.pdf file to see results
 
 # DANGER! MANUAL CORRECTIONS #
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                    dendro_L2 = dendro_data_L2,
-                                    reverse = c(7, 8),
-                                    force = c("2023-07-01 13:15:00"),
-                                    delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
-                                    # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
-                                    plot = TRUE,
-                                    plot_export = TRUE,
-                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-                                    tz="Europe/Madrid")
+# corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+#                                     dendro_L2 = dendro_data_L2,
+#                                     reverse = c(7, 8),
+#                                     force = c("2023-07-01 13:15:00"),
+#                                     delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+#                                     # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+#                                     plot = TRUE,
+#                                     plot_export = TRUE,
+#                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+#                                     tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+# View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###
