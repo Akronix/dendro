@@ -3,6 +3,7 @@
 source("lib-dendro.R")
 
 library(ggplot2)
+library(dplyr)
 
 DATA_DIR = 'processed-dataD'
 ```
@@ -12,8 +13,85 @@ list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TR
 db<-read.all.processed(list_files)
 str(db)
 ```
-
+Cargamos datos de los árboles para sacar y separar por las 3 categorías de dendrómetros: Pino Decaído (PD), Pino No Decaído (P) y Quercus (Q)
 ```{r}
-plot(db$ts,db$value)
+TreeList<-read.table("TreeList.txt",header=T)
+db <- merge(db,TreeList[,c(1,4,6)],  by = "series") 
+# db_ND <- db[db$class == "ND",]
+# db_D <- db[db$class == "D",]
+# db_Q <- db[db$class != "D" & db$class != "ND",]
+#aggregate(value ~ class , db, mean)
 ```
 
+Nos quedamos solamente con el año 2023 para el análisis
+```{r}
+dim(db)
+ts_start <- "2023-01-01 00:00:00" #from March 19 (2 days after installation)
+ts_end <- "2023-09-13 00:00:00" # last timestamp of downloaded data
+db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+dim(db)
+```
+
+
+```{r}
+db.cat1 <- db %>%
+  group_by(class, ts) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE))
+
+```
+
+
+```{r}
+# Pintar cada dendrómetro
+plot_cat_full_year<-
+  ggplot(data = db.cat1,  aes(x=ts, y=mean_value, color=class))+
+  geom_line( )+
+  labs(x=expression(''),
+       y=expression(Delta*"D (um)"))+
+  theme_bw() +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  #geom_vline(xintercept=as.numeric(as.POSIXct(descargas)), lty=2,linewidth=0.2)+
+  #facet_grid(class~.,scales = "free_y")+
+  scale_x_datetime(date_breaks = "1 month")
+  #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plot_cat_full_year
+ggsave('mean_cat_full_year-23.svg', height = 1200, units="px")
+```
+
+Nos quedamos solamente con el mes de sept-23 para el 2º análisis
+```{r}
+dim(db)
+ts_start <- "2023-09-01 00:00:00" #from March 19 (2 days after installation)
+ts_end <- "2023-09-13 00:00:00" # last timestamp of downloaded data
+db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+dim(db)
+```
+
+Calculamos medias para cada categoría
+```{r}
+db.cat2 <- db %>%
+  group_by(class, ts) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE))
+
+# Print the result
+print(db.cat2)
+dim(db.cat2)
+```
+
+
+Y pintamos:
+
+```{r}
+plot_cat_sept_23<-
+  ggplot(data = db.cat2,  aes(x=ts, y=mean_value, color=class))+
+  geom_line( )+
+  labs(x=expression('Date'),
+       y=expression(Delta*"D (um)"))+
+  theme_bw() +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  #facet_grid(rows = vars(series), scales = "free_y")+
+  scale_x_datetime(date_breaks = "1 day")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plot_cat_sept_23
+ggsave('mean_sept-23.png', height = 1200, units="px")
+```
