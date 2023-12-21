@@ -1,5 +1,8 @@
+source("lib-dendro.R")
+
 library(treenetproc)
 library(tidyverse)
+
 
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
@@ -37,9 +40,9 @@ read.data.dendro <- function(nameFiles){
 }
 
 # importing dendro data #
-list.files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TRUE)
-#db<-read.data.dendro(list.files) %>% rbind.data.frame
-db<-do.call(rbind.data.frame, read.data.dendro(list.files))
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TRUE)
+db<-do.call(rbind.data.frame, read.data.dendro(list_files))
+db<-read.all.dendro(list_files)
 
 # Clean name of field series
 db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
