@@ -1,0 +1,19 @@
+
+```{r}
+source("lib-dendro.R")
+
+library(ggplot2)
+
+DATA_DIR = 'processed-dataD'
+```
+
+```{r}
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TRUE)
+db<-read.all.processed(list_files)
+str(db)
+```
+
+```{r}
+plot(db$ts,db$value)
+```
+
