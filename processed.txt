@@ -279,7 +279,7 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
   tol_out = 10,
   tol_jump = 20,
 
-- No tiene valores hasta el 2023-02-16. Así que ajusto ts_start en consecuencia.
+- No tiene valores hasta el 2023-02-16. Así que ajusto ts_start en consecuencia al 2023-02-17.
 - congelaciones-descongelaciones a finales enero, finales febrero y pcpios marzo. -> treenetproc los pone como
 - subidón primero de junio. -> Parece totalmente OK.
 
