@@ -4,23 +4,15 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222180"
-DATA_DIR = 'dataD'
-OUTPUT_DATA_DIR = 'processed-dataD'
+SELECTED_DENDROMETER = "92222171"
+DATA_DIR = 'dataD-dic'
+OUTPUT_DATA_DIR = 'processed-dataD-dic'
 
 #-----------------------------------------------#
   
 # Set initial and final date and sampling dates
-ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
-
-
-if (SELECTED_DENDROMETER == 92222174) { # for dendro no 92222174, data is corrupted from "2023-07-06 18:45:00" to the end
-  ts_end<-"2023-07-06 18:15:00"
-} else if (SELECTED_DENDROMETER == 92222161) { # dendro 92222161
-  ts_end <-"2023-09-13 11:15:00"
-} else {
-  ts_end<-"2023-09-14 00:00:00" 
-}
+ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
+ts_end<-"2023-12-13 11:45:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
 
@@ -31,7 +23,7 @@ read.data.dendro <- function(nameFiles){
   for (i in 1:length(nameFiles)){
     File <- read.csv(nameFiles[i],  
                      sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
-    File$ts<-as.POSIXct(File$V2, format="%Y.%m.%d %H:%M", tz="Europe/Madrid")
+    File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
     File$date <- as.Date(File$ts)
     File<-File[which(File$ts>=ts_start & File$ts<=ts_end),] 
     File$um<-as.numeric(File$V7)
@@ -51,7 +43,7 @@ db<-do.call(rbind.data.frame, read.data.dendro(list.files))
 
 # Clean name of field series
 db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
-db$series <- gsub("_2023_09_13_0.csv","",db$series)
+db$series <- gsub("_2023_12_13_0.csv","",db$series)
 db$series <- substr(db$series,6,nchar(db$series))
 
 ### CLEAN & PREPARE DATA ###
@@ -149,7 +141,7 @@ str(temp_data_L1)
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = 10,
-                                 tol_jump = 20,
+                                 tol_jump = 10,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -165,19 +157,18 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # -> Open proc_L2_plot.pdf file to see results
 
 # DANGER! MANUAL CORRECTIONS #
-# corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                     dendro_L2 = dendryeso_data_L2,
-#                                     # reverse = c(1),
-#                                     # force = "2022-03-24 13:30:00",
-#                                     delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00"
-#                                     #            "2022-11-24 09:00:00", "2022-11-24 10:30:00"
-#                                                ),
-#                                     plot = TRUE,
-#                                     plot_export = TRUE,
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(7, 8),
+                                    force = c("2023-07-01 13:15:00"),
+                                    delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+                                    # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-                                    # tz="Europe/Madrid")
+                                    tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-# View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###

@@ -193,7 +193,9 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 == 92222171 ==
 - Quercus
-
+  tol_out = 10,
+  tol_jump = 10,
+  
 Analisis:
 - piquillo arriba 05-22 -> corregido autom. treenetproc.
 - pico arriba / subida fuerte  08-22 -> parece ok.
@@ -203,6 +205,18 @@ Analisis:
 - congelación-descongelación a finales de enero y feb 23. Tb principios marzo -> De momento los dejo. Hay que deshacer un salto a finales de feb. debido a esto.
 . Mirar de cerca out de jul-23. -> salto de 50 y se mantiene. treenetproc lo pone como out pero para mí es jump. Para corregirlo, me toca la combinación de rev + fjump + del los datos entre el force jump y el verdadero jump que no pilla bien treenetproc.
 - subida MUY pronunciada a principios de sept-2023. Parece correcto y en consonancia con lo que he ido viendo en otros árboles que dan un "estirón" a pcpios de sept-2023.
+
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(7, 8),
+                                    force = c("2023-07-01 13:15:00"),
+                                    delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+                                               # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
+
 
 == 92222173 ==
 - Pino No Decaido
