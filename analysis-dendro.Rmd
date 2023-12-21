@@ -36,7 +36,7 @@ dim(db)
 ```{r}
 db.cat1 <- db %>%
   group_by(class, ts) %>%
-  summarise(mean_value = mean(value, na.rm = TRUE))
+  summarise(mean_value = mean(value, na.rm = FALSE))
 
 ```
 
@@ -55,7 +55,7 @@ plot_cat_full_year<-
   scale_x_datetime(date_breaks = "1 month")
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 plot_cat_full_year
-ggsave('mean_cat_full_year-23.svg', height = 1200, units="px")
+ggsave('mean_cat_full_year-23.png', height = 1200, units="px")
 ```
 
 Nos quedamos solamente con el mes de sept-23 para el 2º análisis
@@ -71,7 +71,7 @@ Calculamos medias para cada categoría
 ```{r}
 db.cat2 <- db %>%
   group_by(class, ts) %>%
-  summarise(mean_value = mean(value, na.rm = TRUE))
+  summarise(mean_value = mean(value, na.rm = FALSE))
 
 # Print the result
 print(db.cat2)

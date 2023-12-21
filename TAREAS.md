@@ -1,5 +1,4 @@
 == Dendro ==
-- Hacer encargo gráfica antonio gazol para septiembre-23.
 - Mirar también que pasa con QI después de sept-23 con última descarga de datos.
 Análisis:
 	- Ver cómo correlaciona con la humedad. Ver por separado D y NDs.
