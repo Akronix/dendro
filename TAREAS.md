@@ -1,7 +1,7 @@
 == Dendro ==
 - Mirar también que pasa con QI después de sept-23 con última descarga de datos.
 Análisis:
-	- Ver cómo correlaciona con la humedad. Ver por separado D y NDs.
+	- Ver cómo correlaciona con la humedad y precipitación. Ver por separado D y NDs.
 	- Contrastar hipótesis y conclusiones de paper Cristina; y también comprobar periodos de crecimiento con Alice.
 - sacar funciones útiles y repetidasa a fichero lib.R externo. Refactor del código. Hacer función para cargar ficheros uno a uno en lugar de unir todos juntos.
 - mejorar treenetproc:
