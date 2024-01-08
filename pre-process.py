@@ -1,13 +1,11 @@
 import os
 import csv
 import re
-
-DATA_DIR = 'pre-dataCorbalan'
-OUTPUT_DATA_DIR = 'dataCorbalan'
-
+import sys
 
 def is_valid_time_format(value):
     return re.match(r'.* \d{2}:\d{2}:\d{2}', value) is not None
+
 
 def add_time_to_second_column(input_file, output_file):
     with open(input_file, 'r', newline='') as infile:
@@ -25,6 +23,7 @@ def add_time_to_second_column(input_file, output_file):
 
     print(f"Updated CSV written to {output_file}")
 
+
 def process_csv_files(input_directory, output_directory):
     # Create the output directory if it doesn't exist
     if not os.path.exists(output_directory):
@@ -38,4 +37,19 @@ def process_csv_files(input_directory, output_directory):
 
             add_time_to_second_column(input_file, output_file)
 
-process_csv_files(DATA_DIR, OUTPUT_DATA_DIR)
+
+if __name__ == "__main__":
+    # Check if two directories are provided as command line arguments
+    if len(sys.argv) != 3:
+        print("Usage: python pre-process.py <pre-data-directory> <output-data-directory>")
+        sys.exit(1)
+
+    DATA_DIR = sys.argv[1]
+    OUTPUT_DATA_DIR = sys.argv[2]
+
+    # Check if the provided paths are directories
+    if not os.path.isdir(DATA_DIR):
+        print(f"${DATA_DIR} doesn't exist or is not a directory!")
+        sys.exit(1)
+
+    process_csv_files(DATA_DIR, OUTPUT_DATA_DIR)
