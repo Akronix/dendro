@@ -1,4 +1,5 @@
 == Dendro ==
+- arreglar read.one.dendro de lib-dendro.R para que se cargue con el nombre del dendro seleccionado
 - Mirar también que pasa con QI después de sept-23 con última descarga de datos.
 Análisis:
 	- Ver cómo correlaciona con la humedad y precipitación. Ver por separado D y NDs.
