@@ -94,18 +94,10 @@ Cargamos los datos en variable `env.db` y filtramos solamente para datos de 2023
 ```{r}
 sensor.id = 94231938;
 
-# 1. load environmental data
 filename = file.path(ENVIRONMENT_DIR, paste0("data_", sensor.id, "_2023_09_13_0.csv"))
-File <- read.csv(filename, sep = ";", header = FALSE, skip = 0, dec = ",", stringsAsFactors = FALSE)
-File$ts<-as.POSIXct(File$V2, format="%Y.%m.%d %H:%M", tz="Europe/Madrid")
-File$date <- as.Date(File$ts)
-File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
-File$soil.temp <- File$V4
-File$bottom.temp <- File$V5
-File$top.temp <- File$V6
-File$humidity <- File$V7
-env.db <- subset(File, select = c(ts, date, soil.temp, bottom.temp, top.temp, humidity))
-env.db
+env.db <- read.env.data(filename)
+# filter dates
+env.db<-env.db[which(env.db$ts>=ts_start & env.db$ts<=ts_end),]
 ```
 
 

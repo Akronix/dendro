@@ -27,7 +27,12 @@ ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
 # importing dendro data #
 db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME))
 
+
 ### CLEAN & PREPARE DATA ###
+
+# Keep data of dates we're interested in
+db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+
 
 # Clean name of field series
 db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series) 
