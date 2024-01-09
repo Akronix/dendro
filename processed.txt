@@ -1,3 +1,17 @@
+=== DATOS MIEDES HASTA DEC-23 ===
+
+== 92222155 ==
+- Quercus Ilex
+  tol_out = 10,
+  tol_jump = 10,
+  
+- Sin datos hasta 10 de marzo (valor de 0 cte hasta esta fecha). Cambiado ts_start en consonancia.
+- pilla salto de 09-2023.
+
+
+
+=== DATOS MIEDES HASTA SEPT-23 ===
+
 == 92222155 ==
 - Quercus Ilex
   tol_out = 10,

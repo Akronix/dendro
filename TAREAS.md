@@ -1,9 +1,12 @@
 == Dendro ==
 - Mirar también que pasa con QI después de sept-23 con última descarga de datos.
+- Hacer medias de datos ambientales.
+
+- Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.  Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro?
 
 - procesar todos datos de Corvalán y peñaflor. Mejorar automatización en procesado de datos.
 
-- Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.
+- normalizar datos dendros Partinchas a rango 0-1 para su comparación?
 
 = Análisis =
 (Centrarse en periodo de crecimiento definido en paper Cristina) -> De Abril a Octubre ? (Comprobar con paper)
@@ -16,4 +19,5 @@
 	* permitir hacer force jump pero en la fecha indicada y no cuando quiera treenetproc
 	* que detecte también largos valores ctes y los borre.
 	* permitir sacar output como plot de R para ggplot y no solo como pdf.
+	* mejorar la detección de saltos de alguna manera...incorporar modelo de crecimiento o machine learning?
 	

@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222171"
+SELECTED_DENDROMETER = "92222155"
 DATA_DIR = 'Miedes-dic-dataD'
 OUTPUT_DATA_DIR = 'processed-dataD-dic'
 OUTPUT_ASSETS_DIR = 'output'
@@ -19,7 +19,7 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 #-----------------------------------------------#
   
 # Set initial and final date and sampling dates
-ts_start<-"2023-02-11 09:00:00" # 2 days after installation
+ts_start<-"2022-03-10 08:00:00" # No data until mar-10
 ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
@@ -132,7 +132,7 @@ str(temp_data_L1)
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = 10,
-                                 tol_jump = 10,
+                                 tol_jump = 13,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -148,18 +148,18 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # -> Open proc_L2_plot.pdf file to see results
 
 # DANGER! MANUAL CORRECTIONS #
-# corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                     dendro_L2 = dendro_data_L2,
-#                                     reverse = c(7, 8),
-#                                     force = c("2023-07-01 13:15:00"),
-#                                     delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
-#                                     # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
-#                                     plot = TRUE,
-#                                     plot_export = TRUE,
-#                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-#                                     tz="Europe/Madrid")
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(6),
+                                    # force = c("2023-07-01 13:15:00"),
+                                    # delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+                                    # # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-# View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###
