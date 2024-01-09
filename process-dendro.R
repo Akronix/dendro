@@ -7,56 +7,38 @@ library(tidyverse)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
-SELECTED_DENDROMETER = "92222336"
-DATA_DIR = 'dataCorbalan'
-OUTPUT_DATA_DIR = 'processed-dataCorbalan'
+
+SELECTED_DENDROMETER = "92222171"
+DATA_DIR = 'Miedes-dic-dataD'
+OUTPUT_DATA_DIR = 'processed-dataD-dic'
+OUTPUT_ASSETS_DIR = 'output'
+FILENAME_EXCESS = "_2023_12_13_0.csv"
+
+SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 
 #-----------------------------------------------#
   
 # Set initial and final date and sampling dates
-ts_start<-"2022-03-19 00:00:00" #from March 19 (2 days after installation)
-ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
+ts_start<-"2023-02-11 09:00:00" # 2 days after installation
+ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
 
-# Import data from dataD/ in working directory
-read.data.dendro <- function(nameFiles){
-  FileList <- list()
-  print(nameFiles)
-  for (i in 1:length(nameFiles)){
-    File <- read.csv(nameFiles[i],  
-                     sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
-    File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
-    File$date <- as.Date(File$ts)
-    File<-File[which(File$ts>=ts_start & File$ts<=ts_end),] 
-    File$um<-as.numeric(File$V7)
-    File$value<-File$um-File$um[1] #zeroing variations in diameter
-    File$temp<-as.numeric(File$V4)
-    File$series<-as.factor(nameFiles[i])
-    File<-subset(File,select=c(ts,date,um,value,temp,series))
-    FileList[[i]] <- File
-  }
-  return(FileList)
-}
-
 # importing dendro data #
-list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TRUE)
-db<-do.call(rbind.data.frame, read.data.dendro(list_files))
-db<-read.all.dendro(list_files)
-
-# Clean name of field series
-db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series)
-db$series <- gsub("_2023_10_16_0.csv","",db$series)
-db$series <- substr(db$series,6,nchar(db$series))
+db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME))
 
 ### CLEAN & PREPARE DATA ###
 
-# In this script, we will work with one dendrometer series only
-db = db[db$series == SELECTED_DENDROMETER,]
+# Clean name of field series
+db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series) 
+db$series <- gsub(FILENAME_EXCESS,"",db$series) # remove trailing filename _%date%_0.csv
+db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in filename
+
 
 # Add tree information to each dendrometer (series)
 TreeList<-read.table("TreeList.txt",header=T)
-db <- merge(db,TreeList[,c(1:4,6)],  by = "series") 
+db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+
 View(db)
 
 # This removes duplicates on timestamps (presumably because of daylight savingtime issues)
@@ -68,6 +50,7 @@ db = db[!duplicated(db$ts),];
 
 ## TEMP DATA ##
 plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
+  scale_colour_gradient(low = "light blue", high = "red") +
   labs(x=expression('date'),
        y=expression("Temperature (ºC)")) +
   geom_line() +
@@ -148,7 +131,7 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
-                                 plot_name = paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot"),
+                                 plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot")),
                                  tz="Europe/Madrid")
 # check the data
 head(dendro_data_L2)

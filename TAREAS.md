@@ -1,5 +1,4 @@
 == Dendro ==
-- arreglar read.one.dendro de lib-dendro.R para que se cargue con el nombre del dendro seleccionado
 - pasar función de leer datos env de analysis-dendro.Rmd a lib-dendro.R
 
 - procesar todos datos de Corvalán y peñaflor. Mejorar automatización en procesado de datos.
