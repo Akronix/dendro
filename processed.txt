@@ -30,7 +30,7 @@ Repito corrección procesado anterior:
  reverse = c(6),
 
 == 92222171 ==
---> Ya hecho hasta diciembre en procesado anterior. Salto.
+ - Repetido procesado anterior con mismos parámetros.
 
 === DATOS MIEDES HASTA SEPT-23 ===
 

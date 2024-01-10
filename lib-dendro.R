@@ -2,11 +2,12 @@ library(lubridate)
 
 
 # import one csv data
-read.one.dendro <- function(nameFile){
+read.one.dendro <- function(nameFile, ts_start, ts_end){
   File <- read.csv(nameFile,  
                    sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
   File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
   File$date <- as.Date(File$ts)
+  File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
   File$um<-as.numeric(File$V7)
   File$value<-File$um-File$um[1] #zeroing variations in diameter
   File$temp<-as.numeric(File$V4)
@@ -17,11 +18,11 @@ read.one.dendro <- function(nameFile){
 
 
 # import all csv data and put it altogetuer in one dataframe
-read.all.dendro <- function(nameFiles){
+read.all.dendro <- function(nameFiles, ts_start, ts_end){
   FileList <- list()
   print(nameFiles)
   for (i in 1:length(nameFiles)){
-    File <- read.one.dendro(nameFiles[i])
+    File <- read.one.dendro(nameFiles[i], ts_start, ts_end)
     FileList[[i]] <- File
   }
   return(do.call(rbind.data.frame, FileList))

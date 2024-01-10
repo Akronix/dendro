@@ -1,4 +1,9 @@
 == Dendro ==
+
+- Por qué sigue habiendo salto a mediados sept-23 en Qi????? falta por corregir alguno? (quizás 92222161??) -> Había que arreglar el inicio de los datos (el zeroing) y además quitar el dendrómetro del cual no hay datos hasta diciembre.
+
+- Actualizar datos procesados de pinos sin el bug de salvado datos corregidos.
+
 - Hacer medias de datos ambientales.
 
 - Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.  Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro?
