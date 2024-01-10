@@ -1,14 +1,24 @@
 === DATOS MIEDES HASTA DEC-23 ===
 
+== 92222161 ==
+- Quercus Ilex
+   tol_out = 10,
+   tol_jump = 10,
+
+- treenetproc pilla automáticamente algunos outliers del 2023-09-13
+- No es necesaria ninguna corrección adicional.
+
 == 92222155 ==
 - Quercus Ilex
   tol_out = 10,
   tol_jump = 10,
   
 - Sin datos hasta 10 de marzo (valor de 0 cte hasta esta fecha). Cambiado ts_start en consonancia.
-- pilla salto de 09-2023.
+- Para que pille salto del 2023-09-13 10:30:00 tengo que bajar el tol_jump a 13 y entonces también me pone como salto una descongelación del 2023-02-28. La tengo que deshacer para que esté todo OK:
+ reverse = c(6),
 
-
+== 92222171 ==
+--> Ya hecho hasta diciembre en procesado anterior. Salto.
 
 === DATOS MIEDES HASTA SEPT-23 ===
 
