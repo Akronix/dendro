@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222161"
+SELECTED_DENDROMETER = "92222164"
 DATA_DIR = 'Miedes-dic-dataD'
 OUTPUT_DATA_DIR = 'processed-dataD-dic'
 OUTPUT_ASSETS_DIR = 'output'
@@ -148,18 +148,18 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 # -> Open proc_L2_plot.pdf file to see results
 
 # DANGER! MANUAL CORRECTIONS #
-# corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                     dendro_L2 = dendro_data_L2,
-#                                     reverse = c(6),
-#                                     # force = c("2023-07-01 13:15:00"),
-#                                     # delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
-#                                     # # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
-#                                     plot = TRUE,
-#                                     plot_export = TRUE,
-#                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-#                                     tz="Europe/Madrid")
+corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    # reverse = c(6),
+                                    force = c("2022-05-02 08:00:00"),
+                                    # delete = c("2023-07-06 11:15:00", "2023-07-06 13:15:00"),
+                                    # # "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-# View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###

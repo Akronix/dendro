@@ -1,5 +1,17 @@
 === DATOS MIEDES HASTA DEC-23 ===
 
+== 92222164 ==
+- Quercus Ilex                             
+  tol_out = 10,
+  tol_jump = 10,
+
+Repito corrección procesado anterior:
+- Inducido un salto que no pillaba por defecto treenetproc en 2022-05-04 08:00:00. Lo corrijo con `force = c("2022-05-02 08:00:00"),` -> No queda del todo bien corregido el salto pero no es muy significativo así que lo dejo así.
+- treenetproc pilla automáticamente algunos outliers del 2023-09-13.
+- No es necesaria ninguna corrección adicional al procesado anterior.
+- Sigue mostrando un crecimiento extraordinario este individuo.
+
+
 == 92222161 ==
 - Quercus Ilex
    tol_out = 10,
