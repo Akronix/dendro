@@ -147,8 +147,10 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 # -> Open proc_L2_plot.pdf file to see results
 
+final_processed_data <- dendro_data_L2;
+
 # DANGER! MANUAL CORRECTIONS #
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
                                     # reverse = c(6),
                                     force = c("2022-05-02 08:00:00"),
@@ -159,12 +161,12 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
                                     tz="Europe/Madrid")
 #highlight manual corrections made on the dendrometer data:
-View(corr_dendro_data_L2[which(is.na(corr_dendro_data_L2$flags)==F),])
+View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
 
 
 ### SAVE PROCESSED DATA ###
 
-output_data <- subset(dendro_data_L2, select = c(series, ts, value, max, twd, gro_yr))
+output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
 OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
