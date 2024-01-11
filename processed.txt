@@ -311,7 +311,7 @@ mediados de feb-23 -> idem. lo deshago.
 - único dendrómetro que tengo que termina en _1 en lugar de en _0.csv (implica modificar código de process-dendro.R)
 
 - Muuuchas correcciones:
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
                                     reverse = c(1,2:3,7,12,13),
                                     force = c("2022-06-12 00:00:00", "2022-08-15 08:45:00"),
@@ -323,6 +323,24 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
                                     tz="Europe/Madrid")
+                                    
+** REPROCESADO **
+Le he hecho un reverse a 8 también porque me parece que las cantidades que había en los datos raw del dendrómetro de nov-22 indicaban más eso, aunque bien podría ser un salto como había marcado treenetproc. Ahora el `corr_` quedaría así:
+
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       reverse = c(1,2:3,7,8,12,13),
+                                       force = c("2022-06-12 00:00:00", "2022-08-15 08:45:00"),
+                                       delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                                                  "2022-06-14 15:30:00", "2022-06-14 15:45:00",
+                                                  "2022-08-19 08:00:00", "2022-08-19 08:45:00"
+                                       ),
+                                       plot = TRUE,
+                                       plot_export = TRUE,
+                                       #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                       tz="Europe/Madrid")
+                                    
+                                    
 == 92222174 ==
 - Pino decaído
   tol_out = 7,
