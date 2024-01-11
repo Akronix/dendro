@@ -374,12 +374,33 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - Pino Decaido
   tol_out = 10,
   tol_jump = 10,
+  
+  ts por defecto:
+  ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
+  ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
+
+  
 - Salto a finales de mar-23 que no pillaba treenetproc (solo como outlier) -> Lo fuerzo a mano.
 - un piquito a pcpios may-22 -> es OK, viene a partir del salto este donde no hay datos por esas fechas.
 - Valores ctes desde mediados jun-22 a finales 11-22 (Supongo que se miró el día del muestreo) -> Efectivamente no hay datos desde aprox. 14-06-22 a poco antes del 24-11-22, el 20-11-23 aprox. que vuelve a funcionar. Tiene pinta que lo cogieron y lo volvieron a instalar. -> Preguntar a Chechu y a Antonio. -> De momento voy a borrar toda esa franja de datos: delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00")`
 - Muestreo nov-11 -> pillado autom.
 - congelaciones y descongelaciones finales enero, finales feb y pcpios marzo.
 -saltazo en feb-23. -> corregido autom.
+
+Código correciones quedaría así:
+
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       # reverse = c(1),
+                                       force = "2022-03-24 13:30:00",
+                                       delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00",
+                                                  "2022-03-28 13:30:00", "2022-03-28 14:00:00"
+                                       ),
+                                       plot = TRUE,
+                                       plot_export = TRUE,
+                                       #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                       tz="Europe/Madrid")
+
 
 == 92222180 ==
 - Pino No Decaido

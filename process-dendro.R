@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222174"
+SELECTED_DENDROMETER = "92222175"
 DATA_DIR = 'Miedes-dataD'
 OUTPUT_DATA_DIR = 'Miedes-last'
 OUTPUT_ASSETS_DIR = 'output'
@@ -19,8 +19,7 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # Set initial and final date and sampling dates
 #ts_start<-"2022-05-15 09:00:00"
 ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
-#ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
-ts_end<-"2023-07-06 18:15:00"
+ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
 
 #-----------------------------------------------#
 
@@ -135,7 +134,7 @@ str(temp_data_L1)
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 tol_out = 7,
+                                 tol_out = 10,
                                  tol_jump = 10,
                                  plot_period = "monthly",
                                  plot = TRUE,
@@ -156,10 +155,10 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(2,4,5),
-                                       force = "2022-11-19 10:30:00",
-                                       delete = c("2022-05-04 08:45:00", "2022-05-04 18:00:00",
-                                                  "2022-11-24 09:00:00", "2022-11-24 10:30:00"
+                                       # reverse = c(1),
+                                       force = "2022-03-24 13:30:00",
+                                       delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00",
+                                                  "2022-03-28 13:30:00", "2022-03-28 14:00:00"
                                        ),
                                        plot = TRUE,
                                        plot_export = TRUE,
