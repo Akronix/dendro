@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222156"
+SELECTED_DENDROMETER = "92222157"
 DATA_DIR = 'Miedes-dataD'
 OUTPUT_DATA_DIR = 'Miedes-last'
 OUTPUT_ASSETS_DIR = 'output'
@@ -134,8 +134,8 @@ str(temp_data_L1)
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 tol_out = 7,
-                                 tol_jump = 10,
+                                 tol_out = 10,
+                                 tol_jump = 30,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,
@@ -155,9 +155,9 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = 3,
-                                       force = c("2022-08-19 07:15:00"),
-                                       delete = c("2022-08-19 07:15:00", "2022-08-19 08:15:00"),
+                                       reverse = c(1:2),
+                                       force = c("2022-11-20 10:00:00"),
+                                       delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00", "2022-11-24 08:00:00", "2022-11-24 9:45:00"),
                                        plot = TRUE,
                                        plot_export = TRUE,
                                        #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
