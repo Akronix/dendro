@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222154"
+SELECTED_DENDROMETER = "92222156"
 DATA_DIR = 'Miedes-dataD'
 OUTPUT_DATA_DIR = 'Miedes-last'
 OUTPUT_ASSETS_DIR = 'output'
@@ -17,8 +17,8 @@ FILENAME_EXCESS = "_2023_09_13_0.csv"
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
 # Set initial and final date and sampling dates
-ts_start<-"2022-05-15 09:00:00"
-#ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
+#ts_start<-"2022-05-15 09:00:00"
+ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
 ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
 
 #-----------------------------------------------#
@@ -154,14 +154,14 @@ final_processed_data <- dendro_data_L2;
 
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                        dendro_L2 = dendro_data_L2,
-                                        reverse = c(6),
-                                        #force = c("2022-08-19 07:15:00"),
-                                        delete = c("2023-02-16 10:15:00", "2023-02-16 18:00:00"),
-                                        plot = TRUE,
-                                        plot_export = TRUE,
-                                        #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-                                        tz="Europe/Madrid")
+                                       dendro_L2 = dendro_data_L2,
+                                       reverse = 3,
+                                       force = c("2022-08-19 07:15:00"),
+                                       delete = c("2022-08-19 07:15:00", "2022-08-19 08:15:00"),
+                                       plot = TRUE,
+                                       plot_export = TRUE,
+                                       #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                       tz="Europe/Madrid")
 
 #highlight manual corrections made on the dendrometer data:
 View(final_processed_data[which(is.na(final_processed_data$flags)==F),])

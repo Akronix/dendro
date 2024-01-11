@@ -73,16 +73,14 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - Otro pino en decaimiento.
   tol_out = 7,
   tol_jump = 10,
-- vacío en mayo 2022 -> corregido a mano. !!!!! MALLL !!!! -> no sabemos ese salto donde colocarLo. PROBLEMA! -> apuntar en memoria -> corrección deshecha.
+  
+- vacío en mayo 2022 -> no sabemos qué datos corresponden a esas fechas, así que así se queda, con NA. 
 
-
-
-
-- salto en agosto 2022 -> corregido a mano similarmente a caso *174, con este código:
+- falta por corregir salto en agosto 2022 -> corregido a mano similarmente a caso *174, con este código:
 corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               dendro_L2 = dendro_data_L2,
                               reverse = 3,
-                              force = c("2022-05-04 07:30:00", "2022-08-19 07:15:00"),
+                              force = c("2022-08-19 07:15:00"),
                               delete = c("2022-08-19 07:15:00", "2022-08-19 08:15:00"),
                               plot = TRUE,
                               plot_export = TRUE,
