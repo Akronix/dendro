@@ -1,8 +1,6 @@
 == Dendro ==
 
-- Actualizar datos procesados de pinos sin el bug de salvado datos corregidos.
-
-- Poner var globales de tol_out y tol_jump al comienzo.
+- Poner var globales de tol_out y tol_jump al comienzo de process_dendro.R
 
 - Hacer medias de datos ambientales.
 
