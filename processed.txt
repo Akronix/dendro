@@ -58,7 +58,8 @@ Repito corrección procesado anterior:
 
 - treenetproc No pilla bien manipulaciones de los dendrómetros del 16-feb-2022 -> Lo pone como jump cuando es una subida y bajada un poco rara, como una congelación pero sin que sean horas ni temperaturas y coincide con el momento en el que se estaban manipulando los dendrómetros. Borro esa parte:
 
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+
+	corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                         dendro_L2 = dendro_data_L2,
                                         reverse = c(6),
                                         #force = c("2022-08-19 07:15:00"),
@@ -77,7 +78,8 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - vacío en mayo 2022 -> no sabemos qué datos corresponden a esas fechas, así que así se queda, con NA. 
 
 - falta por corregir salto en agosto 2022 -> corregido a mano similarmente a caso *174, con este código:
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               dendro_L2 = dendro_data_L2,
                               reverse = 3,
                               force = c("2022-08-19 07:15:00"),
@@ -93,7 +95,8 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
   tol_out = 10,
   tol_jump = 30,
 -> Con el corr_dendro_L2 al revertir los jump no conseguía que se fuera a los valores adecuados, así que he tenido que poner un valor muy alto de tol_jump y forzar el único salto importante (24 de febrero) a mano. El código de corr quedaría así:
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
                                        reverse = c(1:2),
                                        force = c("2022-11-20 10:00:00"),
@@ -112,7 +115,7 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - !! Mirar 08-22. -> Entre 2022-08-03 03:15:00 y 2022-08-04 14:30:00. Hay valor absolutametne cte de 124um; lo cual no puede ser :/. Luego da un bajón a las "2022-08-04 14:45:00" a 103 y ya vuelve a la normalidad
 - a finales de enero 2023 hace jump cuando parece más outliers -> Los borro y santas pascuas porque no sé si es descongelamiento pero añaden mucho ruido. Borrado manual:
 
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               dendro_L2 = dendro_data_L2,
                               reverse = c(6, 10, 11:15, 16:19, 20:21, 23:25),
                               #force = c("2022-08-19 07:15:00"),
@@ -155,7 +158,7 @@ Analizando:
 
 - deshecho salto que en realidad era solo out en may-2023:
 
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               dendro_L2 = dendro_data_L2,
                               reverse = c(26,27),
                               #force = c("2023-02-11 10:45:00"),
