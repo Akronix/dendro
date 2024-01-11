@@ -10,11 +10,9 @@ def is_valid_time_format(value):
 def add_time_to_second_column(input_file, output_file):
     with open(input_file, 'r', newline='') as infile:
         reader = csv.reader(infile, delimiter=';')
-        header = next(reader)
 
         with open(output_file, 'w', newline='') as outfile:
             writer = csv.writer(outfile, delimiter=';')
-            writer.writerow(header)
 
             for row in reader:
                 if len(row) >= 2 and not is_valid_time_format(row[1]):
