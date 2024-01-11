@@ -2,11 +2,16 @@ library(lubridate)
 
 
 # import one csv data
-read.one.dendro <- function(nameFile, ts_start, ts_end){
+read.one.dendro <- function(nameFile, ts_start, ts_end, old_format = FALSE){
   File <- read.csv(nameFile,  
                    sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
-  File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
+  
+  if (old_format)
+    File$ts<-as.POSIXct(File$V2, format="%Y.%m.%d %H:%M", tz="Europe/Madrid")
+  else
+    File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
   File$date <- as.Date(File$ts)
+  print(File)
   File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
   File$um<-as.numeric(File$V7)
   File$value<-File$um-File$um[1] #zeroing variations in diameter

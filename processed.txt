@@ -30,7 +30,7 @@ Repito corrección procesado anterior:
  reverse = c(6),
 
 == 92222171 ==
- - Repetido procesado anterior con mismos parámetros.
+ - Repetido procesado anterior con mismos parámetros y misma corrección.
 
 === DATOS MIEDES HASTA SEPT-23 ===
 
@@ -49,10 +49,25 @@ Repito corrección procesado anterior:
 - Pino no decaído
   tol_out = 7,
   tol_jump = 10,
+  
+- No hay datos hasta 15-may-22. Fijamos ts_start<-"2022-05-15 09:00:00"
 - Mismo salto que *174 a las 2022-11-24 10:15:00, aunque este sí me lo detecta treenetproc como salto -> habría que comprobar si es una cosa generalizada y, por tanto, no ha de ser tan corregida.
 - Curioso que el mayor cambio de tendencia en el dendrómetro se dé en 11-2022? No está fuera de su periodo de crecimiento??
 - Unas puntitas el 01-03 y 02-03 del 2023 a mediodía, pero creo que son por descongelamiento.
 - Hay 0 crecimiento en todo 2023?????
+
+- treenetproc No pilla bien manipulaciones de los dendrómetros del 16-feb-2022 -> Lo pone como jump cuando es una subida y bajada un poco rara, como una congelación pero sin que sean horas ni temperaturas y coincide con el momento en el que se estaban manipulando los dendrómetros. Borro esa parte:
+
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                        dendro_L2 = dendro_data_L2,
+                                        reverse = c(6),
+                                        #force = c("2022-08-19 07:15:00"),
+                                        delete = c("2023-02-16 10:15:00", "2023-02-16 18:00:00"),
+                                        plot = TRUE,
+                                        plot_export = TRUE,
+                                        #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                        tz="Europe/Madrid")
+
 
 == 92222156 ==
 - Otro pino en decaimiento.
@@ -94,7 +109,7 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 - quizás no hay jumps que corregir en 02-23 y 03-23 y 06-23 -> revertidos
 - mirar caída en picado en 2023-04-07 y 2023-04-08 -> Me parece OK.
-- Después de revertir treenetproc me da mucho crecimiento en primavera 2023. Estará bien????
+- Después de revertir treenetproc me da mucho crecimiento en primavera 2023. Estará bien???? -> Creo que sí porque es que los saltos de descongelación que había movido treenetproc no había que moverlos, y por ello se perdía mucho crecimiento del árbol que es válido.
 - Seguramente sería interesante borrar también el bajón y subidón de finales de febrero parecido al de enero (añade mucho ruido).
 
 == 92222161 ==
