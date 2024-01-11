@@ -9,6 +9,10 @@ PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
 SELECTED_DENDROMETER = "92222180"
+TOL_JUMP = 10
+TOL_OUT = 10
+
+
 DATA_DIR = 'Miedes-dataD'
 OUTPUT_DATA_DIR = 'Miedes-last'
 OUTPUT_ASSETS_DIR = 'output'
@@ -134,8 +138,8 @@ str(temp_data_L1)
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
-                                 tol_out = 10,
-                                 tol_jump = 20,
+                                 tol_out = TOL_OUT,
+                                 tol_jump = TOL_JUMP,
                                  plot_period = "monthly",
                                  plot = TRUE,
                                  plot_export = TRUE,

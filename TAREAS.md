@@ -1,7 +1,5 @@
 == Dendro ==
 
-- Poner var globales de tol_out y tol_jump al comienzo de process_dendro.R
-
 - Hacer medias de datos ambientales.
 
 - Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.  Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro?
