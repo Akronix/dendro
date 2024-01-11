@@ -1,8 +1,8 @@
 == Dendro ==
 
-- Por qué sigue habiendo salto a mediados sept-23 en Qi????? falta por corregir alguno? (quizás 92222161??) -> Había que arreglar el inicio de los datos (el zeroing) y además quitar el dendrómetro del cual no hay datos hasta diciembre.
-
 - Actualizar datos procesados de pinos sin el bug de salvado datos corregidos.
+
+- Poner var globales de tol_out y tol_jump al comienzo.
 
 - Hacer medias de datos ambientales.
 
@@ -19,6 +19,7 @@
 	- Contrastar hipótesis y conclusiones de paper Cristina; y también comprobar periodos de crecimiento con Alice.
 	
 - mejorar treenetproc:
+	* Qué hace el reverse a jumps del corr_dendro_L2 que muchas veces no deja los datos a como estarían sin ser tocado?? (ejemplo con dendro 92222157)
 	* permitir poner nombre al plot salida de `corr_dendro_L2()`
 	* permitir hacer force jump pero en la fecha indicada y no cuando quiera treenetproc
 	* que detecte también largos valores ctes y los borre.
