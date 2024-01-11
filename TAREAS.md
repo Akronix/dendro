@@ -6,8 +6,6 @@
 
 - procesar todos datos de Corvalán y peñaflor. Mejorar automatización en procesado de datos.
 
-- normalizar datos dendros Partinchas a rango 0-1 para su comparación?
-
 = Análisis =
 (Centrarse en periodo de crecimiento definido en paper Cristina) -> De Abril a Octubre ? (Comprobar con paper)
 	- Repasar apuntes y aplicar análisis.
