@@ -292,6 +292,8 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - Pino No Decaido
   tol_out = 10,
   tol_jump = 7,
+  
+  FILENAME_EXCESS = "_2023_09_13_1.csv"
 
 Análisis:
 - pico abajo a mediados de abril-22 -> Es raro y ruidoso. con tol_jump a 7 pone un jump que no es correcto. Lo deshago y borro esos datos.. 
@@ -345,6 +347,9 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - Pino decaído
   tol_out = 7,
   tol_jump = 10,
+  
+  ts_end<-"2023-07-06 18:15:00"
+  
 - A partir "2023-07-06 18:30:00" se estanca en un valor negativo incorrecto (somo si se hubiera caído o movido o dejado de contar. por tanto fijamos ts_end en: ts_end<-"2023-07-06 18:15:00"
 
 - pico arriba mayo-22 -> treenetproc lo pone como salto pero yo creo que son outliers. Lo deshago y borro ese trozo confuso a mano.
@@ -353,7 +358,7 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
 - salto impte a mediados de feb-23. -> Idem.
 
 Código correcciones:
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
                                     reverse = c(2,4,5),
                                     force = "2022-11-19 10:30:00",
