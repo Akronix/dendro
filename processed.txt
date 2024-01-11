@@ -226,12 +226,11 @@ Analisis:
 * -> No consigo deshacer ese salto. El reverse de treenetproc me coloca el salto a 400µm, en lugar de a los 200 µm que es donde se sitúan los datos originales. Como ya me he peleado bastante con la librería y no quiero perder más tiempo, borro los datos del 1 al 3 de marzo y ya queda el resultado bien.
 
 * codigo correciones *
-corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                     dendro_L2 = dendro_data_L2,
                                     reverse = c(6, 9:10, 11:14, 15),
                                     force = c("2023-07-01 13:15:00"),
-                                    delete = c("2023-09-13 10:00:00", "2023-09-13 10:15:00",
-                                               "2023-03-01 00:00:00", "2023-03-03 00:00:00"),
+                                    delete = c("2023-03-01 00:00:00", "2023-03-03 00:00:00"),
                                     plot = TRUE,
                                     plot_export = TRUE,
                                     #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
@@ -243,6 +242,7 @@ corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
 * NOTA IMPORTANTE *
 - No acabo de entender porqué cuando la madera se está congelando, los dendrómetros disminuyen su valor; y cuando la madera se está descongelando (a partir de 0ºC), los dendrómetros suben su valor. ¿¿No debería ser justamente al revés puesto que el agua ocupa más espacio congelada?? Puede que sea porque la savia o la madera se comportan al revés que el agua (ver https://elpais.com/ciencia/2021-04-06/por-que-el-agua-congelada-ocupa-mas-espacio-que-el-agua-liquida.html)-> preguntar a Roberto.
 - También curioso efecto de subida grande del dentrómetro coincidiendo con una bajada de temp. del dendro en 6ºC
+- He borrado el periodo del 1 de mar-23 al 3-mar-23 xq no he encontrado una manera sencilla de deshacer el salto de la congelación-descongelación (si subo tol_jump pierdo otras correciones). De momento esos datos están borrados, aunque hubiera preferido preservarlos, porque son correctos y de momento no estoy quitando los artefactos por congelación-descongelación.
 
 == 92222170 ==
 - Pino No Decaído.
