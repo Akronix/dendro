@@ -14,8 +14,8 @@ ENVIRONMENT_DIR = 'Prec'
 ```
 
 ```{r}
-# ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
-# ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
+#ts_start<-"2022-03-12 00:00:00" #from March 12 (2 days after installation)
+#ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
 ```
 
 
@@ -40,7 +40,8 @@ Nos quedamos solamente con el año 2023 para el análisis
 dim(db)
 ts_start <- "2023-01-01 00:00:00" #from March 19 (2 days after installation)
 ts_end <- "2023-09-13 09:00:00" # last timestamp of downloaded data
-db2023<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+#db2023<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+db2023 <- reset.initial.values(db, ts_start, ts_end)
 dim(db2023)
 ```
 

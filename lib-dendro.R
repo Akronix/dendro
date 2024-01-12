@@ -62,3 +62,18 @@ read.env.data <- function(filename) {
   File$humidity <- File$V7
   return (subset(File, select = c(ts, date, soil.temp, bottom.temp, top.temp, humidity)))
 }
+
+
+reset.initial.values <- function (dendros, ts_start, ts_end) {
+  
+  dendros <- dendros[which(dendros$ts>=ts_start & dendros$ts<=ts_end),]
+  
+  sub_first_element <- function (dendro, group_key){
+    # equivalent to one-liner: return (df$value = sapply(df$value, \(val, first_val) val - first_val, df$value[1]))
+    dendro$value = dendro$value - dendro$value[1]
+    return (dendro)
+  }
+  
+  return (dendros %>% group_by(series) %>% group_modify( sub_first_element ) %>% ungroup() %>% as.data.frame() )
+
+}
