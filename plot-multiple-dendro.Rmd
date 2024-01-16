@@ -8,18 +8,17 @@ library(dplyr)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-DATA_DIR = 'Partinchas-dec-data'
-OUTPUT_DATA_DIR = 'processed-Partinchas-dec-data'
-FILENAME_EXCESS = "_2023_12_28_0.csv"
+DATA_DIR = 'Valcuerna-dataD'
+FILENAME_EXCESS = "_2023_10_25_0.csv"
 
 # Set initial and final date and sampling dates
-ts_start<-"2023-02-11 09:00:00" # 2 days after installation
-ts_end<-"2023-12-28 12:45:00" # last timestamp of downloaded data
+ts_start<-"2023-03-23 09:00:00" # 2 days after installation
+ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
-list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv", full.names=TRUE)
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
 db<-read.all.dendro(list_files, ts_start, ts_end)
 
 ### CLEAN & PREPARE DATA ###
@@ -51,16 +50,57 @@ plot_multiple_dendro <- function (data, title)  {
 }
 ```
 
+```{r}
+plot_multiple_dendro(db, "All raw dendrometers data")
+```
 
 ```{r}
-db.fresnos <- db %>% filter (series %in% c(92231801:92231805) )
-plot_multiple_dendro(db.fresnos, "Dendrómetros fresnos en bruto")
+db = filter(db, series !=  "92232429")
+plot_multiple_dendro(db, "All raw dendrometers data")
 ```
 
 
 ```{r}
-db.olmos <- db %>% filter (series %in% c(92231806:92231810) )
-plot_multiple_dendro(db.olmos,"Dendrómetros olmos en bruto")
+library(Rmisc) # for summarySE()
+dbagg <- summarySE(db, measurevar = "value", groupvars = c("ts"), na.rm = TRUE)
+head(dbagg)
+tail(dbagg)
+```
+
+
+```{r}
+plot_cat_full_year<-
+  ggplot(data = dbagg,  aes(x=ts, y=value)) +
+  ggtitle("Mean of raw darta for dendrometers with ± standard error strips") +
+  geom_ribbon(aes(ymin=value-se, ymax=value+se), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
+  geom_line( aes (linetype = "Quercus Ilex"), col='darkgreen', show.legend	= F) +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)"))+
+  theme_bw() +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  #facet_grid(class~.,scales = "free_y")+
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+plot_cat_full_year
+ggsave('mean+Valcuerna.png', width = 15, height = 10)
+```
+
+
+```{r}
+stop("halted by user")
+```
+
+
+
+```{r}
+# db.fresnos <- db %>% filter (series %in% c(92231801:92231805) )
+# plot_multiple_dendro(db.fresnos, "Dendrómetros fresnos en bruto")
+```
+
+
+```{r}
+# db.olmos <- db %>% filter (series %in% c(92231806:92231810) )
+# plot_multiple_dendro(db.olmos,"Dendrómetros olmos en bruto")
 ```
 
 # Normalization 0-1 to better compare dendros

@@ -11,7 +11,7 @@ read.one.dendro <- function(nameFile, ts_start, ts_end, old_format = FALSE){
   else
     File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
   File$date <- as.Date(File$ts)
-  print(File)
+  # print(File)
   File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
   File$um<-as.numeric(File$V7)
   File$value<-File$um-File$um[1] #zeroing variations in diameter
