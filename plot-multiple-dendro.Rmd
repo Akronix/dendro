@@ -59,14 +59,27 @@ db = filter(db, series !=  "92232429")
 plot_multiple_dendro(db, "All raw dendrometers data")
 ```
 
+# Normalization 0-1 to better compare dendros
 
+```{r}
+normalized.db <- db %>%
+  group_by(series) %>%
+  mutate( normalized_value = ( (value - min(value) ) / (max(value) - min(value)) ) )
+normalized.db$value = normalized.db$normalized_value
+```
+
+```{r}
+plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]")
+```
+
+
+# Mean + strip region of SE
 ```{r}
 library(Rmisc) # for summarySE()
 dbagg <- summarySE(db, measurevar = "value", groupvars = c("ts"), na.rm = TRUE)
 head(dbagg)
 tail(dbagg)
 ```
-
 
 ```{r}
 plot_cat_full_year<-
@@ -84,6 +97,85 @@ plot_cat_full_year<-
 plot_cat_full_year
 ggsave('mean+Valcuerna.png', width = 15, height = 10)
 ```
+
+
+# By species
+
+```{r}
+db.lentiscos <- db %>% filter (series %in% c(92223485, 92232435, 92232429, 92232425, 92232432) )
+db.sabinas <- db %>% filter (series %in% c(92232422, 92232436, 92232430, 92232434, 92232433, 92232427, 92232428, 92232431, 92232426))
+```
+
+```{r}
+db.lentiscos.agg <- summarySE(db.lentiscos, measurevar = "value", groupvars = c("ts"), na.rm = TRUE)
+head(db.lentiscos.agg)
+tail(db.lentiscos.agg)
+```
+
+```{r}
+#library(mdthemes)
+plot_mean_se <- function (data, species, output_fn = FALSE) {
+  plot <-
+    ggplot(data = data,  aes(x=ts, y=value)) +
+    ggtitle(paste0("Mean of raw data for ", species, " with ± standard error strips")) +
+    geom_ribbon(aes(ymin=value-se, ymax=value+se), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
+    geom_line( aes (linetype = species), col='darkgreen', show.legend	= T) +
+    labs(x=expression(''),
+         y=expression(Delta*" D (um)"))+
+    theme_bw() +
+    geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+    #facet_grid(class~.,scales = "free_y")+
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1))
+  plot(plot)
+  if (output_fn){
+    ggsave(output_fn, width = 15, height = 10)  
+  }
+}
+```
+
+
+```{r}
+plot_mean_se(db.lentiscos.agg, "Pistacia Lentiscus" )
+```
+```{r}
+db.sabinas.agg <- summarySE(db.sabinas, measurevar = "value", groupvars = c("ts"), na.rm = TRUE)
+head(db.sabinas.agg)
+tail(db.sabinas.agg)
+```
+
+
+```{r}
+plot_mean_se(db.sabinas.agg, "Juniperus Phoenicea" )
+```
+
+Join both df species in one
+```{r}
+db.sabinas.agg$class = factor("sabinas")
+db.lentiscos.agg$class = factor("lentiscos")
+db.sabinasylentiscos = rbind.data.frame(db.sabinas.agg,db.lentiscos.agg)
+str(db.sabinasylentiscos)
+```
+
+Plot both dendros in one graph
+```{r}
+plotValcuernaMeans <- 
+  ggplot(data = db.sabinasylentiscos,  aes(x=ts, y=value, col=class)) +
+    ggtitle("Mean of raw data for Pistacia Lentiscus and Juniperus Phoenicea with ± standard error strips") +
+    geom_line() +
+    geom_ribbon(aes(ymin=value-se, ymax=value+se, fill=class), alpha=0.2, show.legend	= FALSE, linetype = 0) +
+    #geom_line( aes (linetype = "Quercus Ilex"), col='darkgreen', show.legend	= F) +
+    labs(x=expression(''),
+         y=expression(Delta*" D (um)"))+
+    theme_bw() +
+    geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+    #facet_grid(class~.,scales = "free_y")+
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1))
+plotValcuernaMeans
+#ggsave('mean+Valcuerna.png', width = 15, height = 10)
+```
+
 
 
 ```{r}
