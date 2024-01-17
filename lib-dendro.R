@@ -37,6 +37,7 @@ read.all.dendro <- function(nameFiles, ts_start, ts_end){
 read.one.processed <- function(nameFile){
   File <- read.csv(nameFile, sep = ",",  header=TRUE, stringsAsFactors=FALSE)
   File$ts <- as_datetime(File$ts, tz = "Europe/Madrid")
+  File$series <- as.character(File$series)
   return(File)
 }
 

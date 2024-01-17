@@ -14,10 +14,10 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
 } else {
-  SELECTED_DENDROMETER = "92232425"  
+  SELECTED_DENDROMETER = "92232436"  
 }
 
-TOL_JUMP = 7
+TOL_JUMP = 10
 TOL_OUT = 10
 
 
@@ -85,7 +85,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
-plotTemp
+# plotTemp
 
 ## DENDRO DATA ##
 
@@ -100,7 +100,11 @@ dendro_raw_plot <-
   geom_hline(yintercept=0,lty=2,linewidth=0.2)+
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
-dendro_raw_plot
+  
+# dendro_raw_plot
+
+ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
+     width = 15, height = 10)
 
 ### PROCESS WITH TREENETPROC ###
 
@@ -174,11 +178,11 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 # final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
 #                                        dendro_L2 = dendro_data_L2,
-#                                        # reverse = c(1),
-#                                        force = "2022-03-24 13:30:00",
-#                                        delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00",
-#                                                   "2022-03-28 13:30:00", "2022-03-28 14:00:00"
-#                                        ),
+#                                        reverse = c(1:392),
+#                                        # force = "2022-03-24 13:30:00",
+#                                        # delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00",
+#                                                   # "2022-03-28 13:30:00", "2022-03-28 14:00:00"
+#                                        # ),
 #                                        plot = TRUE,
 #                                        plot_export = TRUE,
 #                                        #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),

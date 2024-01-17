@@ -23,4 +23,7 @@
 	* que detecte también largos valores ctes y los borre.
 	* permitir sacar output como plot de R para ggplot y no solo como pdf.
 	* mejorar la detección de saltos de alguna manera...incorporar modelo de crecimiento o machine learning?
+	* ¿Por qué poniendo tol_out o tol_jump a 1000 sigue pillando outliers??? Ver ejemplo con sensores 92232428, 92232435 y dendro 92232430 de Valcuerna
+	* opción para deshacer todos los cambios hechos por `proc_dendro_L2`
+	
 	
