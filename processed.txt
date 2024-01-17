@@ -1,3 +1,132 @@
+=== DATOS VALCUERNA HASTA OCT-23 ===
+
+(Ordenado de arriba a abajo por orden de procesado)
+
+ == 92232425 ==
+ - Pistacia lentiscus
+
+  TOL_JUMP = 7
+  TOL_OUT = 10
+  
+  Tuve que bajar tol_jump a 7 para que pillase como salto uno a mediados de junio.
+
+== 92232422 ==
+- Juniperus phoenicea
+
+  TOL_JUMP = 7
+  TOL_OUT = 20
+
+  Un par de saltos: 2023-04-02, 2023-07-27 y 2023-08-27.
+  Tuve que bajar el tol_jump y subir el tol_out para que los pillase.
+
+== 92223485 ==
+- Pistacia lentiscus
+  
+  TOL_JUMP = 10
+  TOL_OUT = 10
+
+- treenetproc pilla bien algunos outliers.
+
+== 92232427 ==
+- Juniperus phoenicea
+
+  TOL_JUMP = 10
+  TOL_OUT = 10
+  
+  - treenetproc no encuentra nada.
+  - Mirando raw plot solo se me ocurre que sube bastante vertiginosamente 100um a finales de julio-23, pero lo cierto es que al verlo en el plot de treenetproc parece plausible.
+  
+
+== 92232428 ==
+- Juniperus phoenicea
+
+  TOL_JUMP = 1000!
+  TOL_OUT = 1000!
+  
+  reverse = c(1:162),
+
+- treenetproc encuentra demasiadas cosas! 162 correciones!!! Pero viendo la gráfica de raw data no me parece que estén mal los números originales e incluso subiendo los tols al máximo los sigue poniendo :/
+- solución: guardo en datos procesados los valores sin corregir por treenetproc: reverse = c(1:162),
+
+
+== 92232429 ==
+- Pistacia lentiscus
+
+TOL_JUMP = 20
+TOL_OUT = 7
+  
+- Hace muchísimas cosas raras al final. No vale para análisis. <- Descartar.
+- Por si acaso he guardado un procesado con TOL_OUT que quita muchos de los valores incorrectos. Pero quita muchísimos datos.
+
+
+== 92232430 ==
+- Juniperus phoenicea
+
+  TOL_JUMP = 1000!
+  TOL_OUT = 1000!
+  
+  reverse = c(1:286),
+
+Mismo caso que en 92232428, por alguna extraña razón pone un montón de outliers (286), que son datos en realidad correctos, y lo tengo que revertir:   reverse = c(1:286)
+
+
+== 92232431 ==
+- Juniperus phoenicea
+
+TOL_JUMP = 10
+TOL_OUT = 10
+
+- En raw parece todo correcto y treenetproc no hace ninguna correción. todo OK.
+
+== 92232432 ==
+- Pistacia lentiscus
+
+TOL_JUMP = 10
+TOL_OUT = 10
+
+- Igual que *431. Todo OK sin correcciones.
+
+== 92232433 ==
+- Juniperus phoenicea
+
+TOL_JUMP = 1000
+TOL_OUT = 1000
+
+reverse = c(1:42)
+
+- Excesivas correciones, igual que 92232428 y 92232430
+
+== 92232434 ==
+- Juniperus phoenicea
+
+TOL_JUMP = 10
+TOL_OUT = 10
+
+- OK.
+
+== 92232435 ==
+- Pistacia lentiscus
+
+TOL_JUMP = 1000
+TOL_OUT = 1000
+reverse = c(1:392),
+
+- En raw se ve un dendrómetro muy inestable, con subidas y bajadas de 100 y 200 um.
+- Sin embargo, luego de cercan parece OK.
+- De nuevo treenetproc demasiadas correciones que hay que deshacer.
+
+== 92232436 ==
+- Juniperus phoenicea
+
+TOL_JUMP = 10
+TOL_OUT = 10
+
+- en raw veo un salto muy fuerte de 300um a pcpios de sept. -> Mirándolo de cerca los datos parecen OK.
+- treenetproc detecta un part de outliers sin importancia que dejo corregidos.
+
+
+
+
 === DATOS MIEDES HASTA DEC-23 ===
 
 == 92222164 ==
