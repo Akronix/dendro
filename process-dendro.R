@@ -8,35 +8,49 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-SELECTED_DENDROMETER = "92222180"
-TOL_JUMP = 10
+args <- commandArgs(trailingOnly = TRUE)
+# print(args)
+
+if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
+  SELECTED_DENDROMETER = as.character(args[1])
+} else {
+  SELECTED_DENDROMETER = "92232425"  
+}
+
+TOL_JUMP = 7
 TOL_OUT = 10
 
 
-DATA_DIR = 'Miedes-dataD'
-OUTPUT_DATA_DIR = 'Miedes-last'
+DATA_DIR = 'Valcuerna-dataD'
+OUTPUT_DATA_DIR = 'Valcuerna-processed'
 OUTPUT_ASSETS_DIR = 'output'
-FILENAME_EXCESS = "_2023_09_13_0.csv"
+FILENAME_EXCESS = "_2023_10_25_0.csv"
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
 # Set initial and final date and sampling dates
-ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
+#ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
 #ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
-ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
+#ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
+
+ts_start<-"2023-03-23 09:00:00" # 2 days after installation
+ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
+
+print("process-dendro script running with the next parameters:")
+cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
 
 #-----------------------------------------------#
 
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
-db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end, old_format = TRUE)
+db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end, old_format = FALSE)
 
 
 ### CLEAN & PREPARE DATA ###
 
 # Keep data of dates we're interested in
-# db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
 
 # zeroing variations in diameter
 # db$value<-db$um-db$um[1]
@@ -48,15 +62,16 @@ db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in fi
 
 
 # Add tree information to each dendrometer (series)
-TreeList<-read.table("TreeList.txt",header=T)
-db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+# TreeList<-read.table("TreeList.txt",header=T)
+# db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
-View(db)
+dim(db)
 
 # This removes duplicates on timestamps (presumably because of daylight savingtime issues)
 print("These are the duplicated data by timestamp:")
 print(db[duplicated(db$ts),])
 db = db[!duplicated(db$ts),];
+dim(db)
 
 ### PLOT RAW DATA ###
 
@@ -96,11 +111,11 @@ tail(db)
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
+db <- subset(db, select = c(ts, value, series, temp))
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
-dendro_data_L0 = subset(db, select = c(series, ts, value, ID, site, sp, class))
-temp_data_L0 = subset(db, select = c(series, ts, temp, ID, site, sp, class))
+dendro_data_L0 = subset(db, select = c(series, ts, value))
+temp_data_L0 = subset(db, select = c(series, ts, temp))
 
 # If I don't to the below code some NAs get filled inside proc_L1 when it check_ts(), throwing an error and messin up the timestamp
 dendro_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
@@ -173,10 +188,14 @@ final_processed_data <- dendro_data_L2;
 #highlight manual corrections made on the dendrometer data:
 # View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
 
-
 ### SAVE PROCESSED DATA ###
-
-output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
 OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
+### SAVE IN PROCESSED FORMAT ###
+output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
 write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
+
+### SAVE IN INPUT SENSOR FORMAT ###
+## OVERWRITE INPUT DATA VALUES WITH PROCESSED VALUES ##
+# db$value = final_processed_data$value
+# write_csv(db, file.path(OUTPUT_PATH, paste0("proc-input-format-", db$series[1], ".csv")), append = FALSE)
