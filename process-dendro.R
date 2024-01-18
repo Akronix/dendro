@@ -11,6 +11,7 @@ setwd(PATH)
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
 
+# SENSOR-SPECIFIC GLOBAL VARIABLES #
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
 } else {
@@ -20,7 +21,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
 TOL_JUMP = 10
 TOL_OUT = 10
 
-
+# GENERAL GLOBAL VARIABLES #
 DATA_DIR = 'Valcuerna-dataD'
 OUTPUT_DATA_DIR = 'Valcuerna-processed'
 OUTPUT_ASSETS_DIR = 'output'

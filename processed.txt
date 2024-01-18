@@ -1,5 +1,13 @@
 === DATOS VALCUERNA HASTA OCT-23 ===
 
+DATA_DIR = 'Valcuerna-dataD'
+OUTPUT_DATA_DIR = 'Valcuerna-processed'
+OUTPUT_ASSETS_DIR = 'output'
+FILENAME_EXCESS = "_2023_10_25_0.csv"
+
+ts_start<-"2023-03-23 09:00:00" # 2 days after installation
+ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
+
 (Ordenado de arriba a abajo por orden de procesado)
 
  == 92232425 ==

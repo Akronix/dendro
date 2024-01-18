@@ -1,8 +1,8 @@
 == Dendro ==
 
-- quitar salto de junio del 92232425, hacer normalizacion 0-1 y medias datos ambientales
+- tratar datos ambientales
 
-- Hacer medias de datos ambientales.
+- Hacer medias de datos ambientales. -> Hacer antes gráfica de humedad para distintos sensores.
 
 - Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.  Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro? -> Creo que es necesario que leas el paper de calibración de TOMST para ver cómo va todo este tema de la calibración.
 
