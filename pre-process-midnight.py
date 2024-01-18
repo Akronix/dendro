@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+   pre-process-midnight.py
+   Descp: A very simple script that add the missing time part 00:00:00
+      at midnight for tomst output files in lolly version 1.40.
+   Created on: 21-dec-2023
+   Copyright 2023-2024 Abel 'Akronix' Serrano Juste <akronix5@gmail.com>
+   LICENSE: GPLv3.0
+"""
+
+
 import os
 import csv
 import re
@@ -39,7 +51,7 @@ def process_csv_files(input_directory, output_directory):
 if __name__ == "__main__":
     # Check if two directories are provided as command line arguments
     if len(sys.argv) != 3:
-        print("Usage: python pre-process.py <pre-data-directory> <output-data-directory>")
+        print("Usage: python pre-process-midnight.py <pre-data-directory> <output-data-directory>")
         sys.exit(1)
 
     DATA_DIR = sys.argv[1]
