@@ -1,6 +1,10 @@
 == Dendro ==
 
-- tratar datos ambientales
+- Que aparezcan todos los dendros en norm 0-1
+
+- Por qué c**** sigue apareciendo el saltito de junio en las medias????? -> Tiene que ser algún dendro que he revertido su procesamiento... (p.ej. volver a mirar 92232434) -> No. Es simplemente fecha que se ha hecho algo raro sobre el terreno / campo.
+
+- tratar datos ambientales. gráficas de líneas de humedad, una por sensor.
 
 - Hacer medias de datos ambientales. -> Hacer antes gráfica de humedad para distintos sensores.
 

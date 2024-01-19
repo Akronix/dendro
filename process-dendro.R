@@ -15,11 +15,11 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
 } else {
-  SELECTED_DENDROMETER = "92232436"  
+  SELECTED_DENDROMETER = "92232430"  
 }
 
-TOL_JUMP = 10
-TOL_OUT = 10
+TOL_JUMP = 7
+TOL_OUT = 1000
 
 # GENERAL GLOBAL VARIABLES #
 DATA_DIR = 'Valcuerna-dataD'
@@ -179,7 +179,7 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 # final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
 #                                        dendro_L2 = dendro_data_L2,
-#                                        reverse = c(1:392),
+#                                        reverse = c(1:285),
 #                                        # force = "2022-03-24 13:30:00",
 #                                        # delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00",
 #                                                   # "2022-03-28 13:30:00", "2022-03-28 14:00:00"
@@ -198,7 +198,7 @@ OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 ### SAVE IN PROCESSED FORMAT ###
 output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
-write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
+# write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
 
 ### SAVE IN INPUT SENSOR FORMAT ###
 ## OVERWRITE INPUT DATA VALUES WITH PROCESSED VALUES ##

@@ -24,6 +24,7 @@ ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
   TOL_JUMP = 7
   TOL_OUT = 20
 
+  Tiene una ausencia de datos importante a mediados de junio que provoca un salto inesperado para este sensor, lo cual hace que no sea muy fiable a partir de ese momento y quizás lo mejor sea quitarlo del análisis.
   Un par de saltos: 2023-04-02, 2023-07-27 y 2023-08-27.
   Tuve que bajar el tol_jump y subir el tol_out para que los pillase.
 
@@ -70,12 +71,13 @@ TOL_OUT = 7
 == 92232430 ==
 - Juniperus phoenicea
 
-  TOL_JUMP = 1000!
-  TOL_OUT = 1000!
+  TOL_JUMP = 7
+  TOL_OUT = 1000
   
-  reverse = c(1:286),
+  reverse = c(1:285),
 
-Mismo caso que en 92232428, por alguna extraña razón pone un montón de outliers (286), que son datos en realidad correctos, y lo tengo que revertir:   reverse = c(1:286)
+- Mismo caso que en 92232428, por alguna extraña razón pone un montón de outliers (286), que son datos en realidad correctos, y lo tengo que revertir:   reverse = c(1:285)
+- Le pongo tol_jump a 7 para que corrija un saltito a mediados de junio
 
 
 == 92232431 ==
@@ -130,6 +132,7 @@ TOL_JUMP = 10
 TOL_OUT = 10
 
 - en raw veo un salto muy fuerte de 300um a pcpios de sept. -> Mirándolo de cerca los datos parecen OK.
+- ^lo mismo a pcpios jun-23
 - treenetproc detecta un part de outliers sin importancia que dejo corregidos.
 
 
