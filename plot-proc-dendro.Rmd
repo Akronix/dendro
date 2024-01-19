@@ -32,7 +32,7 @@ tail(db)
 
 ```{r}
 ## PLOT ALL DENDROS ##
-plot_multiple_dendro <- function (data, title, y = value)  {
+plot_multiple_dendro <- function (data, title, y = data$value)  {
   ggplot(data = data, mapping = aes(x=ts, y=y, col=series))+
   geom_line( )+
   # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
@@ -61,11 +61,6 @@ normalized.db <- db %>%
   select (series, ts, value) %>%
   group_by(series) %>%
   mutate( normalized_value = ( (value - min(value, na.rm = TRUE) ) / (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)) ), .keep = 'all' )
-```
-
-
-```{r}
-stop('stop')
 ```
 
 
@@ -177,48 +172,18 @@ plotValcuernaMeans
 #ggsave('mean+Valcuerna.png', width = 15, height = 10)
 ```
 
-
-
-```{r}
-stop("halted by user")
-```
-
-
+# Environmental data from TMS sensors
 
 ```{r}
-# db.fresnos <- db %>% filter (series %in% c(92231801:92231805) )
-# plot_multiple_dendro(db.fresnos, "Dendrómetros fresnos en bruto")
-```
+ENV_DIR = 'Valcuerna-Prec-processed'
 
-
-```{r}
-# db.olmos <- db %>% filter (series %in% c(92231806:92231810) )
-# plot_multiple_dendro(db.olmos,"Dendrómetros olmos en bruto")
-```
-
-# Normalization 0-1 to better compare dendros
-
-```{r}
-normalized.olmos <- db.olmos %>%
-  group_by(series) %>%
-  mutate( normalized_value = ( (value - min(value) ) / (max(value) - min(value)) ) )
-normalized.olmos
+# importing processed environmental data #
+list_files <- list.files(file.path(PATH,ENV_DIR), pattern="*.csv$", full.names=TRUE)
+db.env<-read.all.env.processed(list_files)
+str(db.env)
 ```
 
 ```{r}
-normalized.olmos$value = normalized.olmos$normalized_value
-plot_multiple_dendro(normalized.olmos, "Dendrómetros olmos normalizados 0-1")
-```
-
-```{r}
-normalized.fresnos <- db.fresnos %>%
-  group_by(series) %>%
-  mutate( normalized_value = ( (value - min(value) ) / (max(value) - min(value)) ) )
-normalized.fresnos
-```
-
-```{r}
-normalized.fresnos$value = normalized.fresnos$normalized_value
-plot_multiple_dendro(normalized.fresnos, "Dendrómetros fresnos normalizados 0-1")
+plot_multiple_dendro(db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc)
 ```
 

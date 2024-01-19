@@ -37,7 +37,7 @@ read.all.dendro <- function(nameFiles, ts_start, ts_end){
 read.one.processed <- function(nameFile){
   File <- read.csv(nameFile, sep = ",",  header=TRUE, stringsAsFactors=FALSE)
   File$ts <- as_datetime(File$ts, tz = "Europe/Madrid")
-  File$series <- as.character(File$series)
+  File$series <- as.factor(File$series)
   return(File)
 }
 
@@ -62,6 +62,25 @@ read.env.data <- function(filename) {
   File$top.temp <- File$V6
   File$humidity <- File$V7
   return (subset(File, select = c(ts, date, soil.temp, bottom.temp, top.temp, humidity)))
+}
+
+
+read.env.proc <- function(filename) {
+  File <- read.csv(filename, sep = ",",  header=TRUE, stringsAsFactors=FALSE)
+  File$series <- as.factor(File$series)
+  File$ts <- as_datetime(File$ts, tz = "Europe/Madrid")
+  return(File)
+}
+
+
+read.all.env.processed <- function(nameFiles){
+  FileList <- list()
+  print(nameFiles)
+  for (i in 1:length(nameFiles)){
+    File <- read.env.proc(nameFiles[i])
+    FileList[[i]] <- File
+  }
+  return(do.call(rbind.data.frame, FileList))
 }
 
 

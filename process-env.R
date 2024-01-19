@@ -13,8 +13,8 @@ setwd(PATH)
 ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
 ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
 
-ENVIRONMENT_DIR = 'Prec'
-OUTPUT_ENV_DIR = 'Prec-processed'
+ENVIRONMENT_DIR = 'Valcuerna-Prec-good_format'
+OUTPUT_ENV_DIR = 'Valcuerna-Prec-processed'
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -35,7 +35,7 @@ list_files <- list.files(file.path(".",ENVIRONMENT_DIR), pattern="*.csv$", full.
 
 print(list_files)
 
-dfs <- data.frame()
+dfs.all <- data.frame()
 
 for (filename in list_files) {
   
@@ -49,25 +49,25 @@ for (filename in list_files) {
   tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T3"))
   names(tms.df) <- c("ts", "temp", "vwc")
   
-  if (empty(dfs)) {dfs = tms.df} else {dfs = rbind.data.frame(dfs, tms.df)}
+  if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
   
   # write processed environmental data, one per sensor
   serial_no = (mc_info(tms.vwc)$serial_number)[1]
-  write_csv(tms.df, file.path(OUTPUT_PATH, paste0("proc-", serial_no , "-tmt.csv")), append = F, col_names = T)
+  tms.df$series = serial_no # here we manually add a series column
+  write_csv(tms.df, file.path(OUTPUT_PATH, paste0("proc-", serial_no , "-tms.csv")), append = F, col_names = T)
 }
 
-#dfs$serial_number <- as.factor(dfs$serial_number)
-str(dfs)
+str(dfs.all)
 
-db.env <- subset(dfs, select = c("ts", "temp", "vwc") )
+db.env <- subset(dfs.all, select = c("ts", "temp", "vwc") )
 
 # Do mean of all sensors
-db.env <- dfs %>%
-  filter(ts < ymd_hms("2022-12-31 00:00:00")) %>%
+db.env <- dfs.all %>%
+  #filter(ts < ymd_hms("2022-12-31 00:00:00")) %>%
   group_by(ts) %>%
-  summarise(temp = mean(temp, na.rm = TRUE), VWC = mean(vwc, na.rm = T))
+  dplyr::summarise(temp = mean(temp, na.rm = TRUE), VWC = mean(vwc, na.rm = T))
 
 summary(db.env)
 
 # write aggregated data to file.
-write_csv(db.env, file.path(OUTPUT_PATH, "proc-agg-temp&vwc.csv"), append = F, col_names = T)
+write_csv(db.env, file.path(OUTPUT_PATH, 'aggregated', "proc-agg-temp&vwc.csv"), append = F, col_names = T)
