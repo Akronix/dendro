@@ -186,4 +186,53 @@ str(db.env)
 ```{r}
 plot_multiple_dendro(db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc)
 ```
+There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
+```{r}
+# 94252893 it's valid only from installation to mid April and then from mid-june to firsts of July
+cond1 = db.env$series == "94252893"
+# investigating, the first valid period is until "2023-04-13 21:00:00"
+#  and second valid period is from 2023-06-11 19:00:00 (very approximated) until 2023-07-05 03:30:00
+interval = (aux$ts > "2023-04-13 21:00:00") & (aux$ts <= "2023-06-11 19:00:00") 
+db.env[interval & cond1,]$vwc <- NA # first invalid period: from 13 of april to 11 of june.
+db.env[interval & cond1,]$temp <- NA # first invalid period: from 13 of april to 11 of june.
+
+db.env[(aux$ts >= "2023-07-05 03:30:00") & cond1,]$vwc <- NA # second invalid period from 2023-07-05 03:30:00 to the end
+db.env[(aux$ts >= "2023-07-05 03:30:00") & cond1,]$temp <- NA # second invalid period from 2023-07-05 03:30:00 to the end
+
+# 94252894 it's invalid from mid-August to the end.
+cond2 = db.env$series == "94252894"
+# investigating, the invalid period starts exactly at 2023-08-18 06:30:00 and it goes until the end:
+db.env[(aux$ts >= "2023-08-18 06:30:00") & cond2,]$vwc <- NA
+db.env[(aux$ts >= "2023-08-18 06:30:00") & cond2,]$temp <- NA
+```
+
+This is the result of adding the NA to the invalid periods:
+```{r}
+plot_multiple_dendro(db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc)
+```
+
+Now calculate the mean for vwc and temp:
+```{r}
+db.env.agg = db.env %>% group_by(ts) %>% dplyr::summarise(temp = mean(temp, na.rm = T), vwc = mean(vwc, na.rm = T))
+db.env.agg
+```
+
+
+And we plot it:
+
+```{r}
+plot_temp_and_humidity <-
+  ggplot(data = db.env.agg, aes(x=ts, y=temp)) +
+    geom_line(aes(colour = temp)) +
+    theme_bw() +
+    scale_colour_gradient(low = "light blue", high = "red") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1)) +
+    scale_y_continuous("Temperature (ºC)", sec.axis = sec_axis( ~ . / 1, name = "Volumetric Water Content (%)" ))+
+    geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
+    scale_linetype_manual(NULL, values = 1) +
+    labs(x=expression(''), colour = "Temperature (ºC)")
+plot_temp_and_humidity
+```
+
 
