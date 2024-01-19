@@ -228,7 +228,7 @@ plot_temp_and_humidity <-
     scale_colour_gradient(low = "light blue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
     theme(axis.text.x = element_text(angle = 30, hjust=1)) +
-    scale_y_continuous("Temperature (ºC)", sec.axis = sec_axis( ~ . / 1, name = "Volumetric Water Content (%)" ))+
+    scale_y_continuous("Temperature (ºC)", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
     geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
