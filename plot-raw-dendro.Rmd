@@ -200,7 +200,7 @@ stop("halted by user")
 ```{r}
 normalized.olmos <- db.olmos %>%
   group_by(series) %>%
-  mutate( normalized_value = ( (value - min(value) ) / (max(value) - min(value)) ) )
+  mutate( normalized_value = ( (value - min(value, na.rm = TRUE) ) / (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)) ))
 normalized.olmos
 ```
 
@@ -212,7 +212,7 @@ plot_multiple_dendro(normalized.olmos, "Dendrómetros olmos normalizados 0-1")
 ```{r}
 normalized.fresnos <- db.fresnos %>%
   group_by(series) %>%
-  mutate( normalized_value = ( (value - min(value) ) / (max(value) - min(value)) ) )
+  mutate( normalized_value = ( (value - min(value, na.rm = TRUE) ) / (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)) ))
 normalized.fresnos
 ```
 
