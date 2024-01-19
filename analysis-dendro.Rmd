@@ -29,11 +29,33 @@ Cargamos datos de los árboles para sacar y separar por las 3 categorías de den
 ```{r}
 TreeList<-read.table("TreeList.txt",header=T)
 db <- merge(db,TreeList[,c(1,4,6)],  by = "series") 
-# db_ND <- db[db$class == "ND",]
-# db_D <- db[db$class == "D",]
-# db_Q <- db[db$class != "D" & db$class != "ND",]
 #aggregate(value ~ class , db, mean)
 ```
+
+# Un poco de estadística descriptiva
+
+```{r}
+db_ND <- db[db$class == "ND",]
+summary(db_ND)
+sd(db_ND$value, na.rm = T)
+db_D <- db[db$class == "D",]
+summary(db_D)
+sd(db_D$value, na.rm = T)
+db_Q <- db[db$class != "D" & db$class != "ND",]
+summary(db_Q)
+sd(db_Q$value, na.rm = T)
+```
+
+Pintamos un cleveland dotplots para ver mejor dispersión y outliers:
+
+```{r}
+# hacer antes un agregado diario o algo así
+# dotchart(db$value,
+# groups = factor(db$class),
+# ylab = "Class", xlab = "Value",
+# main = "Cleveland dotplot", pch = db$class)
+```
+
 
 Nos quedamos solamente con el año 2023 para el análisis
 ```{r}
@@ -50,7 +72,6 @@ dim(db2023)
 db2023.class <- db2023 %>%
   group_by(class, ts) %>%
   summarise(mean_value = mean(value, na.rm = TRUE))
-
 ```
 
 

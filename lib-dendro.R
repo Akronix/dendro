@@ -97,3 +97,10 @@ reset.initial.values <- function (dendros, ts_start, ts_end) {
   return (dendros %>% group_by(series) %>% group_modify( sub_first_element ) %>% ungroup() %>% as.data.frame() )
 
 }
+
+
+normalize.0_1 <- function (values) {
+  minV <- min(values, na.rm = TRUE)
+  maxV <- max(values, na.rm = TRUE)
+  return ((values - minV) / (maxV - minV))
+}

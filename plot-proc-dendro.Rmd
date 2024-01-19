@@ -60,7 +60,7 @@ plot_multiple_dendro(db, "All raw dendrometers data")
 normalized.db <- db %>%
   select (series, ts, value) %>%
   group_by(series) %>%
-  mutate( normalized_value = ( (value - min(value, na.rm = TRUE) ) / (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)) ), .keep = 'all' )
+  mutate( normalized_value = normalize.0_1(value), .keep = 'all' )
 ```
 
 
