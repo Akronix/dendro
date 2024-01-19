@@ -8,7 +8,7 @@ library(dplyr)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-DATA_DIR = 'Valcuerna-dataD'
+DATA_DIR = 'Valcuerna-processed'
 FILENAME_EXCESS = "_2023_10_25_0.csv"
 
 # Set initial and final date and sampling dates
@@ -19,14 +19,9 @@ ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
 
 # importing dendro data #
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
-db<-read.all.dendro(list_files, ts_start, ts_end)
+db<-read.all.processed(list_files)
 
 ### CLEAN & PREPARE DATA ###
-
-# Clean name of field series
-db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series) 
-db$series <- gsub(FILENAME_EXCESS,"",db$series) # remove trailing filename _%date%_0.csv
-db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in filename
 
 # INSPECT DATA
 str(db)
@@ -37,8 +32,8 @@ tail(db)
 
 ```{r}
 ## PLOT ALL DENDROS ##
-plot_multiple_dendro <- function (data, title)  {
-  ggplot(data = data, mapping = aes(x=ts, y=value, col=series))+
+plot_multiple_dendro <- function (data, title, y = value)  {
+  ggplot(data = data, mapping = aes(x=ts, y=y, col=series))+
   geom_line( )+
   # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
   labs(x=expression('Date'),
@@ -68,8 +63,14 @@ normalized.db <- db %>%
   mutate( normalized_value = ( (value - min(value, na.rm = TRUE) ) / (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)) ), .keep = 'all' )
 ```
 
+
 ```{r}
-plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]")
+stop('stop')
+```
+
+
+```{r}
+plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]", y = normalized.db$normalized_value)
 ```
 
 
@@ -84,7 +85,7 @@ tail(dbagg)
 ```{r}
 plot_cat_full_year<-
   ggplot(data = dbagg,  aes(x=ts, y=value)) +
-  ggtitle("Mean of raw darta for dendrometers with ± standard error strips") +
+  ggtitle("Mean of data for dendrometers with ± standard error strips") +
   geom_ribbon(aes(ymin=value-se, ymax=value+se), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
   geom_line( aes (linetype = "Quercus Ilex"), col='darkgreen', show.legend	= F) +
   labs(x=expression(''),
@@ -117,7 +118,7 @@ tail(db.lentiscos.agg)
 plot_mean_se <- function (data, species, output_fn = FALSE) {
   plot <-
     ggplot(data = data,  aes(x=ts, y=value)) +
-    ggtitle(paste0("Mean of raw data for ", species, " with ± standard error strips")) +
+    ggtitle(paste0("Mean of data for ", species, " with ± standard error strips")) +
     geom_ribbon(aes(ymin=value-se, ymax=value+se), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
     geom_line( aes (linetype = species), col='darkgreen', show.legend	= T) +
     labs(x=expression(''),
