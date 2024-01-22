@@ -13,13 +13,17 @@
 	- Contrastar hipótesis y conclusiones de paper Cristina; y también comprobar periodos de crecimiento con Alice.
 	
 - mejorar treenetproc:
-	* Qué hace el reverse a jumps del corr_dendro_L2 que muchas veces no deja los datos a como estarían sin ser tocado?? (ejemplo con dendro 92222157)
 	* permitir poner nombre al plot salida de `corr_dendro_L2()`
 	* permitir hacer force jump pero en la fecha indicada y no cuando quiera treenetproc
+	* Qué hace el reverse a jumps del corr_dendro_L2 que muchas veces no deja los datos a como estarían sin ser tocado?? (ejemplo con dendro 92222157)
 	* que detecte también largos valores ctes y los borre.
 	* permitir sacar output como plot de R para ggplot y no solo como pdf.
 	* mejorar la detección de saltos de alguna manera...incorporar modelo de crecimiento o machine learning?
 	* ¿Por qué poniendo tol_out o tol_jump a 1000 sigue pillando outliers??? Ver ejemplo con sensores 92232428, 92232435 y dendro 92232430 de Valcuerna
 	* opción para deshacer todos los cambios hechos por `proc_dendro_L2`
+	
+	
+	== Probar ==
+	- probar datacleanr para visualizar mejor datos de cerca cuando se quiere ver si es salto o no de dendrómetros: https://the-hull.github.io/datacleanr/
 	
 	
