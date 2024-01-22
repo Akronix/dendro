@@ -49,11 +49,14 @@ sd(db_Q$value, na.rm = T)
 Pintamos un cleveland dotplots para ver mejor dispersión y outliers:
 
 ```{r}
-# hacer antes un agregado diario o algo así
-# dotchart(db$value,
-# groups = factor(db$class),
-# ylab = "Class", xlab = "Value",
-# main = "Cleveland dotplot", pch = db$class)
+# hacer antes un agregado horario o algo así para que sean menos datos a pintar.
+# probar tb con ggplot
+# Pintar de color diferente cada dendro y separar las 3 especies
+# si acaso luego pintar todas juntas pero distinguiendo también cada dendro.
+dotchart(db$value,
+groups = factor(db$class),
+ylab = "Class", xlab = "Value",
+main = "Cleveland dotplot", pch = db$class)
 ```
 
 
