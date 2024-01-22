@@ -1,3 +1,117 @@
+=== DATOS CORBALAN HASTA OCT-23 ===
+
+DATA_DIR = 'raw/Corbalan-dataD'
+OUTPUT_DATA_DIR = 'processed/Corbalan-processed'
+OUTPUT_ASSETS_DIR = 'output'
+FILENAME_EXCESS = "_2023_10_16_0.csv"
+
+ts_start<-"2022-04-04 11:00:00" # After winter shrinking, so it gets more accurate values for TWD and growth.
+ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
+
+(Ordenado de arriba a abajo por orden de procesado)
+
+----
+
+== 92222321 ==
+- Qi
+TOL_JUMP = 15
+TOL_OUT = 10
+
+- Raw:
+  - Bajón finales de febrero-23.
+  - Subidón a finales de mayo-23 y a pcpios jul-23 y a pcpios sept-23
+- treenetproc:
+  - campana super curiosa en dic-22. Contrastar con otros dendros.
+  - Le ha faltado por pillar un pequeño outlier en nov-22
+  - Ponía unos saltos en feb-23 que no correspondían. Subo TOL_JUMP.
+  - Marca algunos outliers sin importancia. El resto me parece bastante OK.
+
+== 92222336 ==
+- Qi - params:
+
+TOL_JUMP = 10
+TOL_OUT = 10
+
+       force = "2022-11-15 11:00:00",
+       delete = c("2022-11-16 10:30:00", "2022-11-16 12:45:000"),
+
+- Raw
+  - piquito abajo pcpios abril-22
+  - subidón finales jun-22 y pcpios ago-22
+  - piquito abajo finales en-23
+  - piquito arriba finales sept-23
+
+- treenetproc:
+  - Missing data en 19-mayo-22
+  - salto a mediados nov-22 no lo pilla incluso bajando tol_jump. Me toca corregirlo a mano:
+                                       force = "2022-11-15 11:00:00",
+                                       delete = c("2022-11-16 10:30:00", "2022-11-16 12:45:000"),
+  - El resto bastante OK. Coge un piquito a finales de sept-23 que era incorrecto y eran varios outliers.
+
+
+== 92222325 ==
+- Qi - params:
+
+TOL_JUMP = 25
+TOL_OUT = 10
+
+- Raw
+  - Bajón desde finales feb-23 hasta pcpios mar-23 (baja y sube de vuelta a donde estaba)
+  - Subidón a pcpios sept-23
+  - Resto parece bte OK...
+  
+- treenetproc:
+  - Marca muchos saltos que son en realidad congelaciones y descongelaciones. De modo que subo tol_jump a 25 y ya parece más razonable.
+  - Corrige bte del ruido que hay a finales de may-23 como outliers.
+
+
+== 92222333 ==
+- Qi - params:
+
+TOL_JUMP = 10
+TOL_OUT = 8
+
+  force = "2022-11-15 11:00:00",
+  delete = c("2022-11-16 9:30:00", "2022-11-16 13:00:000"),
+  reverse = c(12),
+
+- Raw:
+  - bajon mediados nov-22
+  - subidon pcpios sept-23
+  
+- treenetproc:
+  - Missing data en 19-mayo-22
+  - Salto bien pillado a mediados abril-22
+  - bajando tol_out consigo pillar un outlier a finales de nov-22, pero no consigo pillar el salto de nov-22 con tol_jump, así que endré que hacerlo a mano.
+  - Revertir salto finales feb-23 que no es correcto -> reverse(12)
+  - pilla bien un salto a pcpios de marz-23
+
+
+== 92222331 ==
+- Qi - params:
+
+TOL_JUMP = 20
+TOL_OUT = 10
+
+  force = "2023-03-05 15:00:00",
+  delete = c("2023-03-06 13:00:00", "2023-03-06 15:00:00"),
+
+- Raw:
+  - Subidón-Bajón desde pcpios mar-23 hasta pcpios abril-23 (baja y sube de vuelta a donde estaba)
+  - subidon pcpios sept-23
+
+- treenetproc:
+  - Missing data en 19-mayo-22
+  - Pillaba varios saltos de cong-descong que no correspondían y por eso he subido tol_jump a 20.
+  - No pilla salto del 2023-03-06 15:00:00 -> toca forzarlo.
+
+
+
+
+
+
+
+
 === DATOS VALCUERNA HASTA OCT-23 ===
 
 DATA_DIR = 'Valcuerna-dataD'
