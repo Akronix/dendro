@@ -555,6 +555,9 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
 
 
 ** Chuleta para filtrar por fecha: **
- db [db$ts > ymd_hms("2022-12-31 00:00:00") & db$ts < ymd_hms("2022-12-31 23:45:00"),]
+ db [(db$ts > "2022-12-31 00:00:00") & (db$ts < "2022-12-31 23:45:00"),]
 
+ó
+
+db [db$ts > ymd_hms("2022-12-31 00:00:00", tz="Europe/Madrid") & db$ts < ymd_hms("2022-12-31 23:45:00", tz="Europe/Madrid"),]
 
