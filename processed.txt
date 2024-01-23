@@ -106,9 +106,161 @@ TOL_OUT = 10
   - No pilla salto del 2023-03-06 15:00:00 -> toca forzarlo.
 
 
+== 92222338 ==
+- Pinus sylvestris - NO HAY DATOS
+
+== 92222337 ==
+- Pinus sylvestris - NO HAY DATOS
+
+== 92222323 ==
+- Pinus sylvestris - NO HAY DATOS
 
 
+== 92222322 ==
+- Pinus sylvestris - ND - params:
+  TOL_JUMP = 20
+  TOL_OUT = 10
 
+Dendrómetro con una tendencia muy descendente casi casi todo el año... raro que no haya nada de crecimiento.
+
+- raw:
+  - bajón a mediados de mayo-22
+  - piquito abajo finales jun-22
+  - subidón a fianles de ago-22
+  - salto arriba mediados nov-22
+  - bajón finales enero-23
+  - subidón 2ª mitad feb-23 y bajón pcpios marz-23
+  
+- processed:
+  - Missing data en 19-mayo-22
+  - piquito abajo finales jun-22 -> lo pone como OUT
+  - subidón a fianles de ago-22 -> limpia bien los OUT.
+  - salto arriba mediados nov-22 -> corregido
+  - bajón finales enero-23 -> Lo pone como jump pero en realidad son conge-desconge. Subo TOL_jump a 20 y OK.
+  - subidón 2ª mitad feb-23 y bajón pcpios marz-23 -> jump corregido.
+  
+
+== 92222324 ==
+- Pinus sylvestris - ND - params:
+
+TOL_JUMP = 12
+TOL_OUT = 10
+
+- raw:
+  - salto arriba a mediados de mayo-22
+  - subidón arriba finales a jun-22
+  - salto arriba mediados nov-22
+  - subidón pcpios sept-23
+
+- processed:
+  - Missing data en 19-mayo-22
+  - subidón arriba finales a jun-22 -> puede que sea correcto. Coincide con que bajan las temperaturas.
+  - salto arriba mediados nov-22 -> bajado tol_jump para que lo pille.
+  - subidón pcpios sept-23 -> parece OK.
+  
+  
+== 92222327 ==
+- Pinus sylvestris - D - params:
+
+  TOL_JUMP = 12
+  TOL_OUT = 8
+
+  force = "2023-09-27 11:45:00",
+  n_days = 1,
+  delete = c("2023-09-28 08:30:00", "2023-09-28 11:45:00"),
+
+- minipiquito arriba 2ª mitad mayo-22 -> coincide con missing data de mayo
+- otro 2ª mitad ago-22 -> lo pone como out, sería jump en realidad? -> con la correción de treenetproc son diferencias de 15um, así que vamos a dejarlo sin tocar ese posible salto.
+- salto arriba mediados nov-22 -> corregido
+- bajones  2ª mitad y finales de ene-23 -> congelación y descongelación
+- bajón final febr y pcpio mar-23 -> aquí hay algun out y salto sin corregir. -> bajo tol_out y queda mejor, aunque quizás habría un saltito ahí por corregir, pero es pequeño.
+- subidón pcpios sept-23 -> me parece que hay un salto sin corregir aquí. -> Lo corrijo a mano con:
+      force = "2023-09-27 11:45:00",
+      n_days = 1,
+      delete = c("2023-09-28 08:30:00", "2023-09-28 11:45:00"),
+
+
+== 92222328 ==
+- Pinus sylvestris - ND - params:
+
+    TOL_JUMP = 15
+    TOL_OUT = 10
+
+    force = "2022-11-15 13:00:00",
+    n_days = 1,
+    delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
+
+
+- bajón a pcpios de abril-22 -> Es brusco pero es OK.
+- subidón a mediados de mayo-22 -> diría que es OK. tb está el missing data del 19-may
+- subidón a finales de jun-22 -> Es brusco pero es OK.
+- subidón a mediados sept-22 -> parece OK, aunque me parece curioso que al final de la tarde-anochecer y bajar la temperatura el 17-sept-2022 el tronco se deshinca en lugar de hincharse.
+- subidón a mediados de nov-22 -> ! salto que no pilla treenetproc. Corrección manual:
+            force = "2022-11-15 13:00:00",
+            n_days = 1,
+            delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
+
+- piquito abajo a finales de nov-22 -> OK
+- piquito abajo a finales de ene-23 -> congelación y descongelación.
+- super salto hacia arriba 2ª mitad de feb-23 -> treenetproc corrije.
+- subidón a final de mayo-23 -> parece OK, en un momento de subida de temperaturas antes del verano.
+- subidón a pcpios de sept-23 -> OK
+- subidón a mediados de sept-23 -> OK
+
+== 92222330 ==
+- Pinus sylvestris - D - params:
+
+  TOL_JUMP = 15
+  TOL_OUT = 10
+
+!! Lo primero que llama la atención es la forma de campana tan grande que tiene desde mediados de abril-22 a finales junio (casi 1º de jul-22). Muy llamativo y creo que no lo he visto antes. Coincide con un periodo de aumento de temperatura aunque sin llegar a los máximos anuales. -> Quizás sea un patrón de los decaídos tanta inestabilidad??
+
+!! Otra campana llamativa aunque menos brusca al siguiente año de jun-23 a sept-23
+
+Aparte de eso, como posibles fallos - raw:
+  - piquito abajo a finales jun-22 -> es pequeño. treenetproc lo pone como out.
+  - subidón / salto mediados nov-22 -> corregido.
+  - picos abajo a pcpios mar-23 -> cong-descong.
+  - subidón de vuelta a pcpios sept-23 -> parece OK.
+  
+ treenetproc
+  - missing data del 19 de mayo 22 -> Mayor salto que otros dendrometros en este missing data (este va en más de 100um) -> Tb curiosamente treenetproc marca un out cuando hay un valor de NA, que no es lo habitual de treenetproc (?)...
+
+
+== 92222329 ==
+- Pinus sylvestris - ND - params:
+
+! Datos solamente hasta nov-22 (por alguna razón). 
+! También campana de may-22 a casi jul-22
+
+  - missing data del 19 de mayo 22
+  - piquito bajo a finales de jun-22. Bajando tol_out a 7 pilla algo de outlier, pero no gran cosa. No afecta mucho así que lo dejo ya así.
+
+
+== 92222326 ==
+- Pinus sylvestris - D - params:
+
+  TOL_JUMP = 13
+  TOL_OUT = 10
+
+! Dendrómetro muy inestable y campana no en 2022 como anterior, pero sí desde jun-23 a sept-23.
+! Las subidas son muy pronunciadas y las bajadas más suaves.
+
+  - missing data del 19 de mayo 22
+  - Subidón finales jun-22 -> OK. parece que coincide con un descenso de temperaturas en jun-22.
+  - subidón pcpios ago-22 -> parece OK.
+  - baja-sube el 22-ago-22 -> para mí son outliers pero treenetproc no los pilla...es poco significativo así que lo dejo.
+  - subidón mediados sept-22 -> parece OK.
+  - subidones mediados nov-22 -> bajando tol_jump treenetproc pilla el salto.
+  - bajón finales nov-22 -> es brusco pero OK.
+  - piquitos abajo 2ª mitad ene-23 -> conge-descon
+  - piquitos abajo finales feb-23 y pcpios mar-23 -> Idem
+  - Subidón finales may-23 -> OK
+  - subidón / salto pcpios jul-23 -> OK
+  - subidón mediados sept-23 -> OK
+
+
+== 92223481 ==
 
 
 
