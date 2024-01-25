@@ -1,3 +1,61 @@
+=== DATOS CORBALAN DENDROMETROS NUEVOS HASTA OCT-23 ===
+
+DATA_DIR = 'raw/Corbalan-dataD'
+OUTPUT_DATA_DIR = 'processed/Corbalan-processed'
+OUTPUT_ASSETS_DIR = 'output'
+FILENAME_EXCESS = "_2023_10_16_0.csv"
+
+ts_start<-"2023-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
+ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
+
+Comienzo real sería: ts_start<-"2023-02-21 12:00:00" # One day after installation
+
+(Ordenado de arriba a abajo por orden de procesado)
+
+
+== 92223481 ==
+- Pinus sylvestris - D - params:
+TOL_JUMP = 10
+TOL_OUT = 13
+
+! campana entre jun-23, pico en mediados jul-23 y pto más bajo en primeros sept-23
+
+- subidón finales may-23 -> OK. coincide con final heladas y tendencia ascendente temperaturas.
+- subidón antes mediados jun-23 y 2ª mitad jun-23 -> OK y no son tan grandes.
+- subidón pcpios jul-23 -> OK. Coincide con descenso de la temperatura mínima.
+- subidones pcpios, medio y final sept-23 -> OK. Excepto final sept-23 que sí me parece salto. Se corrije bajando tol_jump a 10.
+
+
+== 92223482 ==
+- Pinus sylvestris - D - params:
+TOL_JUMP = 10
+TOL_OUT = 15
+
+! campana mismas fechas que el anterior.
+
+- subidón finales may-23 -> OK
+- alguna subidilla 2ª mitad junio -> OK
+- subida pcpios jul-23 -> OK
+- subidas pcpios sept-23 y mediados sept-23 -> OK.
+
+
+== 92223483 ==
+- Pinus sylvestris - D - params:
+TOL_JUMP = 15
+TOL_OUT = 15
+
+reverse = c(2),
+
+! campana mismas fechas que el anterior.
+! árbol que crece muy poco (40um), el que menos de todos los decaídos.
+
+- Subidón may-23 -> OK
+- subidón 1ª mitad y finales jun-23 -> el de finales treenetproc lo marca como salto y sí me lo parece.
+- parece salto pcpios jul-23 -> un poco rara la corrección, porque si lo considera salto pero tampoco cambia mucho el dibujo (revisar) -> No me parece que haya salto ahí, así que lo revierto en corr: reverse = c(2), Además los otros dendrómetros también pegan un estirón justo en esas fechas.
+- subidón mediados sept-23 -> OK
+- salto finales sept-23 -> corregido.
+
+
 === DATOS CORBALAN HASTA OCT-23 ===
 
 DATA_DIR = 'raw/Corbalan-dataD'
@@ -258,10 +316,6 @@ Aparte de eso, como posibles fallos - raw:
   - Subidón finales may-23 -> OK
   - subidón / salto pcpios jul-23 -> OK
   - subidón mediados sept-23 -> OK
-
-
-== 92223481 ==
-
 
 
 === DATOS VALCUERNA HASTA OCT-23 ===

@@ -11,14 +11,14 @@ setwd(PATH)
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
 
-TOL_JUMP = 20
-TOL_OUT = 10
+TOL_JUMP = 10
+TOL_OUT = 15
 
 # SENSOR-SPECIFIC GLOBAL VARIABLES #
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
 } else {
-  SELECTED_DENDROMETER = "92222331"
+  SELECTED_DENDROMETER = "92223483"
 }
 
 # GENERAL GLOBAL VARIABLES #
@@ -34,7 +34,7 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 #ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
 #ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
 
-ts_start<-"2022-04-04 11:00:00" # After winter shrinking, so it gets more accurate values for TWD and growth.
+ts_start<-"2023-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
 ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
 
 print("process-dendro script running with the next parameters:")
@@ -63,8 +63,8 @@ db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in fi
 
 
 # Add tree information to each dendrometer (series)
-TreeList<-read.table("TreeList.txt",header=T)
-db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+#TreeList<-read.table("TreeList.txt",header=T)
+#db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 dim(db)
 
@@ -116,8 +116,8 @@ tail(db)
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
+db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+#db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -180,14 +180,15 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       # reverse = c(12),
-                                       force = "2023-03-05 15:00:00",
-                                       delete = c("2023-03-06 13:00:00", "2023-03-06 15:00:00"),
-                                                  # "2022-03-28 13:30:00", "2022-03-28 14:00:00"
+                                       reverse = c(2),
+                                       # force = "2022-11-15 13:00:00",
+                                       # n_days = 1,
+                                       # delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
+                                      #            # "2022-03-28 13:30:00", "2022-03-28 14:00:00"
                                        # ),
                                        plot = TRUE,
                                        plot_export = TRUE,
-                                       #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
                                        tz="Europe/Madrid")
 
 
