@@ -21,9 +21,5 @@
 	* ¿Por qué poniendo tol_out o tol_jump a 1000 sigue pillando outliers??? Ver ejemplo con sensores 92232428, 92232435 y dendro 92232430 de Valcuerna
 	* opción para deshacer todos los cambios hechos por `proc_dendro_L2`
 	* Calcular TWD y GRO en un subintervalo de los datos (redefiniendo, por tanto, el punto de referencia 0 de los datos).
-	
-	
-	== Probar ==
-	- probar datacleanr para visualizar mejor datos de cerca cuando se quiere ver si es salto o no de dendrómetros: https://the-hull.github.io/datacleanr/
-	
+		
 	

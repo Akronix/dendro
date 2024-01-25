@@ -11,31 +11,28 @@ setwd(PATH)
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
 
-TOL_JUMP = 10
-TOL_OUT = 15
-
 # SENSOR-SPECIFIC GLOBAL VARIABLES #
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
 } else {
-  SELECTED_DENDROMETER = "92223483"
+  SELECTED_DENDROMETER = "92222168"
 }
 
 # GENERAL GLOBAL VARIABLES #
-DATA_DIR = 'raw/Corbalan-dataD'
-OUTPUT_DATA_DIR = 'processed/Corbalan-processed'
+DATA_DIR = 'raw/Penaflor-dataD'
+OUTPUT_DATA_DIR = 'processed/Penaflor-processed'
 OUTPUT_ASSETS_DIR = 'output'
-FILENAME_EXCESS = "_2023_10_16_0.csv"
+FILENAME_EXCESS = "_2023_09_27_0.csv"
+
+OLD_FORMAT = TRUE
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
 # Set initial and final date and sampling dates
-#ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
-#ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
-#ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
-
-ts_start<-"2023-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
-ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
+# ts_start<-"2022-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
+# ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
+ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
@@ -45,8 +42,8 @@ cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
-db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end, old_format = FALSE)
-
+db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end,
+                      old_format = OLD_FORMAT)
 
 ### CLEAN & PREPARE DATA ###
 
@@ -63,8 +60,8 @@ db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in fi
 
 
 # Add tree information to each dendrometer (series)
-#TreeList<-read.table("TreeList.txt",header=T)
-#db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+TreeList<-read.table("TreeList.txt",header=T)
+db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 dim(db)
 
@@ -102,7 +99,7 @@ dendro_raw_plot <-
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
   
-dendro_raw_plot
+#dendro_raw_plot
 
 ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
      width = 15, height = 10)
@@ -116,8 +113,8 @@ tail(db)
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-#db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
+# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -157,6 +154,10 @@ str(temp_data_L1)
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
+TOL_JUMP = 12
+TOL_OUT = 8
+
+
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = TOL_OUT,
@@ -171,6 +172,7 @@ head(dendro_data_L2)
 tail(dendro_data_L2)
 
 #highlight corrections made on the dendrometer data:
+# if ( length(which(is.na(dendro_data_L2$flags)==F) > 0)) {
 View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 # -> Open proc_L2_plot.pdf file to see results
@@ -178,22 +180,23 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! MANUAL CORRECTIONS #
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                       dendro_L2 = dendro_data_L2,
-                                       reverse = c(2),
-                                       # force = "2022-11-15 13:00:00",
-                                       # n_days = 1,
-                                       # delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
-                                      #            # "2022-03-28 13:30:00", "2022-03-28 14:00:00"
-                                       # ),
-                                       plot = TRUE,
-                                       plot_export = TRUE,
-                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-                                       tz="Europe/Madrid")
+# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+#                                        dendro_L2 = dendro_data_L2,
+#                                        #reverse = c(3),
+#                                        force = "2023-02-15 14:45:00",
+#                                        n_days = 1,
+#                                        delete = c("2023-02-16 12:15:00", "2023-02-16 14:45:00"),
+#                                        #           "2023-01-22 16:45:00", "2023-01-22 17:00:00",
+#                                        #           "2023-01-27 16:15:00", "2023-01-27 16:15:00"
+#                                        # ),
+#                                        plot = TRUE,
+#                                        plot_export = TRUE,
+#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+#                                        tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
-View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
+# View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
 
 ### SAVE PROCESSED DATA ###
 OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
