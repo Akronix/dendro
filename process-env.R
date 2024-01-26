@@ -10,11 +10,11 @@ library(myClim)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-ts_start<-"2022-03-12 00:00:00" # from March 12 (2 days after installation)
-ts_end<-"2023-09-13 09:00:00" # last timestamp of downloaded data
+ts_start<-"2022-04-04 11:00:00" # After winter shrinking, so it gets more accurate values for TWD and growth.
+ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
 
-ENVIRONMENT_DIR = 'Valcuerna-Prec-good_format'
-OUTPUT_ENV_DIR = 'Valcuerna-Prec-processed'
+ENVIRONMENT_DIR = 'raw/Corbalan-env'
+OUTPUT_ENV_DIR = 'processed/Corbalan-env-processed'
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -46,7 +46,7 @@ for (filename in list_files) {
   tms.vwc <- mc_calc_vwc(tms.f, soiltype = "loamy sand B", output_sensor = "vwc")
   tms.vwc
   
-  tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T3"))
+  tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T2"))
   names(tms.df) <- c("ts", "temp", "vwc")
   
   if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
@@ -70,4 +70,5 @@ db.env <- dfs.all %>%
 summary(db.env)
 
 # write aggregated data to file.
+if (!dir.exists(file.path(OUTPUT_PATH, 'aggregated'))) {dir.create(file.path(OUTPUT_PATH, 'aggregated'))}
 write_csv(db.env, file.path(OUTPUT_PATH, 'aggregated', "proc-agg-temp&vwc.csv"), append = F, col_names = T)

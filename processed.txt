@@ -239,7 +239,7 @@ ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
 
 
-=== DATOS CORBALAN DENDROMETROS NUEVOS HASTA OCT-23 ===
+=== DATOS CORBALAN DENDROMETROS NUEVOS (INSTALADOS DESPUÉS) HASTA OCT-23 ===
 
 DATA_DIR = 'raw/Corbalan-dataD'
 OUTPUT_DATA_DIR = 'processed/Corbalan-processed'
