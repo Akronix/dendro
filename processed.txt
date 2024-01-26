@@ -148,6 +148,94 @@ ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
   ! Tampoco tiene datos a partir del 10-11 de jul del 23
 
 
+== 92222168 ==
+- Pinus halepensis - ND - params:
+
+  TOL_JUMP = 12
+  TOL_OUT = 8
+  
+  ts_start<-"2022-11-24 15:15:00"
+  
+  
+  ! sin datos hasta finales nov-22 -> Hay que fijar ts_start a 2022-11-24T15:15:00Z
+  
+  - saltazo a mediados feb-23 -> corregido
+  - subidilla pcpios jun-23 -> OK.
+
+
+== 92222172 ==
+- Pinus halepensis - D - params:
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  reverse = c(3),
+
+! Parece un dendrómetro bastante inestable en general.
+  - subidilla may-22 -> corregido.
+  - salto mal detectado por treenetproc en jun-22 al bajar tol_jump -> reverse = c(3),
+  - dos minicampanas en jul y en sept22 -> porqué puede ser? -> revisar
+  - salto mediados nov-22 -> OK
+  - salto 2ª mitad nov-22 -> corregido
+  - baja-sube 2ª mitad feb23 -> la subida coincide con un aumento de temperaturas quedando la mínima por encima de 0ºC lo cual significaría una descongelación y un aumento del tronco. El baja parece un salto a corregir. Con datacleanr se ve muy claro.
+  - campana arriba a pcpios jun-23 -> OK
+  - subidón 2ª mitad sept23 -> OK
+
+
+== 92222177 ==
+- Pinus halepensis - ND - params:
+  TOL_JUMP = 12
+  TOL_OUT = 15
+  reverse = c(1),
+
+  - deshacer primer salto mar-22 que sigue un patrón previo de bajadas bruscas. -> reverse(1)
+  - salto pcios abril22 -> corregido
+  - salto arriba pcpios may22 -> corregido
+  - subidón arriba 1ª mitad jul22 -> ok
+  - piquillo arriba mediados ago-22 y otro abajo 2ª mitad ago22 -> El 1º es un missing data y el segundo es un salto que pilla treenetproc
+  - subidón mediados nov-22 -> mirándolo de cerca en realidad es brusco pero es OK.
+  - salto finales nov-22 -> corregido
+  - bajón 2ª mitad ene23 -> es brusco pero es OK. Creo que es debido a una congelación.
+  - saltazo mediados feb23 -> corregido
+  - piquillo abajo mediados jun23 -> OK
+  - bajón mediados jul23 -> OK
+
+
+== 92222178 ==
+- Qc - params:
+  TOL_JUMP = 15
+  TOL_OUT = 10
+
+  ! mucho ruido e inestabilidad. Sorprende más al ser Quercus.
+
+- bajoncillo mediados abr-22 -> OK
+- salto arriba pcpios may22 -> corregido
+- piquito abajo finales jun22 -> ok
+- a pcpios de ago22 hay como un salto hacia abajo. -> exactamente a las 2022-08-03T20:45:00Z
+- missing data a mediados ago22
+- piquillo abajo finales ago22 -> es raro y seguramente ahí hay algún dato incorrecto pero no me parece muy molesto, así que lo dejo.
+- salto finales nov22 -> corregir a mano. 2022-11-24 14:30:00
+
+- muchisima inestabilidad en general en el año 2023 -> subo tol_jump y bajo tol_out para que lo limpie lo mayor posible sin poner saltos.
+- salto arriba 2ª mitad febrero 2023 -> otro salto que hacer manualmente: 2023-02-16T14:00:00Z
+
+^ Lo dejo para procesar más adelante para cuando haya arreglado el force_jump de treenetproc.
+
+
+== 92222179 ==
+- Pinus halepensis - ND - params:
+  TOL_JUMP = 15
+  TOL_OUT = 10
+
+- subidón pcpios mayo22 -> corregido
+- salto abajo pcpios jun22 -> OK
+- piquillos abajo 1ª mitad jun22 y 2ª mitad jun22 -> OK
+- campanitas jul22 y finales ago22 y pcpios sept22 -> OK. revisar causas ambientales de campanas.
+- piquillo arriba segunda mitad ago22 -> missing data
+- piquillo arriba 1ª mitad sept22 -> OK
+- saltito corregido finales nov22
+- piquillos abajo finales dic-22 -> OK
+- piquillo arriba feb23 -> OK
+- piquillos abajo mediados jun23 -> OK
+- piquillo abajo finales jul23  -> OK
 
 
 
