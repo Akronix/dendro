@@ -10,11 +10,11 @@ library(myClim)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-ts_start<-"2022-04-04 11:00:00" # After winter shrinking, so it gets more accurate values for TWD and growth.
-ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
+ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-ENVIRONMENT_DIR = 'raw/Corbalan-env'
-OUTPUT_ENV_DIR = 'processed/Corbalan-env-processed'
+ENVIRONMENT_DIR = 'raw/Penaflor-env'
+OUTPUT_ENV_DIR = 'processed/Penaflor-env-processed'
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -22,7 +22,6 @@ if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 # sensor.id = 94231938;
 # sensor.fn = paste0("data_", sensor.id, "_2023_09_13_0.csv")
 #filename = file.path(ENVIRONMENT_DIR, sensor.fn )
-
 
 
 #env.db <- read.env.data(filename)
