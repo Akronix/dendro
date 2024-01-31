@@ -424,8 +424,8 @@ TOL_OUT = 10
   TOL_JUMP = 20
   TOL_OUT = 10
 
-Dendrómetro con una tendencia muy descendente casi casi todo el año... raro que no haya nada de crecimiento.
-
+! Dendrómetro con una tendencia muy descendente casi casi todo el año... raro que no haya nada de crecimiento.
+! En el momento de crecida que tienen todos en nov-22 el dendro está parado sin datos...es raro y muy diferente a los demás. -> Por lo pronto debería excluirlo de los análisis.
 - raw:
   - bajón a mediados de mayo-22
   - piquito abajo finales jun-22

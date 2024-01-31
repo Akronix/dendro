@@ -12,15 +12,16 @@ setwd(PATH)
 DATA_DIR = 'processed/Penaflor-processed'
 ENV_DIR = 'processed/Penaflor-env-processed'
 
-# Set initial and final date for analysis
-# ts_start<-"2023-03-23 09:00:00" # 2 days after installation
-# ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
-
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
 db<-read.all.processed(list_files)
+
+# Set initial and final date for analysis
+ts_start<-"2022-04-01 09:00:00" # 2 days after installation
+ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
+db <- reset.initial.values(db, ts_start, ts_end)
 
 ### CLEAN & PREPARE DATA ###
 
@@ -110,30 +111,6 @@ db.D = db %>% filter (series %in% P_D)
 db.ND = db %>% filter (series %in% P_ND)
 ```
 
-```{r}
-db.by.class = db %>% select(series, ts, value) %>% mutate(class =  case_when(
-                                      series %in% Qi ~ "Quercus",
-                                      series %in% P_D ~ "Declined",
-                                      series %in% P_ND ~ "Not Declined"
-                                      )
-)
-```
-
-```{r}
-# plot_multiple_dendro_by_class <-
-#   ggplot(data = db.by.class, mapping = aes(x=ts, y=value, col = class))+
-#   geom_line( ) +
-#   # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
-#   labs(x=expression('Date'),
-#        y=expression( Delta*"D (um)") ) +
-#   geom_hline(yintercept=0,lty=2,linewidth=0.2)+
-#   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
-#   ggtitle("title") +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 30, hjust=1))
-# plot_multiple_dendro_by_class
-```
-
 One plot of dendros by class:
 ```{r}
 plot_multiple_dendro(db.Qi, "Quercus Ilex - Peñaflor", y = db.Qi$value)
@@ -215,27 +192,65 @@ Join all aggregated df in one
 db.Qi.agg$class = factor("Quercus Ilex")
 db.D.agg$class = factor("Declined Pinus")
 db.ND.agg$class = factor("Not Declined Pinus")
-db.by.class = rbind.data.frame(db.Qi.agg, db.D.agg, db.ND.agg)
-str(db.by.class)
+db.by.class.agg = rbind.data.frame(db.Qi.agg, db.D.agg, db.ND.agg)
+str(db.by.class.agg)
 ```
 
-Plot all dendros by class in one graph (WIP)
+Plot mean by class in one plot
 ```{r}
-# plotByClass <- 
-#   ggplot(data = db.by.class,  aes(x=ts, y=mean, col=class)) +
-#     ggtitle("Means of data by class with ± standard deviation strips") +
-#     geom_line() +
-#     geom_ribbon(aes(ymin=mean-sd, ymax=mean+sd, fill=class), alpha=0.2, show.legend	= FALSE, linetype = 0) +
-#     #geom_line( aes (linetype = "Quercus Ilex"), col='darkgreen', show.legend	= F) +
-#     labs(x=expression(''),
-#          y=expression(Delta*" D (um)"))+
-#     theme_bw() +
-#     geom_hline(yintercept=0,lty=2,linewidth=0.2)+
-#     #facet_grid(class~.,scales = "free_y")+
-#     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-#     theme(axis.text.x = element_text(angle = 30, hjust=1))
-# plotByClass
-#ggsave('mean+Valcuerna.png', width = 15, height = 10)
+plot_multiple_dendro_by_class <-
+  ggplot(data = db.by.class.agg, mapping = aes(x=ts, y=mean, col = class))+
+  geom_line( ) +
+  # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
+  labs(x=expression('Date'),
+       y=expression( Delta*"D (um)") ) +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
+  ggtitle("Means by class") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+plot_multiple_dendro_by_class
+ggsave('output/mean-byclass-Penaflor.png', width = 15, height = 10)
+```
+
+
+Plot all dendros by class in one graph (WIP)
+
+```{r}
+db.by.class = db %>% select(series, ts, value) %>% mutate(class =  case_when(
+                                      series %in% Qi ~ "Quercus",
+                                      series %in% P_D ~ "Declined",
+                                      series %in% P_ND ~ "Not Declined"
+                                      )
+)
+```
+
+```{r}
+library(ggnewscale)
+
+# Define color scales for each class
+green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
+blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue")
+orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
+
+ggplot() +
+   ggtitle("Dendrometers painted by color scale according to its class") +
+  geom_line(data = db.D, aes(x = ts, y = value, col = series)) +
+  scale_color_manual(values = orange_colors, name = "Declining trees") +
+  new_scale_color() +
+  geom_line(data = db.ND, aes(x = ts, y = value, col = series), ) +
+  scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
+  new_scale_color() +
+  geom_line(data = db.Qi, aes(x = ts, y = value, col = series)) +
+  scale_color_manual(values = green_colors, name = "Quercus Ilex") +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2) +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)"))+
+  theme_bw() +
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+
+ggsave('output/all-dendrometers-by-class-Penaflor.png', width = 15, height = 10)
 ```
 
 # Environmental data from TMS sensors
@@ -332,7 +347,7 @@ detach("db.env")
 This is the result of adding the NA to the invalid periods:
 ```{r}
 plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-ggsave('output/vwc-Corbalan.png', width = 15, height = 10)
+ggsave('output/vwc-Penaflor.png', width = 15, height = 10)
 ```
 
 Now calculate the mean for vwc and temp:
@@ -346,7 +361,7 @@ And we plot it:
 ```{r}
 plot_temp_and_humidity <-
   ggplot(data = db.env.agg, aes(x=ts, y=temp)) +
-    ggtitle("Temperature and humidity for Corbalan (2022-2023)") +
+    ggtitle("Temperature and humidity for Peñaflor (2022-2023)") +
     geom_line(aes(colour = temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +

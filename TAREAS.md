@@ -1,8 +1,8 @@
 == Dendro ==
 
-- Terminar análisis descriptivo datos. Cleveland dotplot para ver la dispersión de los datos (cuánto de diferentes son los datos de los dendrómetros entre sí, especialmente entre individuos de la misma especie).
+- Gráfica de dendrómetros donde cada clase tenga un color?? -> hecho
 
-- Hacer forcejump justo en la fecha que se diga y procesar dendrómetro 92222178
+- Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178
 
 - Mejorar automatización en procesado de datos.
 
@@ -10,7 +10,7 @@
 
 = Análisis =
 
-- inspeccionar campanas vs clima y humedad.
+- inspeccionar campanas procesamiento Corbalan y Peñaflor vs clima y humedad.
 
 (Centrarse en periodo de crecimiento definido en paper Cristina) -> De Abril a Octubre ? (Comprobar con paper)
 	- Repasar apuntes y aplicar análisis.
