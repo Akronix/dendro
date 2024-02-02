@@ -243,6 +243,9 @@ ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
 === DATOS CORBALAN DENDROMETROS NUEVOS (INSTALADOS DESPUÉS) HASTA OCT-23 ===
 
+!!! -> Excluir de análisis de clases hasta que sepamos cuáles corresponden a los 2 decaídos o y cual al no decaído.
+
+
 DATA_DIR = 'raw/Corbalan-dataD'
 OUTPUT_DATA_DIR = 'processed/Corbalan-processed'
 OUTPUT_ASSETS_DIR = 'output'
@@ -314,6 +317,8 @@ ts_start<-"2022-04-04 11:00:00" # After winter shrinking, so it gets more accura
 ts_end<-"2023-10-16 11:00:00" # last timestamp of downloaded data
 
 (Ordenado de arriba a abajo por orden de procesado)
+Faltan datos de dendrometros: 92222338 (Decaido), 92222323 (Decaído) y 92222337 (No Decaido)
+
 
 ----
 

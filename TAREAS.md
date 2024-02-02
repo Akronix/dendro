@@ -4,6 +4,8 @@
 
 - Mejorar automatización en procesado de datos.
 
+- pasarse a plotly
+
 - Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros.  Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro? -> Creo que es necesario que leas el paper de calibración de TOMST para ver cómo va todo este tema de la calibración. -> esperando respuesta de Martin my Clim.
 
 = Análisis =

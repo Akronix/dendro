@@ -9,8 +9,8 @@ library(lubridate)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-DATA_DIR = 'processed/Penaflor-processed'
-ENV_DIR = 'processed/Penaflor-env-processed'
+DATA_DIR = 'processed/Corbalan-processed'
+ENV_DIR = 'processed/Corbalan-env-processed'
 
 ### IMPORT DENDRO DATA ###
 
@@ -19,9 +19,9 @@ list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=T
 db<-read.all.processed(list_files)
 
 # Set initial and final date for analysis
-ts_start<-"2022-04-01 09:00:00" # 2 days after installation
-ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
-db <- reset.initial.values(db, ts_start, ts_end)
+# ts_start<-"2022-04-01 09:00:00" # 2 days after installation
+# ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
+# db <- reset.initial.values(db, ts_start, ts_end)
 
 ### CLEAN & PREPARE DATA ###
 
@@ -50,7 +50,7 @@ plot_multiple_dendro <- function (data, title, y = data$value)  {
 
 ```{r}
 plot_multiple_dendro(db, "Plot by dendrometer")
-ggsave('output/all-dendrometers-Penaflor.png', width = 15, height = 10)
+ggsave('output/all-dendrometers-Corbalan.png', width = 15, height = 10)
 ```
 
 # Normalization 0-1 to better compare dendros
@@ -65,7 +65,7 @@ normalized.db <- db %>%
 
 ```{r}
 plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]", y = normalized.db$normalized_value)
-ggsave('output/normalized-all-dendrometers-Penaflor.png', width = 15, height = 10)
+ggsave('output/normalized-all-dendrometers-Corbalan.png', width = 15, height = 10)
 ```
 
 
@@ -82,7 +82,7 @@ tail(dbagg)
 ```{r}
 plot_cat_full_year<-
   ggplot(data = dbagg,  aes(x=ts, y=mean)) +
-  ggtitle("Mean of data for Peñaflor dendrometers with ± standard deviation strips") +
+  ggtitle("Mean of data for Corbalan dendrometers with ± standard deviation strips") +
   geom_ribbon(aes(ymin=mean-sd, ymax=mean+sd), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
   geom_line( aes (linetype = ""), col='darkgreen', show.legend	= F) +
   labs(x=expression(''),
@@ -93,7 +93,7 @@ plot_cat_full_year<-
   scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 plot_cat_full_year
-ggsave('output/mean-Penaflor.png', width = 15, height = 10)
+ggsave('output/mean-Corbalan.png', width = 15, height = 10)
 ```
 
 
@@ -111,20 +111,61 @@ db.D = db %>% filter (series %in% P_D)
 db.ND = db %>% filter (series %in% P_ND)
 ```
 
+
+```{r}
+library(ggnewscale)
+
+# Define color scales for each class
+green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
+blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue")
+orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
+
+ggplot() +
+   ggtitle("Dendrometers painted by color scale according to its class") +
+  geom_line(data = db.D, aes(x = ts, y = value, col = series)) +
+  scale_color_manual(values = orange_colors, name = "Declining trees") +
+  new_scale_color() +
+  geom_line(data = db.ND, aes(x = ts, y = value, col = series), ) +
+  scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
+  new_scale_color() +
+  geom_line(data = db.Qi, aes(x = ts, y = value, col = series)) +
+  scale_color_manual(values = green_colors, name = "Quercus Ilex") +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2) +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)"))+
+  theme_bw() +
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+
+ggsave('output/all-dendrometers-by-class-Corbalan.png', width = 15, height = 10)
+```
+
+
+
+```{r}
+# Dataframe with all data and a new column "class"
+# db.by.class = db %>% select(series, ts, value) %>% mutate(class =  case_when(
+#                                       series %in% Qi ~ "Quercus",
+#                                       series %in% P_D ~ "Declining",
+#                                       series %in% P_ND ~ "Non-Declining"
+#                                       )
+# )
+```
+
 One plot of dendros by class:
 ```{r}
-plot_multiple_dendro(db.Qi, "Quercus Coccifera - Peñaflor", y = db.Qi$value)
-ggsave('output/Qi-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.Qi, "Quercus Ilex - Corbalan", y = db.Qi$value)
+ggsave('output/Qi-Corbalan.png', width = 15, height = 10)
 ```
 
 ```{r}
-plot_multiple_dendro(db.ND, "Non-Declining - Peñaflor", y = db.ND$value)
-ggsave('output/ND-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.ND, "Non-Declining - Corbalan", y = db.ND$value)
+ggsave('output/ND-Corbalan.png', width = 15, height = 10)
 ```
 
 ```{r}
-plot_multiple_dendro(db.D, "Declining - Peñaflor", y = db.D$value)
-ggsave('output/D-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.D, "Declining - Corbalan", y = db.D$value)
+ggsave('output/D-Corbalan.png', width = 15, height = 10)
 ```
 
 
@@ -161,7 +202,7 @@ plot_mean_sd <- function (data, species, output_fn = FALSE) {
 
 
 ```{r}
-plot_mean_sd(db.Qi.agg, "Quercus Coccifera", output_fn = "output/mean-Qi-Penaflor.png")
+plot_mean_sd(db.Qi.agg, "Quercus Ilex", output_fn = "output/mean-Qi-Corbalan.png")
 ```
 
 
@@ -173,7 +214,7 @@ tail(db.D.agg)
 
 
 ```{r}
-plot_mean_sd(db.D.agg, "Declining Pinus", output_fn = "output/mean-declining-Penaflor.png" )
+plot_mean_sd(db.D.agg, "Declining Pinus", output_fn = "output/mean-declining-Corbalan.png" )
 ```
 
 ```{r}
@@ -184,22 +225,22 @@ tail(db.ND.agg)
 
 
 ```{r}
-plot_mean_sd(db.ND.agg, "Not Declining Pinus", output_fn = "output/mean-ND-Penaflor.png" )
+plot_mean_sd(db.ND.agg, "Non-Declining Pinus", output_fn = "output/mean-ND-Corbalan.png" )
 ```
 
 Join all aggregated df in one
 ```{r}
-db.Qi.agg$class = factor("Quercus Coccifera")
+db.Qi.agg$class = factor("Quercus Ilex")
 db.D.agg$class = factor("Declining Pinus")
 db.ND.agg$class = factor("Non-Declining Pinus")
-db.by.class.agg = rbind.data.frame(db.Qi.agg, db.D.agg, db.ND.agg)
-str(db.by.class.agg)
+db.by.class = rbind.data.frame(db.Qi.agg, db.D.agg, db.ND.agg)
+str(db.by.class)
 ```
 
 Plot mean by class in one plot
 ```{r}
 plot_multiple_dendro_by_class <-
-  ggplot(data = db.by.class.agg, mapping = aes(x=ts, y=mean, col = class))+
+  ggplot(data = db.by.class, mapping = aes(x=ts, y=mean, col = class))+
   geom_line( ) +
   # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
   labs(x=expression('Date'),
@@ -210,48 +251,20 @@ plot_multiple_dendro_by_class <-
   theme_bw() +
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 plot_multiple_dendro_by_class
-ggsave('output/mean-byclass-Penaflor.png', width = 15, height = 10)
-```
-
-
-Plot all dendros by class in one graph (WIP)
-
-```{r}
-db.by.class = db %>% select(series, ts, value) %>% mutate(class =  case_when(
-                                      series %in% Qi ~ "Quercus",
-                                      series %in% P_D ~ "Declining",
-                                      series %in% P_ND ~ "Non-Declining"
-                                      )
-)
+ggsave('output/mean-byclass-Corbalan.png', width = 15, height = 10)
 ```
 
 ```{r}
-library(ggnewscale)
-
-# Define color scales for each class
-green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
-blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue")
-orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
-
-ggplot() +
-   ggtitle("Dendrometers painted by color scale according to its class") +
-  geom_line(data = db.D, aes(x = ts, y = value, col = series)) +
-  scale_color_manual(values = orange_colors, name = "Declining trees") +
-  new_scale_color() +
-  geom_line(data = db.ND, aes(x = ts, y = value, col = series), ) +
-  scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
-  new_scale_color() +
-  geom_line(data = db.Qi, aes(x = ts, y = value, col = series)) +
-  scale_color_manual(values = green_colors, name = "Quercus Coccifera") +
-  geom_hline(yintercept=0,lty=2,linewidth=0.2) +
-  labs(x=expression(''),
-       y=expression(Delta*" D (um)"))+
-  theme_bw() +
-  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-  theme(axis.text.x = element_text(angle = 30, hjust=1))
-
-ggsave('output/all-dendrometers-by-class-Penaflor.png', width = 15, height = 10)
+plot_ly(
+  data = db.by.class,
+   x = ~ts,
+   y = ~mean,
+   type = "scatter",
+   mode = "lines",
+   color = ~class)
+# +   colors = c("blue")
 ```
+
 
 # Environmental data from TMS sensors
 
@@ -288,58 +301,42 @@ plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env
 There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
 ```{r}
 attach(db.env)
+# first for series1 = db.env$series == "94231944"
+series1 = (series == "94231944")
 
-# first for series1 = db.env$series == "94231949"
-series1 = (series == "94231949")
-
-# first interval: 2022-04-08T20:30:00Z al 2022-05-04T14:00:00Z
-interval1 = (ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00")
+# first interval: 2022-05-14T21:00:00Z al 2022-05-19T11:45:00Z
+interval1 = (ts >= "2022-05-14 20:00:00" & ts <= "2022-05-19 11:45:00")
 
 # equivalent to:
 #db.2 = db.env %>% filter((series == "94231944") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
 
-# second interval: 2022-09-11T08:45:00Z al 2022-11-24T14:45:00Z
-interval2 = (ts > "2022-09-11 08:45:00" & ts < "2022-11-24 14:45:00" )
+# second interval: 2022-09-09T21:30:00Z al 2022-11-16T13:45:00Z
+interval2 = (ts >= "2022-09-09 21:30:00" & ts <= "2022-11-16 13:45:00" )
 
-db.env[series1 & (interval1 | interval2 ),]$vwc <- NA
-db.env[series1 & (interval1 | interval2 ),]$temp <- NA
+# third interval: 2023-08-07T08:15:00Z al 2023-09-28T14:00:00Z
+interval3 = (ts >= "2023-08-07 08:15:00" & ts <= "2023-09-28 14:00:00")
+
+db.env[series1 & (interval1 | interval2 | interval3),]$vwc <- NA
+db.env[series1 & (interval1 | interval2 | interval3),]$temp <- NA
 
 
-# now series == "94231942"
-series2 = series == "94231942"
+# now series == "94231945"
+series2 = series == "94231945"
 
-# interval: 2022-06-29T20:45:00Z al 2022-07-01T10:15:00Z
-interval1 = ts >= "2022-06-29 20:45:00" & ts <= "2022-07-01 10:15:00"
-# interval2: 2022-07-14T06:15:00Z al 2022-09-16T11:00:00Z
-interval2 = ts >= "2022-07-14 06:15:00" & ts <= "2022-09-16 11:00:00"
+# first interval: 2023-07-26T08:45:00Z al 2023-09-28T13:30:00Z
+interval = ts >= "2023-07-26 08:45:00" & ts <= "2023-09-28 13:30:00"
 
-db.env[series2 & (interval1 | interval2),]$vwc  <- NA
-db.env[series2 & (interval1 | interval2),]$temp  <- NA
+db.env[series2 & interval,]$vwc  <- NA
+db.env[series2 & interval,]$temp  <- NA
 
-# now series == "94231947"
-series3 = series == "94231947" 
+# now series == "94231931"
+series3 = series == "94231931" 
 
-# first interval: 2023-07-04T09:30:00Z to the end
-interval = ts >= "2023-07-04 09:30:00"
+# first interval: 2023-08-23T08:00:00Z al 2023-09-28T14:00:00Z
+interval = ts >= "2023-08-23 08:00:00" & ts <= "2023-09-28 14:00:00"
 
 db.env[series3 & interval,]$vwc  <- NA
 db.env[series3 & interval,]$temp  <- NA
-
-# now series == "94231949"
-series4 = series == "94231949"
-
-# first interval: 2022-04-08T20:30:00Z to 2022-05-04T14:00:00Z
-interval1 = ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00"
-
-# second interval: 2022-09-11T09:45:00Z to 2022-11-24T14:45:00Z
-interval2 = ts >= "2022-09-11 09:45:00" & ts < "2022-11-24 14:45:00"
-
-# third interval: 2023-03-07T01:00:00Z to 2023-06-01T18:45:00Z
-interval3 = ts >= "2023-03-07 01:00:00" & ts < "2023-06-01 18:45:00"
-
-db.env[series2 & (interval1 | interval2 | interval3),]$vwc  <- NA
-db.env[series2 & (interval1 | interval2 | interval3),]$temp  <- NA
-
 detach("db.env")
 ```
 
@@ -347,7 +344,7 @@ detach("db.env")
 This is the result of adding the NA to the invalid periods:
 ```{r}
 plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-ggsave('output/vwc-Penaflor.png', width = 15, height = 10)
+ggsave('output/vwc-Corbalan.png', width = 15, height = 10)
 ```
 
 Now calculate the mean for vwc and temp:
@@ -361,7 +358,7 @@ And we plot it:
 ```{r}
 plot_temp_and_humidity <-
   ggplot(data = db.env.agg, aes(x=ts, y=temp)) +
-    ggtitle("Temperature and humidity for Peñaflor (2022-2023)") +
+    ggtitle("Temperature and humidity for Corbalan (2022-2023)") +
     geom_line(aes(colour = temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +
@@ -372,6 +369,19 @@ plot_temp_and_humidity <-
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
 plot_temp_and_humidity
-ggsave('output/VWCytempAgg-Penaflor.png', width = 15, height = 10)
+ggsave('output/VWCytempAgg-Corbalan.png', width = 15, height = 10)
+```
+
+```{r}
+library(plotly)
+plot_ly(
+  data = db.env.agg,
+  x = ~ts,
+  y = ~vwc*100,
+  type = "scatter",
+  mode = "lines",
+  # color = ~state,
+  colors = c("blue")
+  )
 ```
 
