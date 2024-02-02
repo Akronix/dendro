@@ -1,7 +1,5 @@
 == Dendro ==
 
-- Gráfica de dendrómetros donde cada clase tenga un color?? -> hecho
-
 - Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178
 
 - Mejorar automatización en procesado de datos.

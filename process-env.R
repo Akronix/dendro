@@ -13,8 +13,10 @@ setwd(PATH)
 ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-ENVIRONMENT_DIR = 'raw/Penaflor-env'
-OUTPUT_ENV_DIR = 'processed/Penaflor-env-processed'
+ENVIRONMENT_DIR = 'raw/Corbalan-env'
+OUTPUT_ENV_DIR = 'processed/Corbalan-env-processed'
+
+SOIL_TYPE = "sandy loam B"
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -42,7 +44,7 @@ for (filename in list_files) {
   tms.f <- mc_read_files(filename, dataformat_name = "TOMST", silent = FALSE)
   tms.f
   
-  tms.vwc <- mc_calc_vwc(tms.f, soiltype = "loamy sand B", output_sensor = "vwc")
+  tms.vwc <- mc_calc_vwc(tms.f, soiltype = SOIL_TYPE, output_sensor = "vwc")
   tms.vwc
   
   tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T2"))

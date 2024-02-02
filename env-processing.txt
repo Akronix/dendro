@@ -2,6 +2,8 @@ Valid data periods for TMS sensors
 
 ## Peñaflor ##
 
+SOIL_TYPE = "sandy loam B"
+
 ```r
 # first for series1 = db.env$series == "94231949"
 series1 = (series == "94231949")
@@ -56,8 +58,9 @@ db.env[series2 & (interval1 | interval2 | interval3),]$temp  <- NA
 ```
 
 
-
 ## Corbalan ##
+
+SOIL_TYPE = "sandy loam B"
 
 Los datos empiezan a partir del 2022-03-28T13:30:00Z (antes es 0)
 

@@ -203,7 +203,7 @@ OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 ### SAVE IN PROCESSED FORMAT ###
 output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
-write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$ID[1], "-", db$series[1], ".csv")), append = FALSE)
+write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
 
 ### SAVE IN INPUT SENSOR FORMAT ###
 ## OVERWRITE INPUT DATA VALUES WITH PROCESSED VALUES ##
