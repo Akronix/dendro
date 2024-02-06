@@ -4,13 +4,15 @@ source("lib-dendro.R")
 library(ggplot2)
 library(dplyr)
 library(lubridate)
+library(glue)
 
 ### DEFINE GLOBAL VARS ###
-PATH = '/home/akronix/workspace/dendro';
+PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
 setwd(PATH)
 
-DATA_DIR = 'processed/Penaflor-processed'
-ENV_DIR = 'processed/Penaflor-env-processed'
+PLACE = 'Miedes'
+DATA_DIR = 'processed/Miedes-last'
+ENV_DIR = 'processed/Miedes-env-processed'
 
 ### IMPORT DENDRO DATA ###
 
@@ -50,7 +52,7 @@ plot_multiple_dendro <- function (data, title, y = data$value)  {
 
 ```{r}
 plot_multiple_dendro(db, "Plot by dendrometer")
-ggsave('output/all-dendrometers-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/all-dendrometers-{PLACE}.png'), width = 15, height = 10)
 ```
 
 # Normalization 0-1 to better compare dendros
@@ -65,7 +67,7 @@ normalized.db <- db %>%
 
 ```{r}
 plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]", y = normalized.db$normalized_value)
-ggsave('output/normalized-all-dendrometers-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/normalized-all-dendrometers-{PLACE}.png'), width = 15, height = 10)
 ```
 
 
@@ -82,7 +84,7 @@ tail(dbagg)
 ```{r}
 plot_cat_full_year<-
   ggplot(data = dbagg,  aes(x=ts, y=mean)) +
-  ggtitle("Mean of data for Peñaflor dendrometers with ± standard deviation strips") +
+  ggtitle("Mean of data for Miedes dendrometers with ± standard deviation strips") +
   geom_ribbon(aes(ymin=mean-sd, ymax=mean+sd), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
   geom_line( aes (linetype = ""), col='darkgreen', show.legend	= F) +
   labs(x=expression(''),
@@ -93,7 +95,7 @@ plot_cat_full_year<-
   scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 plot_cat_full_year
-ggsave('output/mean-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/mean-{PLACE}.png'), width = 15, height = 10)
 ```
 
 
@@ -113,18 +115,18 @@ db.ND = db %>% filter (series %in% P_ND)
 
 One plot of dendros by class:
 ```{r}
-plot_multiple_dendro(db.Qi, "Quercus Coccifera - Peñaflor", y = db.Qi$value)
-ggsave('output/Qi-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.Qi, "Quercus Ilex - Miedes", y = db.Qi$value)
+ggsave(glue('output/Qi-{PLACE}.png'), width = 15, height = 10)
 ```
 
 ```{r}
-plot_multiple_dendro(db.ND, "Non-Declining - Peñaflor", y = db.ND$value)
-ggsave('output/ND-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.ND, "Non-Declining - Miedes", y = db.ND$value)
+ggsave(glue('output/ND-{PLACE}.png'), width = 15, height = 10)
 ```
 
 ```{r}
-plot_multiple_dendro(db.D, "Declining - Peñaflor", y = db.D$value)
-ggsave('output/D-Penaflor.png', width = 15, height = 10)
+plot_multiple_dendro(db.D, "Declining - Miedes", y = db.D$value)
+ggsave(glue('output/D-{PLACE}.png'), width = 15, height = 10)
 ```
 
 
@@ -161,7 +163,7 @@ plot_mean_sd <- function (data, species, output_fn = FALSE) {
 
 
 ```{r}
-plot_mean_sd(db.Qi.agg, "Quercus Coccifera", output_fn = "output/mean-Qi-Penaflor.png")
+plot_mean_sd(db.Qi.agg, "Quercus Ilex", output_fn = glue("output/mean-Qi-{PLACE}.png"))
 ```
 
 
@@ -173,7 +175,7 @@ tail(db.D.agg)
 
 
 ```{r}
-plot_mean_sd(db.D.agg, "Declining Pinus", output_fn = "output/mean-declining-Penaflor.png" )
+plot_mean_sd(db.D.agg, "Declining Pinus", output_fn = glue("output/mean-declining-{PLACE}.png") )
 ```
 
 ```{r}
@@ -184,12 +186,12 @@ tail(db.ND.agg)
 
 
 ```{r}
-plot_mean_sd(db.ND.agg, "Not Declining Pinus", output_fn = "output/mean-ND-Penaflor.png" )
+plot_mean_sd(db.ND.agg, "Not Declining Pinus", output_fn = glue("output/mean-ND-{PLACE}.png") )
 ```
 
 Join all aggregated df in one
 ```{r}
-db.Qi.agg$class = factor("Quercus Coccifera")
+db.Qi.agg$class = factor("Quercus Ilex")
 db.D.agg$class = factor("Declining Pinus")
 db.ND.agg$class = factor("Non-Declining Pinus")
 db.by.class.agg = rbind.data.frame(db.Qi.agg, db.D.agg, db.ND.agg)
@@ -210,7 +212,7 @@ plot_multiple_dendro_by_class <-
   theme_bw() +
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 plot_multiple_dendro_by_class
-ggsave('output/mean-byclass-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/mean-byclass-{PLACE}.png'), width = 15, height = 10)
 ```
 
 
@@ -242,7 +244,7 @@ ggplot() +
   scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
   new_scale_color() +
   geom_line(data = db.Qi, aes(x = ts, y = value, col = series)) +
-  scale_color_manual(values = green_colors, name = "Quercus Coccifera") +
+  scale_color_manual(values = green_colors, name = "Quercus Ilex") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   labs(x=expression(''),
        y=expression(Delta*" D (um)"))+
@@ -250,15 +252,14 @@ ggplot() +
   scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 
-ggsave('output/all-dendrometers-by-class-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/all-dendrometers-by-class-{PLACE}.png'), width = 15, height = 10)
 ```
 
 # Environmental data from TMS sensors
 
 ```{r}
 # importing processed environmental data #
-list_files <- list.files(file.path(PATH,ENV_DIR), pattern="*.csv$", full.names=TRUE)
-db.env<-read.all.env.processed(list_files)
+db.env<-read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
 str(db.env)
 ```
 
@@ -284,70 +285,7 @@ plot_multiple_env(db.env, "Temperature per TMS sensor", y = db.env$temp, "Temper
 
 ```{r}
 plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-```
-There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
-```{r}
-attach(db.env)
-
-# first for series1 = db.env$series == "94231949"
-series1 = (series == "94231949")
-
-# first interval: 2022-04-08T20:30:00Z al 2022-05-04T14:00:00Z
-interval1 = (ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00")
-
-# equivalent to:
-#db.2 = db.env %>% filter((series == "94231944") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
-
-# second interval: 2022-09-11T08:45:00Z al 2022-11-24T14:45:00Z
-interval2 = (ts > "2022-09-11 08:45:00" & ts < "2022-11-24 14:45:00" )
-
-db.env[series1 & (interval1 | interval2 ),]$vwc <- NA
-db.env[series1 & (interval1 | interval2 ),]$temp <- NA
-
-
-# now series == "94231942"
-series2 = series == "94231942"
-
-# interval: 2022-06-29T20:45:00Z al 2022-07-01T10:15:00Z
-interval1 = ts >= "2022-06-29 20:45:00" & ts <= "2022-07-01 10:15:00"
-# interval2: 2022-07-14T06:15:00Z al 2022-09-16T11:00:00Z
-interval2 = ts >= "2022-07-14 06:15:00" & ts <= "2022-09-16 11:00:00"
-
-db.env[series2 & (interval1 | interval2),]$vwc  <- NA
-db.env[series2 & (interval1 | interval2),]$temp  <- NA
-
-# now series == "94231947"
-series3 = series == "94231947" 
-
-# first interval: 2023-07-04T09:30:00Z to the end
-interval = ts >= "2023-07-04 09:30:00"
-
-db.env[series3 & interval,]$vwc  <- NA
-db.env[series3 & interval,]$temp  <- NA
-
-# now series == "94231949"
-series4 = series == "94231949"
-
-# first interval: 2022-04-08T20:30:00Z to 2022-05-04T14:00:00Z
-interval1 = ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00"
-
-# second interval: 2022-09-11T09:45:00Z to 2022-11-24T14:45:00Z
-interval2 = ts >= "2022-09-11 09:45:00" & ts < "2022-11-24 14:45:00"
-
-# third interval: 2023-03-07T01:00:00Z to 2023-06-01T18:45:00Z
-interval3 = ts >= "2023-03-07 01:00:00" & ts < "2023-06-01 18:45:00"
-
-db.env[series2 & (interval1 | interval2 | interval3),]$vwc  <- NA
-db.env[series2 & (interval1 | interval2 | interval3),]$temp  <- NA
-
-detach("db.env")
-```
-
-
-This is the result of adding the NA to the invalid periods:
-```{r}
-plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-ggsave('output/vwc-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/vwc-{PLACE}.png'), width = 15, height = 10)
 ```
 
 Now calculate the mean for vwc and temp:
@@ -361,7 +299,7 @@ And we plot it:
 ```{r}
 plot_temp_and_humidity <-
   ggplot(data = db.env.agg, aes(x=ts, y=temp)) +
-    ggtitle("Temperature and humidity for Peñaflor (2022-2023)") +
+    ggtitle("Temperature and humidity for Miedes (2022-2023)") +
     geom_line(aes(colour = temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +
@@ -372,6 +310,5 @@ plot_temp_and_humidity <-
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
 plot_temp_and_humidity
-ggsave('output/VWCytempAgg-Penaflor.png', width = 15, height = 10)
+ggsave(glue('output/VWCytempAgg-{PLACE}.png'), width = 15, height = 10)
 ```
-
