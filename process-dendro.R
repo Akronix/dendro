@@ -5,7 +5,7 @@ library(tidyverse)
 
 
 ### DEFINE GLOBAL VARS ###
-PATH = '/home/akronix/workspace/dendro';
+PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
 setwd(PATH)
 
 args <- commandArgs(trailingOnly = TRUE)

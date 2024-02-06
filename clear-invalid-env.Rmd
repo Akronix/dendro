@@ -10,7 +10,7 @@ library(glue)
 source('lib-dendro.R')
 
 # global variables
-PATH = '/home/akronix/workspace/dendro';
+PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
 setwd(PATH)
 
 PLACE = 'Miedes'
