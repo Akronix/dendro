@@ -18,7 +18,7 @@ PLACE = 'Miedes'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
-SOIL_TYPE = "sandy loam A"
+SOIL_TYPE = "loamy sand B"
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -43,14 +43,15 @@ dfs.all <- data.frame()
 for (filename in list_files) {
   
   # use myClim library for soil moisture conversion to volumetric water content (VWC)
-  tms.f <- mc_read_files(filename, dataformat_name = "TOMST", silent = FALSE)
+  tms.f <- mc_read_files(filename, dataformat_name = "TOMST", silent = FALSE,
+                         date_format = c("%d.%m.%Y %H:%M:%S", "%Y.%m.%d %H:%M", "%Y.%m.%d %H:%M:%S"))
   tms.f
   
   tms.vwc <- mc_calc_vwc(tms.f, soiltype = SOIL_TYPE, output_sensor = "vwc")
   tms.vwc
   
-  tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T2"))
-  names(tms.df) <- c("ts", "temp", "vwc")
+  tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T1", "TMS_T2", "TMS_T3"))
+  names(tms.df) <- c("ts", "soil.temp", "surface.temp", "air.temp", "vwc")
   
   if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
   
