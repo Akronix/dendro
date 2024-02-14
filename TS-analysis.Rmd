@@ -1,0 +1,310 @@
+---
+title: "TS-analysis"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import packages:
+```{r}
+source('lib-dendro.R')
+library(glue)
+library(tidyverse)
+library (ggplot2)
+library(lubridate)
+library(plotly)
+
+library(imputeTS)
+library(anomalize) # Decomposition
+library(ggpubr) # ggarange
+```
+
+Set global vars
+```{r}
+### DEFINE GLOBAL VARS ###
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+
+PLACE = 'Miedes'
+DATA_DIR = 'processed/Miedes-last'
+ENV_DIR = 'processed/Miedes-env-processed'
+```
+
+Select dendros for this analysis
+```{r}
+selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")
+```
+
+
+Load dataset:
+```{r}
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
+db<-read.all.processed(list_files)
+# db <- read.one.processed(file.path(".",DATA_DIR, 'proc-M_Qi1-92222155.csv'))
+```
+## CLEAN & PREPARE DATA ###
+
+keep data of selected dendros only
+```{r}
+db = db %>% filter(db$series %in% selected_dendros)
+str(db)
+```
+
+select only growing season of 2023
+```{r}
+# Set initial and final date for analysis
+ts_start <- "2023-03-15 09:00:00" # 2 days after installation
+ts_end <-"2023-09-10 07:00:00" # last timestamp of downloaded data
+db <- reset.initial.values(db, ts_start, ts_end)
+```
+
+
+
+# INSPECT DATA
+```{r}
+str(db)
+head(db)
+tail(db)
+```
+
+# Data imputation
+
+Missing data
+```{r}
+statsNA(db$value)
+```
+
+Let's fill it through interpolation
+```{r}
+db$value <- db$value %>% 
+            na_interpolation(option = "spline")
+```
+
+```{r}
+# db_locf$ts = as_datetime(db_locf$ts, tz = 'Europe/Madrid')
+```
+
+```{r}
+# plot_ly(db, x = ~ts, y = ~value, color=~series, type = 'scatter', mode = 'lines')
+```
+# Mean by class
+```{r}
+TreeList<-read.table("TreeList.txt",header=T)
+
+Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
+P_D = TreeList %>% filter(class == "D") %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
+
+db.Qi.agg <- db %>% filter (series %in% Qi) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+db.D.agg <- db %>% filter (series %in% P_D) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+db.ND.agg <- db %>% filter (series %in% P_ND) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+```
+
+
+# Time Series decomposition
+
+```{r}
+## Function decompose
+plot_decompose <- function (db, class) {
+  # decompose a time series (has to be in tibble format)
+  decompose = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select varaible to decompose
+    value)
+  
+  # plot time series
+  p_ts = ggplot (decompose, aes(x = ts, y = observed)) +
+    ggtitle(glue("Time series decomposition for {class}")) +
+    geom_line (col = "black") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme_classic() +
+    labs ( x = NULL,
+             y = "Original data (um)")
+  
+  # plot trend
+  p_trend = ggplot (decompose, aes(x = ts, y = trend)) +
+    geom_line (col = "#D55E00") + 
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    geom_hline(yintercept = 0, linetype='dotted', col = 'red') +
+    theme_classic() +
+    labs ( x = NULL,
+             y = "Trend")
+  
+  # plot season
+  p_season = ggplot (decompose, aes(x = ts, y = season)) +
+    geom_line (col = "#E69F00") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme_classic() +
+    labs ( x = NULL,
+             y = "Season")
+  
+  # plot remainder
+  p_remainder = ggplot (decompose, aes(x = ts, y = remainder)) +
+    geom_line (col = "#F0E442") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme_classic() +
+    labs ( x = "Period (month)",
+             y = "Remainder")
+  
+  # plot all together
+  ggarrange (p_ts, p_trend, p_season, p_remainder, ncol = 1)
+}
+```
+
+```{r}
+plot_decompose(db.Qi.agg, "Quercus Ilex")
+ggsave(glue('output/decomp-Qi-{PLACE}.png'), width = 15, height = 10)
+```
+
+
+
+```{r}
+plot_decompose(db.D.agg, "Declining Pinus Pinaster")
+ggsave(glue('output/decomp-D-{PLACE}.png'), width = 15, height = 10)
+```
+
+
+```{r}
+plot_decompose(db.ND.agg, "Non-Declining Pinus Pinaster")
+ggsave(glue('output/decomp-ND-{PLACE}.png'), width = 15, height = 10)
+```
+
+# Plot altogether
+
+```{r}
+## Function decompose
+  decompose.Qi = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.Qi.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+  
+  decompose.D = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.D.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+  
+  decompose.ND = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.ND.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+```
+```{r}
+ p_trend = ggplot ( ) +
+  ggtitle('Trends by class') +
+    geom_line (data = decompose.Qi, aes(x = ts, y = trend, col = "Quercus Ilex")) +
+    geom_line (data = decompose.D, aes(x = ts, y = trend, col = "Declining Pinus")) +
+    geom_line (data = decompose.ND, aes(x = ts, y = trend, col = "Non-Declining Pinus")) +
+    geom_hline(yintercept = 0, linetype='dotted', col = 'red') +
+    scale_color_manual(values = c("lightgreen", "aquamarine", "#E69F00")) +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme_classic() +
+    labs ( x = NULL,
+           y = "Trend (um)",
+           col = "Class")
+p_trend
+ggsave(glue('output/trends-byclass-{PLACE}.png'), width = 15, height = 10)
+```
+
+```{r}
+decompose = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select varaible to decompose
+    value)
+```
+
+```{r}
+decompose = rbind.data.frame(mutate(decompose.Qi, class=factor("Quercus")), mutate(decompose.D, class=factor("D")), mutate(decompose.ND, class=factor("ND")))
+```
+
+
+All trend data with plotly
+```{r}
+plot_ly(decompose, x = ~ts, y = ~trend, color=~class, type = 'scatter', mode = 'lines')
+```
+
+# Exploring daily cycles
+
+All seasonal data
+```{r}
+plot_ly(decompose, x = ~ts, y = ~season, color=~class, type = 'scatter', mode = 'lines')
+```
+
+Set different portion of data. i.e. outside the growing season.
+
+```{r}
+# Set initial and final date for analysis
+ts_start <- "2023-08-28 09:00:00" # 2 days after installation
+ts_end <-"2023-09-10 9:00:00" # last timestamp of downloaded data
+db.2 <- reset.initial.values(db, ts_start, ts_end)
+
+db.Qi.agg <- db.2 %>% filter (series %in% Qi) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+db.D.agg <- db.2 %>% filter (series %in% P_D) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+db.ND.agg <- db.2 %>% filter (series %in% P_ND) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
+
+## Function decompose
+  decompose.Qi = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.Qi.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+  
+  decompose.D = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.D.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+  
+  decompose.ND = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(db.ND.agg,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+```
+
+
+```{r}
+decompose = rbind.data.frame(mutate(decompose.Qi, class=factor("Quercus")), mutate(decompose.D, class=factor("D")), mutate(decompose.ND, class=factor("ND")))
+```
+
+```{r}
+plot_ly(decompose, x = ~ts, y = ~season, color=~class, type = 'scatter', mode = 'lines') %>%  layout(title="Growth II")
+```
+
+```{r}
+decompose = time_decompose(
+  # choose dataframe containing the data and convert it to tibble
+  as.tibble(db.2,
+            #what to do with na in the dataframe
+             na.action = na.pass),
+  # select variable to decompose
+  value)
+```
+
+By individuals
+

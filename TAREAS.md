@@ -1,8 +1,8 @@
 == Dendro ==
 
-- Imputación de datos
+- decomposición dendros -> patrones diario, mensual y estacional.
 
-- decomposición dendros.
+- Imputación de datos microclima
 
 - correlaciones y wavelets
 
