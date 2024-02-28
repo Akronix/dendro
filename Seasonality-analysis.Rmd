@@ -147,8 +147,11 @@ save_plot_decompose <- function (dat, name) {
 
 Define amplitude function
 ```{r}
-save_plot_amplitude <- function(dat, name) {
-  dat.ampl <- dat %>% mutate(date = date(ts)) %>% group_by(date) %>% summarize(max = max(value), min = min(value)) %>% mutate(ampl = max-min)
+calculate_amplitude <- function(dat) {
+  dat %>% mutate(date = date(ts)) %>% group_by(date) %>% summarize(max = max(value), min = min(value)) %>% mutate(ampl = max-min)
+}
+
+save_plot_amplitude <- function(dat.ampl, name) {
   ggplot(data = dat.ampl, mapping = aes(x = date, y = ampl)) + geom_line()
   ggsave(glue('output/{name}-amplitude.png'), width = 15, height = 10)
 }
@@ -195,6 +198,9 @@ For each individual, calculate and plot: basic decomposition, amplitude, stl dec
 TreeList <- read.table("TreeList.txt", header=T)
 
 # First, define dendro number
+column_names <- c("date", "min", "max", "ampl", "class")
+amplitude.df = data.frame(matrix(nrow = 0, ncol = length(column_names)))
+colnames(amplitude.df) <- column_names
 for (dendro.no in selected_dendros) {
   
   class = (TreeList[TreeList$series == dendro.no,])$class
@@ -208,7 +214,10 @@ for (dendro.no in selected_dendros) {
   save_plot_decompose(dat, name)
   
   # Max - min daily amplitude
-  save_plot_amplitude(dat, name)
+  dat.ampl <- calculate_amplitude(dat)
+  aux <- cbind(ampl = dat.ampl, class=class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+  amplitude.df = rbind.data.frame(amplitude.df, aux)
+  save_plot_amplitude(dat.ampl, name)
   
   # Create R TS object for stl functions
   dat.ts <- ts(data = dat$value,
@@ -260,8 +269,9 @@ sd = sd of list seasonalities
 ## Amplitude ~ climate
 
 Mean of all amplitudes 
-```{r}
 
+```{r}
+amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
 ```
 
 
