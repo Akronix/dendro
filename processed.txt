@@ -802,6 +802,7 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
                               tz="Europe/Madrid")
 
 == 92222157 ==
+- Pp no decaído.
 
 ** REPROCESADO **
   tol_out = 10,

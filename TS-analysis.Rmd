@@ -20,6 +20,7 @@ library(plotly)
 
 library(imputeTS)
 library(anomalize) # Decomposition
+library(stats) # Decomposition
 library(ggpubr) # ggarange
 ```
 
@@ -92,19 +93,6 @@ db$value <- db$value %>%
 ```{r}
 # plot_ly(db, x = ~ts, y = ~value, color=~series, type = 'scatter', mode = 'lines')
 ```
-# Mean by class
-```{r}
-TreeList<-read.table("TreeList.txt",header=T)
-
-Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
-P_D = TreeList %>% filter(class == "D") %>% pull(series)
-P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
-
-db.Qi.agg <- db %>% filter (series %in% Qi) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
-db.D.agg <- db %>% filter (series %in% P_D) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
-db.ND.agg <- db %>% filter (series %in% P_ND) %>% group_by(ts) %>% dplyr::summarise(value = mean(value, na.rm = T), sd = sd(value, na.rm = T) )
-```
-
 
 # Time Series decomposition
 
@@ -159,6 +147,172 @@ plot_decompose <- function (db, class) {
 }
 ```
 
+
+# by individuals
+
+
+First individual: 92222154 - Non-Declining Pinus Pinater
+```{r}
+dendro.no = 92222154
+dat = db[db$series == dendro.no,]
+ts_start <- "2023-05-01 09:00:00" # From first of May
+ts_end <-"2023-09-10 07:00:00" # last timestamp of downloaded data
+dat = dat %>% select(ts, value)
+dat = dat %>% filter(ts>=ts_start & ts<=ts_end)
+dat.ts <- ts(data = dat$value,
+             # start = dat$ts[1],
+             # end = dat$ts[length(dat$ts)],
+             frequency = 96)
+head(dat.ts, n = 180)
+```
+
+## Basic ts decomposition
+time series basic decomposition (constant seasonality)
+
+```{r}
+#png('output/decomp-anomalize.png', width=15, height=10, units="in", res=300)
+plot_decompose(dat, dendro.no)
+#dev.off()
+#ggsave(glue('output/decomp-anomalize.png'), width = 15, height = 10)
+```
+
+## Daily amplitude
+Daily amplitude, i.e., the difference between the highest and the lowest value.
+
+```{r}
+dat.ampl <- dat %>% mutate(date = date(ts)) %>% group_by(date) %>% summarize(max = max(value), min = min(value)) %>% mutate(ampl = max-min)
+ggplot(data = dat.ampl, mapping = aes(x = date, y = ampl)) +
+       geom_line()
+```
+
+## Using STL method
+
+```{r}
+stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+summary(stl.out)
+plot(stl.out)
+```
+
+```{r}
+png(glue('output/decomp-stl-{dendro.no}.png'), width=15, height=10, units="in", res=300)
+plot(stl.out)
+dev.off()
+```
+
+Now plotting only seasonality but with dates in the x-axis
+```{r}
+library(zoo)
+seasonality <- stl.out$time.series[,1]
+timestamps <- seq(from = as.POSIXct(ts_start, tz='Madrid/Spain'), by = "15 min", length.out = length(dat.ts))
+zoo_data <- zoo(seasonality, order.by = timestamps)
+plot(zoo_data, xaxt = "n", type = "l", xlab = "", ylab = "Value", main = "Time Series by Month-Year")
+axis(1, at = time(zoo_data), labels = format(time(zoo_data), "%Y-%m"))
+
+# Add x-axis label
+mtext("Month-Year", side = 1, line = 3)
+```
+
+
+
+## Other methods
+Testing other methods of decomposing seasonality:
+
+```{r}
+# library("seasonal")
+# m <- seas(dat.ts)
+# summary(m)
+```
+
+```{r}
+library("stlplus")
+
+dendro_stl <- stlplus(dat.ts, n.p = 96,
+  s.window = 25, t.window = 673)
+  #sub.labels = substr(month.name, 1, 3))
+
+plot(dendro_stl, ylab = "stem growth (um)", xlab = "Time (days)")
+plot_seasonal(dendro_stl)
+plot_trend(dendro_stl)
+plot_cycle(dendro_stl)
+plot_rembycycle(dendro_stl)
+
+```
+
+Library forecast (automated stl)
+
+```{r}
+library(forecast)
+dat.ts %>%
+  mstl(iterate = 8) %>%
+  autoplot()
+```
+
+Second individual: 92222155 - Quercus Ilex
+
+Third individual: 92222169 - Declining Pinus Pinater
+
+
+# aggregated decomposition
+
+# Mean of trends
+```{r}
+d <- db %>% filter (series %in% P_D)
+s = unique(d$series)
+
+ts = d %>%  group_by(series) %>% pull(ts)
+acum = vector(mode = "numeric", length = length(ts))
+
+for (series_i in s) {
+  dat = d[d$series == series_i,]
+  
+  print(head(dat))
+  print(anyNA(dat))
+  
+  # decompose a time series (has to be in tibble format)
+  decompose = time_decompose(
+    # choose dataframe containing the data and convert it to tibble
+    as.tibble(dat,
+              #what to do with na in the dataframe
+               na.action = na.pass),
+    # select variable to decompose
+    value)
+  
+    acum = acum + decompose$trend;
+}
+
+n = length(s)
+
+mean = modify(acum, (\(x) x / n));
+mean_of_trends = tibble(mean, ts)
+```
+
+
+```{r}
+  # plot trend
+p_trend = ggplot (mean_of_trends, aes(x = ts, y = mean)) +
+  geom_line (col = "#D55E00") + 
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  geom_hline(yintercept = 0, linetype='dotted', col = 'red') +
+  theme_classic() +
+  labs ( x = NULL,
+           y = "Trend")
+p_trend
+```
+
+## Mean by class
+```{r}
+TreeList<-read.table("TreeList.txt",header=T)
+
+Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
+P_D = TreeList %>% filter(class == "D") %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
+
+db.Qi.agg <- db %>% filter (series %in% Qi) %>% group_by(ts) %>% dplyr::summarise(mean = mean(value, na.rm = T), sd = sd(value, na.rm = T) ) %>% rename(value = mean)
+db.D.agg <- db %>% filter (series %in% P_D) %>% group_by(ts) %>% dplyr::summarise(mean = mean(value, na.rm = T), sd = sd(value, na.rm = T) ) %>% rename(value = mean)
+db.ND.agg <- db %>% filter (series %in% P_ND) %>% group_by(ts) %>% dplyr::summarise(mean = mean(value, na.rm = T), sd = sd(value, na.rm = T) ) %>% rename(value = mean)
+```
+
+
 ```{r}
 plot_decompose(db.Qi.agg, "Quercus Ilex")
 ggsave(glue('output/decomp-Qi-{PLACE}.png'), width = 15, height = 10)
@@ -205,14 +359,17 @@ ggsave(glue('output/decomp-ND-{PLACE}.png'), width = 15, height = 10)
     # select variable to decompose
     value)
 ```
+
+
 ```{r}
  p_trend = ggplot ( ) +
   ggtitle('Trends by class') +
     geom_line (data = decompose.Qi, aes(x = ts, y = trend, col = "Quercus Ilex")) +
+    geom_ribbon(data = db.Qi.agg, aes(x = ts, ymin=sd, ymax=sd), fill='lightgreen', alpha=0.3, show.legend	= FALSE, linetype = 0) +
     geom_line (data = decompose.D, aes(x = ts, y = trend, col = "Declining Pinus")) +
     geom_line (data = decompose.ND, aes(x = ts, y = trend, col = "Non-Declining Pinus")) +
     geom_hline(yintercept = 0, linetype='dotted', col = 'red') +
-    scale_color_manual(values = c("lightgreen", "aquamarine", "#E69F00")) +
+    # scale_color_manual(values = c("darkgreen", "aquamarine", "#E69F00")) +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
     theme_classic() +
     labs ( x = NULL,
@@ -221,6 +378,7 @@ ggsave(glue('output/decomp-ND-{PLACE}.png'), width = 15, height = 10)
 p_trend
 ggsave(glue('output/trends-byclass-{PLACE}.png'), width = 15, height = 10)
 ```
+
 
 ```{r}
 decompose = time_decompose(
@@ -236,13 +394,12 @@ decompose = time_decompose(
 decompose = rbind.data.frame(mutate(decompose.Qi, class=factor("Quercus")), mutate(decompose.D, class=factor("D")), mutate(decompose.ND, class=factor("ND")))
 ```
 
-
 All trend data with plotly
 ```{r}
 plot_ly(decompose, x = ~ts, y = ~trend, color=~class, type = 'scatter', mode = 'lines')
 ```
 
-# Exploring daily cycles
+# Exploring daily cycles in different periods
 
 All seasonal data
 ```{r}
@@ -295,16 +452,3 @@ decompose = rbind.data.frame(mutate(decompose.Qi, class=factor("Quercus")), muta
 ```{r}
 plot_ly(decompose, x = ~ts, y = ~season, color=~class, type = 'scatter', mode = 'lines') %>%  layout(title="Growth II")
 ```
-
-```{r}
-decompose = time_decompose(
-  # choose dataframe containing the data and convert it to tibble
-  as.tibble(db.2,
-            #what to do with na in the dataframe
-             na.action = na.pass),
-  # select variable to decompose
-  value)
-```
-
-By individuals
-
