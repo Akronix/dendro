@@ -84,6 +84,13 @@ read.all.env.processed <- function(nameFiles){
 }
 
 
+read.env.agg <- function(filename) {
+  File <- read.csv(filename, sep = ",",  header=TRUE, stringsAsFactors=FALSE)
+  File$ts <- as_datetime(File$ts, tz = "Europe/Madrid")
+  return(File)
+}
+
+
 reset.initial.values <- function (dendros, ts_start, ts_end) {
   
   dendros <- dendros[which(dendros$ts>=ts_start & dendros$ts<=ts_end),]

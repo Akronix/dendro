@@ -216,7 +216,7 @@ ggsave(glue('output/mean-byclass-{PLACE}.png'), width = 15, height = 10)
 ```
 
 
-Plot all dendros by class in one graph (WIP)
+Plot all dendros by class in one graph
 
 ```{r}
 db.by.class = db %>% select(series, ts, value) %>% mutate(class =  case_when(

@@ -10,18 +10,18 @@ library(glue)
 source('lib-dendro.R')
 
 # global variables
-PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(PATH)
 
-PLACE = 'Penaflor'
-ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
+PLACE = 'Miedes'
+BUFFER_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-processed')
 ```
 
 
 ```{r}
 # importing processed environmental data #
-list_files <- list.files(file.path(PATH,ENV_DIR), pattern="*.csv$", full.names=TRUE)
+list_files <- list.files(file.path(PATH,BUFFER_ENV_DIR), pattern="*.csv$", full.names=TRUE)
 db.env<-read.all.env.processed(list_files)
 str(db.env)
 ```
@@ -33,67 +33,55 @@ f
 ```
 
 Defining and clearing the periods of invalid data. There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
+
 ```{r}
-attach(db.env)
-
 # First, we remove all the data prior to installation:
-start_ts = (ts < "2022-03-15 12:30:00")
-db.env[start_ts,]$vwc <- NA
-db.env[start_ts,]$temp <- NA
+ts_start = "2022-03-10 13:00:00"
+head(db.env)
+db.env <- db.env[which(db.env$ts>=ts_start),]
+head(db.env)
+```
 
-# first for series1 = db.env$series == "94231949"
-series1 = (series == "94231949")
+Then, we set NA when there's no valid data:
+```{r}
+# Then we clear the invalid data for each series:
+# for series1 = db.env$series == "94231939"
+series1 = (db.env$series == "94231939")
 
-# first interval: 2022-04-08T20:30:00Z al 2022-05-04T14:00:00Z
-interval1 = (ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00")
+# first interval:
+interval1.1 = (db.env$ts >= "2022-06-28 22:45:00" & db.env$ts <= "2022-08-19 10:45:00")
 
-# equivalent to:
-#db.2 = db.env %>% filter((series == "94231944") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
+# equivalent to: (adjust to corresponding series and interval)
+#db.2 = db.env %>% filter((series == "94231939") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
 
 # second interval: 2022-09-11T08:45:00Z al 2022-11-24T14:45:00Z
-interval2 = (ts > "2022-09-11 08:45:00" & ts < "2022-11-24 14:45:00" )
+interval1.2 = (db.env$ts > "2022-09-08 22:15:00" & db.env$ts < "2022-11-18 10:15:00" )
 
-db.env[series1 & (interval1 | interval2 ),]$vwc <- NA
-db.env[series1 & (interval1 | interval2 ),]$temp <- NA
+# third interval: from 2023-07-28T08:15:00Z to the end
+interval1.3 = (db.env$ts > "2023-07-28 08:15:00")
+
+db.env[series1 & (interval1.1 | interval1.2 | interval1.3 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+
+# now series == "94231938"
+series2 = db.env$series == "94231938"
+
+# interval1: 
+interval2.1 = db.env$ts >= "2022-06-11 20:15:00" & db.env$ts <= "2022-08-19 10:45:00"
+interval2.2 = db.env$ts >= "2022-09-08 22:15:00" & db.env$ts <= "2022-11-24 11:30:00"
+
+# interval2: 2023-09-02T03:45:00Z to the end
+interval2.3 = db.env$ts >= "2023-09-02 03:45:00"
 
 
-# now series == "94231942"
-series2 = series == "94231942"
+db.env[series2 & (interval2.1 | interval2.2 | interval2.3), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 
-# interval0: prior to installation
-interval0 = ts < "2022-03-29 10:15:00"
-# interval: 2022-06-29T20:45:00Z al 2022-07-01T10:15:00Z
-interval1 = ts >= "2022-06-29 20:45:00" & ts <= "2022-07-01 10:15:00"
-# interval2: 2022-07-14T06:15:00Z al 2022-09-16T11:00:00Z
-interval2 = ts >= "2022-07-14 06:15:00" & ts <= "2022-09-16 11:00:00"
+# now series == "94231936"
+series3 = db.env$series == "94231936" 
 
-db.env[series2 & (interval0 | interval1 | interval2),]$vwc  <- NA
-db.env[series2 & (interval0 | interval1 | interval2),]$temp  <- NA
+# first interval: 
+interval3.1 = (db.env$ts >= "2023-07-11 19:30:00") & (db.env$ts < "2023-09-02 20:45:00")
 
-# now series == "94231947"
-series3 = series == "94231947" 
-
-# first interval: 2023-07-04T09:30:00Z to the end
-interval = ts >= "2023-07-04 09:30:00"
-
-db.env[series3 & interval,]$vwc  <- NA
-db.env[series3 & interval,]$temp  <- NA
-
-# now series == "94231949"
-series4 = series == "94231949"
-
-# first interval: 2022-04-08T20:30:00Z to 2022-05-04T14:00:00Z
-interval1 = ts >= "2022-04-08 20:30:00" & ts <= "2022-05-04 14:00:00"
-
-# second interval: 2022-09-11T09:45:00Z to 2022-11-24T14:45:00Z
-interval2 = ts >= "2022-09-11 09:45:00" & ts < "2022-11-24 14:45:00"
-
-# third interval: 2023-03-07T01:00:00Z to 2023-06-01T18:45:00Z
-interval3 = ts >= "2023-03-07 01:00:00" & ts < "2023-06-01 18:45:00"
-
-db.env[series4 & (interval1 | interval2 | interval3),]$vwc  <- NA
-db.env[series4 & (interval1 | interval2 | interval3),]$temp  <- NA
-detach("db.env")
+db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 ```
 
 This is the result of adding the NA to the invalid periods:
@@ -108,13 +96,13 @@ OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 write_csv(db.env, file.path(OUTPUT_PATH, "proc-env.csv" ), append = F, col_names = T)
 
-db.agg <- subset(db.env, select = c("ts", "temp", "vwc") )
+db.agg <- subset(db.env, select = c("ts", "soil.temp", "surface.temp", "air.temp", "vwc") )
 
 # Do mean of all sensors
 db.agg <- db.env %>%
   #filter(ts < ymd_hms("2022-12-31 00:00:00")) %>%
   group_by(ts) %>%
-  dplyr::summarise(temp = mean(temp, na.rm = TRUE), VWC = mean(vwc, na.rm = T))
+  dplyr::summarise(soil.temp = mean(soil.temp, na.rm = T), surface.temp = mean(surface.temp, na.rm = T), air.temp = mean(air.temp, na.rm = T), VWC = mean(vwc, na.rm = T))
 
 summary(db.agg)
 
@@ -122,5 +110,3 @@ summary(db.agg)
 if (!dir.exists(file.path(OUTPUT_PATH, 'aggregated'))) {dir.create(file.path(OUTPUT_PATH, 'aggregated'))}
 write_csv(db.agg, file.path(OUTPUT_PATH, 'aggregated', "proc-agg-env.csv"), append = F, col_names = T)
 ```
-
-
