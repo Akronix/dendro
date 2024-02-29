@@ -8,18 +8,20 @@ library(dplyr)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-DATA_DIR = 'Valcuerna-dataD'
-FILENAME_EXCESS = "_2023_10_25_0.csv"
+DATA_DIR = 'raw/Boalar-dataD'
+FILENAME_EXCESS = "_2024_02_29_0.csv"
 
 # Set initial and final date and sampling dates
-ts_start<-"2023-03-23 09:00:00" # 2 days after installation
-ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
+ts_start<-"2022-03-17 11:15" # 2 days after installation
+ts_end<-"2024-02-29 00:00" # last timestamp of downloaded data
 
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
-db<-read.all.dendro(list_files, ts_start, ts_end)
+db<-read.all.dendro(list_files, ts_start, ts_end, old_format = T)
+summary(db)
+
 
 ### CLEAN & PREPARE DATA ###
 
