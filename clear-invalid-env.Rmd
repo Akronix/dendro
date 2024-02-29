@@ -102,7 +102,7 @@ db.agg <- subset(db.env, select = c("ts", "soil.temp", "surface.temp", "air.temp
 db.agg <- db.env %>%
   #filter(ts < ymd_hms("2022-12-31 00:00:00")) %>%
   group_by(ts) %>%
-  dplyr::summarise(soil.temp = mean(soil.temp, na.rm = T), surface.temp = mean(surface.temp, na.rm = T), air.temp = mean(air.temp, na.rm = T), VWC = mean(vwc, na.rm = T))
+  dplyr::summarise(soil.temp = mean(soil.temp, na.rm = T), surface.temp = mean(surface.temp, na.rm = T), air.temp = mean(air.temp, na.rm = T), vwc = mean(vwc, na.rm = T))
 
 summary(db.agg)
 

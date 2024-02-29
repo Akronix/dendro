@@ -50,10 +50,14 @@ for (filename in list_files) {
   sernum <- mc_info(tms.f)$serial_number[1]
   
   # calibrate moisture sensor
-  raw_air   <- 406   # signal in air, on average 406 (257 to 667) at average temperature of 23°C. 
-  raw_water <- 3698 # signal in water, 3698 (min 3582, max 3835) with average temperature of the bath 22°C. 
-  t_air     <- 23
-  t_water   <- 22
+  # raw_air   <- 406   # signal in air, on average 406 (257 to 667) at average temperature of 23°C. 
+  # raw_water <- 3698 # signal in water, 3698 (min 3582, max 3835) with average temperature of the bath 22°C. 
+  # t_air     <- 23
+  # t_water   <- 22
+  raw_air   <- 50   #signal in air, typically around 350
+  raw_water <- 3635 #signal in air, typically around 3700
+  t_air     <- 20
+  t_water   <- 20
   mc_info(tms.f)
   
   #calc sensor-specific calibration parameters
