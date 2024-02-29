@@ -1,10 +1,8 @@
 == Dendro ==
 
-- Nuevo .Rmd: guardar pngs output de: decomposición básica, seasonality stl y gráfica amplitudes
+- Nuevo .Rmd: guardar pngs output de: decomposición básica, seasonality stl y gráfica amplitudes -> Inspeccionar y analizar gráficas.
 
-- decomposición dendros -> patrones diario, mensual y estacional.
-
-- Imputación de datos microclima
+- Imputación de datos microclima ?
 
 - correlaciones y wavelets
 
