@@ -1,6 +1,6 @@
 == Dendro ==
 
-- Calcular medias de seasonalities.
+- Calcular medias de seasonalities. -> Añadir SD a gráficas.
 
 - tunear ccf para que: i) no use lags negativos, ii) Use método spearman. Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol)
 
