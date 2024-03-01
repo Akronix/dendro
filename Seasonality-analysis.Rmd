@@ -237,44 +237,6 @@ for (dendro.no in selected_dendros) {
   save_plot_seasonality_stl(stl.out, name)
 }
 ```
-
-## Same but means of classes
-
-Calculate mean of the seasonality for Qi, PD and P_ND
-```{r}
-Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
-P_D = TreeList %>% filter(class == "D") %>% pull(series)
-P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
-```
-
-
-```{r}
-seasonalities.qi <- data.frame()
-
-for (dendro.no in Qi) {
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  
-  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-  
-  seasonality <- stl.out$time.series[,1]
-  as.data.frame(seasonality)
-  
-  zoo_data <- zoo(seasonality, order.by = timestamps)
-  
-  seasonalities.qi <- append(seasonalities.qi, zoo_data)
-  str(seasonalities.qi)
-}
-
-mean = mean of the seasonality of every element of the list
-
-
-
-sd = sd of list seasonalities
-```
-
-
 # Correlations
 
 ## Amplitude ~ climate

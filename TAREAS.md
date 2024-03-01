@@ -1,8 +1,12 @@
 == Dendro ==
 
-- Nuevo .Rmd: guardar pngs output de: decomposición básica, seasonality stl y gráfica amplitudes -> Inspeccionar y analizar gráficas.
+- Calcular medias de seasonalities.
 
-- Imputación de datos microclima ?
+- tunear ccf para que: i) no use lags negativos, ii) Use método spearman. Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol)
+
+- Hacer correlaciones con temp: con rango temperaturas o dif. intercuartílica
+
+- Ver cuánto cambia medias de vwc con sensores de valores en NA y sin ellos. Mirar mejor solución: Imputación de datos microclima ? o solo los que sí tienen valores?
 
 - correlaciones y wavelets
 

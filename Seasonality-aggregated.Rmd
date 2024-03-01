@@ -217,6 +217,7 @@ for (dendro.no in selected_dendros) {
   dat.ampl <- calculate_amplitude(dat)
   aux <- cbind(ampl = dat.ampl, class=class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
   amplitude.df = rbind.data.frame(amplitude.df, aux)
+  
   # save_plot_amplitude(dat.ampl, name)
   # 
   # # Create R TS object for stl functions
@@ -242,38 +243,148 @@ for (dendro.no in selected_dendros) {
 
 Calculate mean of the seasonality for Qi, PD and P_ND
 ```{r}
-# Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
-# P_D = TreeList %>% filter(class == "D") %>% pull(series)
-# P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
+Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
+P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
 ```
 
+Mean seasonality for Quercus Ilex:
+```{r}
+seasonalities.qi <- data.frame()
+
+for (dendro.no in Qi) {
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  dat = dat %>% select(ts, value)
+  dat.ts <- ts(data = dat$value, frequency = 96)
+  
+  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+
+  seasonality <- stl.out$time.series[,1]
+  
+  aux <- data.frame(
+    value = as.numeric(seasonality),
+    series = as.factor(dendro.no),
+    ts = dat$ts
+  )
+
+  seasonalities.qi <- rbind.data.frame(seasonalities.qi, aux)
+}
+summary(seasonalities.qi)
+
+seasonalities.qi.agg <- seasonalities.qi %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.qi.agg)
+```
 
 ```{r}
-# seasonalities.qi <- data.frame()
-# 
-# for (dendro.no in Qi) {
-#   # Filter data by that no
-#   dat = db[db$series == dendro.no,]
-#   dat = dat %>% select(ts, value)
-#   
-#   stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-#   
-#   seasonality <- stl.out$time.series[,1]
-#   as.data.frame(seasonality)
-#   
-#   zoo_data <- zoo(seasonality, order.by = timestamps)
-#   
-#   seasonalities.qi <- append(seasonalities.qi, zoo_data)
-#   str(seasonalities.qi)
-# }
-# 
-# mean = mean of the seasonality of every element of the list
-# 
-# 
-# 
-# sd = sd of list seasonalities
+ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Quercus Ilex")
+ggsave('output/mean-seasonality-Qi.png', width = 15, height = 10)
 ```
 
+Mean seasonality for Non-Declining Pinus
+```{r}
+seasonalities.P_ND <- data.frame()
+
+for (dendro.no in P_ND) {
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  dat = dat %>% select(ts, value)
+  dat.ts <- ts(data = dat$value, frequency = 96)
+
+  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+
+  seasonality <- stl.out$time.series[,1]
+  
+  aux <- data.frame(
+    value = as.numeric(seasonality),
+    series = as.factor(dendro.no),
+    ts = dat$ts
+  )
+
+  seasonalities.P_ND <- rbind.data.frame(seasonalities.P_ND, aux)
+}
+summary(seasonalities.P_ND)
+
+seasonalities.P_ND.agg <- seasonalities.P_ND %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_ND.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Non-Declining Pinus")
+ggsave('output/mean-seasonality-P_ND.png', width = 15, height = 10)
+```
+
+
+Mean seasonality for Declining Pinus
+```{r}
+seasonalities.P_D <- data.frame()
+
+for (dendro.no in P_D) {
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  dat = dat %>% select(ts, value)
+  dat.ts <- ts(data = dat$value, frequency = 96)
+  
+  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+
+  seasonality <- stl.out$time.series[,1]
+  
+  aux <- data.frame(
+    value = as.numeric(seasonality),
+    series = as.factor(dendro.no),
+    ts = dat$ts
+  )
+
+  seasonalities.P_D <- rbind.data.frame(seasonalities.P_D, aux)
+  remove(aux)
+}
+summary(seasonalities.P_D)
+
+seasonalities.P_D.agg <- seasonalities.P_D %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_D.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Declining Pinus")
+ggsave('output/mean-seasonality-P_D.png', width = 15, height = 10)
+```
+
+# Climate data
+
+Importing environmental data and keeping sensor with all valid data
+```{r}
+db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
+db.env <- db.env[db.env$series == "94231940",]
+```
+
+Filter env data to period of study
+```{r}
+db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),]
+summary(db.env)
+```
+
+Plot env data:
+```{r}
+plot_temp_and_humidity <-
+  ggplot(data = db.env, aes(x=ts, y=soil.temp)) +
+    ggtitle("Temperature and humidity for Miedes (2022-2023)") +
+    geom_line(aes(colour = soil.temp)) +
+    theme_bw() +
+    scale_colour_gradient(low = "light blue", high = "red") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1)) +
+    scale_y_continuous("Temperature (ºC)", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+    geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
+    scale_linetype_manual(NULL, values = 1) +
+    labs(x=expression(''), colour = "Temperature (ºC)")
+plot_temp_and_humidity
+```
 
 # Correlations
 
@@ -292,19 +403,6 @@ amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
 amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
 ```
 
-
-Importing environmental data and keeping sensor with all valid data
-```{r}
-db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
-db.env <- db.env[db.env$series == "94231940",]
-```
-
-Filter env data to period of study
-```{r}
-db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),]
-summary(db.env)
-```
-
 Mean of maximum daily temp, minimum daily temp and mean daily temp. We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences, plus soil moisture daily mean.
 
 ```{r}
@@ -312,7 +410,21 @@ clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summari
 summary(clim.daily)
 ```
 
-Explore correlation within Soil Moisture and daily seasonal amplitude
+Following, we will Explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude:
+
+## for Quercus Ilex:
+
+Plot VWC and daily amplitude for Qi:
+```{r}
+plot(log10(clim.daily$mean.vwc), log10(amplitude.Qi$mean))
+```
+
+
+```{r}
+plot(clim.daily$mean.vwc, amplitude.Qi$mean)
+```
+
+Test correlation:
 ```{r}
 cor.test(
   #specify the two variables to correlate
@@ -323,13 +435,20 @@ cor.test(
   conf.level = 0.95)
 ```
 
+```{r}
+hist(log10(amplitude.Qi$mean+1))
+```
+```{r}
+hist(log10(clim.daily$mean.vwc+1))
+```
+
 Explore correlation within Soil temperature and daily seasonal amplitude (Not significant)
 ```{r}
 cor.test(
   #specify the two variables to correlate
-  clim.daily$max.temp, amplitude.Qi$mean,
+  clim.daily$min.temp, amplitude.Qi$mean,
   # correlation methods (pearson, spearman, kendall)
-  method = c("pearson"),
+  method = c("spearman"),
   # set confidence interval
   conf.level = 0.95)
 ```
@@ -357,7 +476,38 @@ find_Max_CCF = function(x,y) {
 find_Max_CCF(clim.daily$mean.vwc, amplitude.Qi$mean)
 ```
 
-With P_ND
+## With P_ND
+
+Plot VWC and daily amplitude:
+
+```{r}
+join.df <- full_join(clim.daily, amplitude.P_ND, by="date")
+  ggplot(data = join.df, aes(log10(mean.vwc), log10(mean))) +
+  # black points graph
+  geom_point() +     
+  # add correlation with errors and blue color
+  stat_smooth(method = 'lm', 
+              method.args = list(start= c(a = 1,b=1)),
+              se=T, color = "blue") +
+   # theme
+  theme_classic() +
+  # add labels
+  labs( x = "Air Light (lux)",
+        y = expression("Range in"~O[2]~(mg~L^-1)))
+```
+
+
+```{r}
+plot(log10(clim.daily$mean.vwc), log10(amplitude.P_ND$mean))
+# plot(lm(log10(clim.daily$mean.vwc) ~ log10(amplitude.P_ND$mean)))
+```
+
+
+```{r}
+plot(log10(clim.daily$mean.vwc), log10(amplitude.P_ND$mean))
+# plot(lm(clim.daily$mean.vwc ~ amplitude.P_ND$mean))
+```
+
 ```{r}
 ccf (clim.daily$mean.vwc, amplitude.P_ND$mean,
      #indicate what to do with "NA".
@@ -370,7 +520,7 @@ ccf (clim.daily$mean.vwc, amplitude.P_ND$mean,
 find_Max_CCF(clim.daily$mean.vwc, amplitude.P_ND$mean)
 ```
 
-With P_D
+## With P_D
 ```{r}
 ccf (clim.daily$mean.vwc, amplitude.P_D$mean,
      #indicate what to do with "NA".
@@ -381,6 +531,10 @@ ccf (clim.daily$mean.vwc, amplitude.P_D$mean,
 
 ```{r}
 find_Max_CCF(clim.daily$mean.vwc, amplitude.P_D$mean)
+```
+
+```{r}
+ggplot(data = amplitude.P_ND, mapping = aes(x = date, y = mean)) + geom_line()
 ```
 
 
