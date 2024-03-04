@@ -190,56 +190,7 @@ save_plot_seasonality_stl <- function(stl.out, name) {
 }
 ```
 
-## Per individuals analysis
-
-For each individual, calculate and plot: basic decomposition, amplitude, stl decomposition and stl seasonality
-
-```{r}
-TreeList <- read.table("TreeList.txt", header=T)
-
-# First, define dendro number
-column_names <- c("date", "min", "max", "ampl", "class")
-amplitude.df = data.frame(matrix(nrow = 0, ncol = length(column_names)))
-colnames(amplitude.df) <- column_names
-for (dendro.no in selected_dendros) {
-  
-  class = (TreeList[TreeList$series == dendro.no,])$class
-  name = paste(dendro.no, class, sep="-")
-  
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  
-  # Basic ts decomposition
-  # save_plot_decompose(dat, name)
-  
-  # Max - min daily amplitude
-  dat.ampl <- calculate_amplitude(dat)
-  aux <- cbind(ampl = dat.ampl, class=class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
-  amplitude.df = rbind.data.frame(amplitude.df, aux)
-  
-  # save_plot_amplitude(dat.ampl, name)
-  # 
-  # # Create R TS object for stl functions
-  # dat.ts <- ts(data = dat$value,
-  #            # start = dat$ts[1],
-  #            # end = dat$ts[length(dat$ts)],
-  #            frequency = 96)
-  # 
-  # head(dat.ts, n = 180)
-  # 
-  # # Decompose using STL
-  # stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-  # 
-  # # save all components
-  # save_plot_stl(stl.out, name)
-  # 
-  # # save only seasonality
-  # save_plot_seasonality_stl(stl.out, name)
-}
-```
-
-## Same but means of classes
+# Calculate Seasonality by class
 
 Calculate mean of the seasonality for Qi, PD and P_ND
 ```{r}
@@ -318,7 +269,6 @@ ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) +
 ggsave('output/mean-seasonality-P_ND.png', width = 15, height = 10)
 ```
 
-
 Mean seasonality for Declining Pinus
 ```{r}
 seasonalities.P_D <- data.frame()
@@ -355,13 +305,61 @@ ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) +
 ggsave('output/mean-seasonality-P_D.png', width = 15, height = 10)
 ```
 
+# Calculate amplitude for all trees
+
+```{r}
+TreeList <- read.table("TreeList.txt", header=T)
+
+# First, define dendro number
+column_names <- c("date", "min", "max", "ampl", "class")
+amplitude.df = data.frame(matrix(nrow = 0, ncol = length(column_names)))
+colnames(amplitude.df) <- column_names
+for (dendro.no in selected_dendros) {
+  
+  class = (TreeList[TreeList$series == dendro.no,])$class
+  name = paste(dendro.no, class, sep="-")
+  
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  dat = dat %>% select(ts, value)
+  
+  # Basic ts decomposition
+  # save_plot_decompose(dat, name)
+  
+  # Max - min daily amplitude
+  dat.ampl <- calculate_amplitude(dat)
+  aux <- cbind(ampl = dat.ampl, class=class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+  amplitude.df = rbind.data.frame(amplitude.df, aux)
+}
+```
+
+With all daily amplitudes, calculate mean of each one by class
+
+```{r}
+amplitude.df = amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
+amplitude.df
+```
+
+Create one different dataframe for every class
+```{r}
+amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
+amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
+amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
+```
+
+
 # Climate data
 
-Importing environmental data and keeping sensor with all valid data
+Importing environmental data and keeping the one sensor with all valid data
 ```{r}
 db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
 db.env <- db.env[db.env$series == "94231940",]
 ```
+
+```{r}
+plot_ly(db.env, x = ~ts, y = ~vwc, color = ~series, type = 'scatter', mode = 'lines')
+```
+
 
 Filter env data to period of study
 ```{r}
@@ -386,42 +384,52 @@ plot_temp_and_humidity <-
 plot_temp_and_humidity
 ```
 
+Calculations of useful aggregation data for climate:
+  * soil moisture: max VWC, range VWC, mean of VWC (misleading)
+  * temp: Mean of daily temp, minimum daily temp and maximum daily temp, range temp and interquartile temp (Q3-Q1). We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences.
+
+```{r}
+clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(soil.temp), min.temp = min(soil.temp), mean.temp = mean(soil.temp), sd.temp = sd(soil.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(soil.temp, prob=c(.75)) - quantile(soil.temp, prob=c(.25)) ) )
+summary(clim.daily)
+```
+
+
 # Correlations
 
 ## Amplitude ~ climate
 
-Mean of all amplitudes 
+Here we show a plot with VWC vs amplitude per class
 
 ```{r}
-amplitude.df = amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
-amplitude.df
+ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
+  ggtitle('Compare soil moisture with trees amplitude (linked to activity)') +
+  geom_line() +
+  scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.vwc * 100, linetype = "Max Volumetric Water Content (%)"), col="blue")
 ```
 
 ```{r}
-amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
-amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
-amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
+ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
+  ggtitle('Compare soil moisture with trees amplitude (linked to activity)') +
+  geom_line() +
+  scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.vwc * 100, linetype = "Max - Min Volumetric Water Content (%)"), col="blue")
 ```
 
-Mean of maximum daily temp, minimum daily temp and mean daily temp. We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences, plus soil moisture daily mean.
 
-```{r}
-clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(soil.temp), min.temp = min(soil.temp), mean.temp = mean(soil.temp), sd.temp = sd(soil.temp), mean.vwc = mean(vwc), sd.vwc = sd(vwc))
-summary(clim.daily)
-```
-
-Following, we will Explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude:
+Following, we will Explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude.
 
 ## for Quercus Ilex:
 
 Plot VWC and daily amplitude for Qi:
+
 ```{r}
-plot(log10(clim.daily$mean.vwc), log10(amplitude.Qi$mean))
+plot(clim.daily$mean.vwc, amplitude.Qi$mean)
 ```
 
 
 ```{r}
-plot(clim.daily$mean.vwc, amplitude.Qi$mean)
+plot(log10(clim.daily$mean.vwc), log10(amplitude.Qi$mean))
 ```
 
 Test correlation:
@@ -442,16 +450,29 @@ hist(log10(amplitude.Qi$mean+1))
 hist(log10(clim.daily$mean.vwc+1))
 ```
 
-Explore correlation within Soil temperature and daily seasonal amplitude (Not significant)
+Explore correlation within temperature and daily seasonal amplitude (Not significant)
 ```{r}
 cor.test(
   #specify the two variables to correlate
-  clim.daily$min.temp, amplitude.Qi$mean,
+  clim.daily$interquartil.temp, amplitude.P_D$mean,
   # correlation methods (pearson, spearman, kendall)
-  method = c("spearman"),
+  method = c("pearson"),
   # set confidence interval
   conf.level = 0.95)
 ```
+
+```{r}
+ccf (clim.daily$max.temp, clim.daily$range.temp,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+find_Max_CCF(amplitude.P_ND$mean, clim.daily$interquartil.temp)
+```
+
 
 Explore cross-correlation within Soil Moisture and daily seasonal amplitude
 ```{r}
@@ -532,11 +553,6 @@ ccf (clim.daily$mean.vwc, amplitude.P_D$mean,
 ```{r}
 find_Max_CCF(clim.daily$mean.vwc, amplitude.P_D$mean)
 ```
-
-```{r}
-ggplot(data = amplitude.P_ND, mapping = aes(x = date, y = mean)) + geom_line()
-```
-
 
 
 ## Seasonality ~ climate

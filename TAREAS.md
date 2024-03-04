@@ -1,30 +1,28 @@
 == Dendro ==
 
-- Calcular medias de seasonalities. -> Añadir SD a gráficas.
-
 - tunear ccf para que: i) no use lags negativos, ii) Use método spearman. Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol)
 
-- Hacer correlaciones con temp: con rango temperaturas o dif. intercuartílica
+- Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178. Mejorar automatización en procesado de datos?
+
+- Hacer script para Corbalán y Peñaflor también.
+
+- Generar de nuevo datos myClim para Corbalán y Peñaflor.
 
 - Ver cuánto cambia medias de vwc con sensores de valores en NA y sin ellos. Mirar mejor solución: Imputación de datos microclima ? o solo los que sí tienen valores?
 
-- correlaciones y wavelets
+- Comenzar a escribir paper.
+
+- correlaciones y wavelets.
 
 - regresiones / modelización con modelos mixtos
 
-- Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178
-
-- Mejorar automatización en procesado de datos.
-
 - Sacar valores de humedad a partir de datos TDT de TOMST haciendo la conversión. Comprobar fiabilidad paquete R contrastado con macros. Hacer paquete nuevo de R solo para esto? o meterlo en mi lib-dendro? -> Creo que es necesario que leas el paper de calibración de TOMST para ver cómo va todo este tema de la calibración. -> esperando respuesta de Martin my Clim. -> Comprobar correo Martin!!
-
-- Generar de nuevo datos myClim.
 
 = Análisis =
 
 1) Sacar patrones diario, mensual y estacional de hinchamiento y deshinchamiento de cada especie y clase (TS decomposition)
 
-2) Hacer correlaciones con humedad y temperatura. Generar modelo mixto. Explorar sensibilidad a CP de las diferentes especies.
+2) Hacer correlaciones con humedad y temperatura. Generar modelo mixto. Explorar sensibilidad a CP (en tendencia) de las diferentes especies.
 
 4) Sacar variables de crecimiento y ligar a especies y clases.
 
