@@ -1,18 +1,18 @@
 == Dendro ==
 
-- tunear ccf para que: i) no use lags negativos, ii) Use método spearman. Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol)
+- tunear ccf para que: i) no use lags negativos, ii) Use método spearman. iii) Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol) -> probar a usar paquete corrr o easystats/correlation.
 
 - Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178. Mejorar automatización en procesado de datos?
 
-- Hacer script para Corbalán y Peñaflor también.
-
 - Generar de nuevo datos myClim para Corbalán y Peñaflor.
+
+- Hacer script para Corbalán y Peñaflor también.
 
 - Ver cuánto cambia medias de vwc con sensores de valores en NA y sin ellos. Mirar mejor solución: Imputación de datos microclima ? o solo los que sí tienen valores?
 
 - Comenzar a escribir paper.
 
-- correlaciones y wavelets.
+- Wavelets entre seasonality in temperatura.
 
 - regresiones / modelización con modelos mixtos
 
