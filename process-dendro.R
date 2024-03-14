@@ -5,8 +5,10 @@ library(tidyverse)
 
 
 ### DEFINE GLOBAL VARS ###
-PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
+PATH = '/home/akronix/workspace/dendro'
 setwd(PATH)
+
+SAVE <- FALSE # to save output csv processed file at the end of the script
 
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
@@ -14,8 +16,9 @@ args <- commandArgs(trailingOnly = TRUE)
 # SENSOR-SPECIFIC GLOBAL VARIABLES #
 if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
+  SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222168"
+  SELECTED_DENDROMETER = "92222178"
 }
 
 # GENERAL GLOBAL VARIABLES #
@@ -65,10 +68,12 @@ db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 dim(db)
 
-# This removes duplicates on timestamps (presumably because of daylight savingtime issues)
+# This removes duplicates on timestamps (many of them due to daylight savingtime issues)
 print("These are the duplicated data by timestamp:")
 print(db[duplicated(db$ts),])
 db = db[!duplicated(db$ts),];
+# db = db[(!duplicated(db$ts)) | !dst(db$ts),];
+print(db[duplicated(db$ts),])
 dim(db)
 
 ### PLOT RAW DATA ###
@@ -154,8 +159,8 @@ str(temp_data_L1)
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 12
-TOL_OUT = 8
+TOL_JUMP = 50
+TOL_OUT = 15
 
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
@@ -163,8 +168,8 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  tol_out = TOL_OUT,
                                  tol_jump = TOL_JUMP,
                                  plot_period = "monthly",
-                                 plot = TRUE,
-                                 plot_export = TRUE,
+                                 plot = T,
+                                 plot_export = T,
                                  plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot")),
                                  tz="Europe/Madrid")
 # check the data
@@ -180,30 +185,43 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! MANUAL CORRECTIONS #
-# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                        dendro_L2 = dendro_data_L2,
-#                                        #reverse = c(3),
-#                                        force = "2023-02-15 14:45:00",
-#                                        n_days = 1,
-#                                        delete = c("2023-02-16 12:15:00", "2023-02-16 14:45:00"),
-#                                        #           "2023-01-22 16:45:00", "2023-01-22 17:00:00",
-#                                        #           "2023-01-27 16:15:00", "2023-01-27 16:15:00"
-#                                        # ),
-#                                        plot = TRUE,
-#                                        plot_export = TRUE,
-#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-#                                        tz="Europe/Madrid")
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       reverse = c(3, 14),
+                                       force.now = c( "2022-08-03 20:15:00",
+                                                      "2022-08-10 17:00:00",
+                                                      "2022-08-17 08:00:00",
+                                                      "2022-08-24 18:45:00",
+                                                      "2022-05-04 11:45:00",
+                                                      "2022-11-24 14:15",
+                                                      "2022-12-06 09:45:00",
+                                                      "2023-02-16 13:45:00"
+                                                      ),
+                                       # force = "2022-08-02 20:00:00",
+                                       # n_days = 1,
+                                       delete = c("2022-08-03 20:30:00", "2022-08-03 21:15:00",
+                                                  "2022-08-10 17:15:00", "2022-08-10 21:00:00",
+                                                  "2022-08-24 19:00:00", "2022-08-25 19:30:00",
+                                                  "2022-05-04 12:00:00", "2022-05-04 12:00:00",
+                                                  "2022-12-06 10:00", "2022-12-06 10:45:00"
+                                       ),
+                                       plot = TRUE,
+                                       plot_export = TRUE,
+                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+                                       tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
-# View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
+View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
 
 ### SAVE PROCESSED DATA ###
-OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
-if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
-### SAVE IN PROCESSED FORMAT ###
-output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
-write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
+if (SAVE) {
+  OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
+  if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
+  ### SAVE IN PROCESSED FORMAT ###
+  output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
+  write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
+}
 
 ### SAVE IN INPUT SENSOR FORMAT ###
 ## OVERWRITE INPUT DATA VALUES WITH PROCESSED VALUES ##

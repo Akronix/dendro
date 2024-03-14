@@ -1,3 +1,67 @@
+= REPROCESADO CON NUEVA VERSION TREENETPROC - FORCENOW =
+
+=== DATOS PEÑAFLOR HASTA SEPT-23 <- REPROCESADO ===
+
+== 92222178 ==
+- Qc - params:
+  TOL_JUMP = 50
+  TOL_OUT = 18
+
+   reverse = c(3, 14),
+   force.now = c( "2022-08-03 20:15:00",
+                  "2022-08-10 17:00:00",
+                  "2022-08-17 08:00:00",
+                  "2022-08-24 18:45:00",
+                  "2022-05-04 11:45:00",
+                  "2022-11-24 14:15",
+                  "2022-12-06 09:45:00",
+                  "2023-02-16 13:45:00"
+                  ),
+   # force = "2022-08-02 20:00:00",
+   # n_days = 1,
+   delete = c("2022-08-03 20:30:00", "2022-08-03 21:15:00",
+              "2022-08-10 17:15:00", "2022-08-10 21:00:00",
+              "2022-08-24 19:00:00", "2022-08-25 19:30:00",
+              "2022-05-04 12:00:00", "2022-05-04 12:00:00",
+              "2022-12-06 10:00", "2022-12-06 10:45:00"
+   )
+
+  ! mucho ruido e inestabilidad. Sorprende más al ser Quercus.
+
+- bajoncillo mediados abr-22 -> OK
+- salto arriba pcpios may22 -> corregir: empieza a las 2022-05-04T11:45:00Z y acaba a las 2022-05-04T12:15:00Z. El dato de en medio de 2022-05-04T12:00:00Z no vale
+- piquito abajo finales jun22 -> ok
+
+- Agosto con muchos problemas; se podría intentar corregir:
+    - entre las 2022-08-03T20:15:00Z y las 2022-08-03T21:15:00Z hay un descenso vertiginoso que no parece correcto y que se deshace entre las 2022-08-10T17:15:00Z y las 2022-08-10T20:15:00Z
+    - hay missing data que se podría corregir provocando un salto: desde las 2022-08-17T08:00:00Z a las 2022-08-17T09:15:00Z.
+    - datos raros: desde las 2022-08-24T18:45:00Z (último dato bueno) a las 2022-08-25T19:30:00Z (vuelta a normalidad). Borramos datos entre medias y forzamos salto.
+- salto finales nov22 -> corregir a mano. 2022-11-24 14:15:00
+
+--> Hasta ahora, todas estas correciones se hacen con las siguientes líneas de código:
+
+                     force.now = c( "2022-08-03 20:15:00",
+                                    "2022-08-10 17:00:00",
+                                    "2022-08-17 08:00:00",
+                                    "2022-08-24 18:45:00",
+                                    "2022-05-04 11:45:00",
+                                    "2022-11-24 14:15"
+                                    ),
+
+                     delete = c("2022-08-03 20:30:00", "2022-08-03 21:15:00",
+                                "2022-08-10 17:15:00", "2022-08-10 21:00:00",
+                                "2022-08-24 19:00:00", "2022-08-25 19:30:00",
+                                "2022-05-04 12:00:00", "2022-05-04 12:00:00"
+                                ),
+                                
+- otro salto que corregir a pcpios dic-2022: borrar y saltar desde el 2022-12-06T09:45:00Z hasta el 2022-12-06T10:45:00Z
+                                
+- muchisima inestabilidad en general en el año 2023 -> subo tol_jump y bajo tol_out para que lo limpie lo mayor posible sin poner saltos. (exige hacer varios reverse de los outlier que me fastidian los jumps)
+
+- salto arriba 2ª mitad febrero 2023 -> otro salto que hacer manualmente: 2023-02-16T13:45:00Z
+- saltito abajo el 14-jul23 (casi 15jul), pero mirándolo de cerca parece OK.
+
+
 === DATOS PEÑAFLOR HASTA SEPT-23 ===
 
 DATA_DIR = 'raw/Penaflor-dataD'

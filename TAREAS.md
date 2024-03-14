@@ -1,7 +1,5 @@
 == Dendro ==
 
-- Hacer forcejump justo en la fecha que se diga en treenetproc y procesar dendrómetro 92222178. Mejorar automatización en procesado de datos?
-
 - tunear ccf para que: i) no use lags negativos, ii) Use método spearman. iii) Estudiar significación de lags, para ver si se puede deducir que hay correlación con lags de varios días (es decir, una lluvia afecta durante los próximos x número de días al árbol) -> probar a usar paquete corrr o easystats/correlation y hacer mi propio ccf?
 
 - Generar de nuevo datos myClim para Corbalán y Peñaflor.
