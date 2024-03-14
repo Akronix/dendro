@@ -8,7 +8,7 @@ library(glue)
 library(myClim)
 
 ### DEFINE GLOBAL VARS ###
-PATH = dirname(rstudioapi::getActiveDocumentContext()$path);
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(PATH)
 
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
