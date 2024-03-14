@@ -13,7 +13,7 @@ source('lib-dendro.R')
 PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(PATH)
 
-PLACE = 'Corbalan'
+PLACE = 'Penaflor'
 BUFFER_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-processed')
 ```
@@ -36,7 +36,7 @@ Defining and clearing the periods of invalid data. There's quite a bunch of inva
 
 First, we remove all the data prior to installation:
 ```{r}
-ts_start = "2022-03-28 14:15:00"
+ts_start = "2022-03-15 12:30:00"
 head(db.env)
 db.env <- db.env[which(db.env$ts>=ts_start),]
 head(db.env)
@@ -46,37 +46,46 @@ Then, we set NA when there's no valid data:
 ```{r}
 # Then we clear the invalid data for each series:
 
-# first for series1 = db.env$series == "94231944"
-series1 = (db.env$series == "94231944")
+# first for series1
+series1 = (db.env$series == "94231949")
 
 # first interval:
-interval1.1 = (db.env$ts >= "2022-05-14 20:00:00" & db.env$ts <= "2022-05-19 11:45:00")
+interval1.1 = (db.env$ts >= "2022-04-08 20:30:00" & db.env$ts <= "2022-05-04 14:00:00")
 
 # equivalent to: (adjust to corresponding series and interval)
 #db.2 = db.env %>% filter((series == "94231939") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
 
 # second interval, first series:
-interval1.2 = (db.env$ts >= "2022-09-09 21:30:00" & db.env$ts <= "2022-11-16 13:45:00" )
+interval1.2 = (db.env$ts > "2022-09-11 08:45:00" & db.env$ts < "2022-11-24 14:45:00" )
 
-# third interva, first series:
-interval1.3 = (db.env$ts >= "2023-08-06 22:15:00" & db.env$ts <= "2023-09-28 14:00:00")
-
-db.env[series1 & (interval1.1 | interval1.2 | interval1.3 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+db.env[series1 & (interval1.1 | interval1.2 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
 
 # now second series
-series2 = db.env$series == "94231945"
+series2 = db.env$series == "94231942"
 
-interval2.1 = db.env$ts >= "2023-07-26 08:45:00" & db.env$ts <= "2023-09-28 13:30:00"
+# interval0: prior to installation
+interval2.0 = db.env$ts < "2022-03-29 10:15:00"
 
-db.env[series2 & (interval2.1), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+interval2.1 = db.env$ts >= "2022-06-29 20:45:00" & db.env$ts <= "2022-09-16 11:00:00"
 
-# now series == "94231931"
-series3 = db.env$series == "94231931" 
+db.env[series2 & (interval2.0 | interval2.1), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+
+# now series3 == "94231947"
+series3 = db.env$series == "94231947" 
 
 # first interval: 
-interval3.1 = (db.env$ts >= "2023-08-23 08:00:00") & (db.env$ts <= "2023-09-28 14:00:00")
+interval3.1 = (db.env$ts >= "2023-07-04 09:30:00")
 
 db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+
+# now series4 == "94231949"
+series4 = db.env$series == "94231949"
+
+interval4.1  = (db.env$ts >= "2022-04-08 20:30:00") & (db.env$ts <= "2022-05-04 14:00:00")
+interval4.2  = (db.env$ts >= "2022-09-11 09:45:00") & (db.env$ts < "2022-11-24 14:45:00")
+interval4.3  = (db.env$ts >= "2023-03-07 01:00:00") & (db.env$ts < "2023-06-01 18:45:00")
+
+db.env[series4 & (interval4.1 | interval4.2 | interval4.3), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 ```
 
 This is the result of adding the NA to the invalid periods:
