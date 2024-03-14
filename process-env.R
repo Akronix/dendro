@@ -14,11 +14,11 @@ setwd(PATH)
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 # ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-PLACE = 'Miedes'
+PLACE = 'Corbalan'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
-SOIL_TYPE = "sandy loam A"
+SOIL_TYPE = "sandy loam B"
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -88,7 +88,7 @@ for (filename in list_files) {
   # write processed environmental data, one per sensor
   serial_no = (mc_info(tms.vwc)$serial_number)[1]
   tms.df$series = serial_no # here we manually add a series column
-  write_csv(tms.df, file.path(OUTPUT_PATH, paste0("proc-", serial_no , "-tms2.csv")), append = F, col_names = T)
+  write_csv(tms.df, file.path(OUTPUT_PATH, paste0("proc-", serial_no , "-tms.csv")), append = F, col_names = T)
 }
 
 str(dfs.all)

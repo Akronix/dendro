@@ -148,7 +148,7 @@ detach("db.env")
 ## Corbalan ##
 
 SOIL_TYPE = "sandy loam B"
-start_ts = (ts < "2022-03-28 13:15:00")
+ts_start = "2022-03-28 14:15:00"
 
 Los datos empiezan a partir del 2022-03-28T13:30:00Z (antes es 0)
 
@@ -162,52 +162,51 @@ No son válidos:
 
 R code:
 
-```r
-attach(db.env)
-
-# First, we remove all the data prior to installation:
-start_ts = (ts < "2022-03-28 13:15:00")
-db.env[start_ts,]$vwc <- NA
-db.env[start_ts,]$temp <- NA
-
-# first for series1 = db.env$series == "94231944"
-series1 = (series == "94231944")
-
-# first interval: 2022-05-14T21:00:00Z al 2022-05-19T11:45:00Z
-interval1 = (ts >= "2022-05-14 20:00:00" & ts <= "2022-05-19 11:45:00")
-
-# equivalent to:
-#db.2 = db.env %>% filter((series == "94231944") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
-
-# second interval: 2022-09-09T21:30:00Z al 2022-11-16T13:45:00Z
-interval2 = (ts >= "2022-09-09 21:30:00" & ts <= "2022-11-16 13:45:00" )
-
-# third interval: 2023-08-07T08:15:00Z al 2023-09-28T14:00:00Z
-interval3 = (ts >= "2023-08-07 08:15:00" & ts <= "2023-09-28 14:00:00")
-
-db.env[series1 & (interval1 | interval2 | interval3),]$vwc <- NA
-db.env[series1 & (interval1 | interval2 | interval3),]$temp <- NA
+  First, we remove all the data prior to installation:
+  ```{r}
+  ts_start = "2022-03-28 14:15:00"
+  head(db.env)
+  db.env <- db.env[which(db.env$ts>=ts_start),]
+  head(db.env)
+  ```
 
 
-# now series == "94231945"
-series2 = series == "94231945"
+  Then, we set NA when there's no valid data:
+  ```r
+  # Then we clear the invalid data for each series:
 
-# first interval: 2023-07-26T08:45:00Z al 2023-09-28T13:30:00Z
-interval = ts >= "2023-07-26 08:45:00" & ts <= "2023-09-28 13:30:00"
+  # first for series1 = db.env$series == "94231944"
+  series1 = (db.env$series == "94231944")
 
-db.env[series2 & interval,]$vwc  <- NA
-db.env[series2 & interval,]$temp  <- NA
+  # first interval:
+  interval1.1 = (db.env$ts >= "2022-05-14 20:00:00" & db.env$ts <= "2022-05-19 11:45:00")
 
-# now series == "94231931"
-series3 = series == "94231931" 
+  # equivalent to: (adjust to corresponding series and interval)
+  #db.2 = db.env %>% filter((series == "94231939") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
 
-# first interval: 2023-08-23T08:00:00Z al 2023-09-28T14:00:00Z
-interval = ts >= "2023-08-23 08:00:00" & ts <= "2023-09-28 14:00:00"
+  # second interval, first series:
+  interval1.2 = (db.env$ts >= "2022-09-09 21:30:00" & db.env$ts <= "2022-11-16 13:45:00" )
 
-db.env[series3 & interval,]$vwc  <- NA
-db.env[series3 & interval,]$temp  <- NA
-detach("db.env")
-```
+  # third interva, first series:
+  interval1.3 = (db.env$ts >= "2023-08-06 22:15:00" & db.env$ts <= "2023-09-28 14:00:00")
+
+  db.env[series1 & (interval1.1 | interval1.2 | interval1.3 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+
+  # now second series
+  series2 = db.env$series == "94231945"
+
+  interval2.1 = db.env$ts >= "2023-07-26 08:45:00" & db.env$ts <= "2023-09-28 13:30:00"
+
+  db.env[series2 & (interval2.1), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+
+  # now series == "94231931"
+  series3 = db.env$series == "94231931" 
+
+  # first interval: 
+  interval3.1 = (db.env$ts >= "2023-08-23 08:00:00") & (db.env$ts <= "2023-09-28 14:00:00")
+
+  db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+  ```
 
 
 ## Valcuerna ##
