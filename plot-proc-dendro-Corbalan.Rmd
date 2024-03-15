@@ -255,14 +255,19 @@ ggsave('output/mean-byclass-Corbalan.png', width = 15, height = 10)
 ```
 
 ```{r}
-plot_ly(
-  data = db.by.class,
-   x = ~ts,
-   y = ~mean,
-   type = "scatter",
-   mode = "lines",
-   color = ~class)
+# library(plotly)
+# plot_ly(
+#   data = db.by.class,
+#    x = ~ts,
+#    y = ~mean,
+#    type = "scatter",
+#    mode = "lines",
+#    color = ~class)
 # +   colors = c("blue")
+```
+
+```{r}
+stop("This part for microclim needs to be redone")
 ```
 
 

@@ -12,16 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 Import packages:
 ```{r}
 source('lib-dendro.R')
+source('lib-ts-analysis.R')
 library(glue)
 library(tidyverse)
-library (ggplot2)
+library(ggplot2)
 library(lubridate)
 
 library(imputeTS)
-library(anomalize) # Decomposition
-library(stats) # Decomposition
-library(ggpubr) # ggarange
-library(zoo)
 library(biwavelet)
 ```
 
@@ -39,7 +36,7 @@ ENV_DIR = 'processed/Miedes-env-processed'
 TreeList <- read.table("TreeList.txt", header=T)
 ```
 
-Select dendros for this analysis
+Select dendros for this analysis (all if commented)
 ```{r}
 selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")
 ```
@@ -55,15 +52,15 @@ db<-read.all.processed(list_files)
 
 keep data of selected dendros only
 ```{r}
-db = db %>% filter(db$series %in% selected_dendros)
+if (exists('selected_dendros')) {db = db %>% filter(db$series %in% selected_dendros)}
 str(db)
 ```
 
 select from May 2023 to Sept 2023
 ```{r}
 # Set initial and final date for analysis
-ts_start <- "2023-05-01 09:00:00" # 2 days after installation
-ts_end <-"2023-09-10 07:00:00" # last timestamp of downloaded data
+ts_start <- "2023-05-01 09:00:00" # from first of May
+ts_end <-"2023-09-10 07:00:00" # to 10th of september
 db <- reset.initial.values(db, ts_start, ts_end)
 ```
 
@@ -89,135 +86,10 @@ db$value <- db$value %>%
 
 # Time Series decomposition
 
-## Define useful functions
-
-Define plot_decompose function which uses basic time series decomposition
-```{r}
-## Function decompose
-plot_decompose <- function (db, name) {
-  # decompose a time series (has to be in tibble format)
-  decompose = time_decompose(
-    # choose dataframe containing the data and convert it to tibble
-    as.tibble(db,
-              #what to do with na in the dataframe
-               na.action = na.pass),
-    # select varaible to decompose
-    value)
-  
-  # plot time series
-  p_ts = ggplot (decompose, aes(x = ts, y = observed)) +
-    ggtitle(glue("Time series decomposition for {name}")) +
-    geom_line (col = "black") +
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-    theme_classic() +
-    labs ( x = NULL,
-             y = "Original data (um)")
-  
-  # plot trend
-  p_trend = ggplot (decompose, aes(x = ts, y = trend)) +
-    geom_line (col = "#D55E00") + 
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-    geom_hline(yintercept = 0, linetype='dotted', col = 'red') +
-    theme_classic() +
-    labs ( x = NULL,
-             y = "Trend")
-  
-  # plot season
-  p_season = ggplot (decompose, aes(x = ts, y = season)) +
-    geom_line (col = "#E69F00") +
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-    theme_classic() +
-    labs ( x = NULL,
-             y = "Season")
-  
-  # plot remainder
-  p_remainder = ggplot (decompose, aes(x = ts, y = remainder)) +
-    geom_line (col = "#F0E442") +
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-    theme_classic() +
-    labs ( x = "Period (month)",
-             y = "Remainder")
-  
-  # plot all together
-  ggarrange (p_ts, p_trend, p_season, p_remainder, ncol = 1)
-}
-
-# Save the plot of decompose_ts
-save_plot_decompose <- function (dat, name) {
-  plot_decompose(dat, name) %>% ggexport(filename = glue('output/{name}-decomp-anomalize.png'),  width = 4500, height = 3000, res = 300)
-}
-```
-
-Define amplitude function
-```{r}
-calculate_amplitude <- function(dat) {
-  dat %>% mutate(date = date(ts)) %>% group_by(date) %>% summarize(max = max(value), min = min(value)) %>% mutate(ampl = max-min)
-}
-
-save_plot_amplitude <- function(dat.ampl, name) {
-  ggplot(data = dat.ampl, mapping = aes(x = date, y = ampl)) + geom_line()
-  ggsave(glue('output/{name}-amplitude.png'), width = 15, height = 10)
-}
-```
-
-Define stl function
-```{r}
-plot_stl <- function (stl.out) {
-  summary(stl.out)
-  plot(stl.out)
-}
-
-save_plot_stl <- function (stl.out, name) {
-  png(glue('output/{name}-stl.png'), width=15, height=10, units="in", res=300)
-  plot_stl(stl.out)
-  dev.off()
-}
-
-# Now plotting only seasonality but with dates in the x-axis
-plot_seasonality <- function(stl.out, name) {
-  
-  seasonality <- stl.out$time.series[,1]
-  timestamps <- seq(from = as.POSIXct(ts_start, tz='Madrid/Spain'), by = "15 min", length.out = length(dat.ts))
-  zoo_data <- zoo(seasonality, order.by = timestamps)
-  plot(zoo_data, xaxt = "n", type = "l", xlab = "", ylab = "Value", main = glue("Time Series by Month-Year for {name}"))
-  axis(1, at = time(zoo_data), labels = format(time(zoo_data), "%Y-%m"))
-  
-  # Add x-axis label
-  mtext("Month-Year", side = 1, line = 3)
-}
-
-save_plot_seasonality_stl <- function(stl.out, name) {
-  png(glue('output/{name}-seasonality-stl.png'), width=15, height=10, units="in", res=300)
-  plot_seasonality(stl.out, name)
-  dev.off()
-}
-```
-
-
 # Calculate mean Seasonality
 Mean seasonality for all trees:
 ```{r}
-seasonalities <- data.frame()
-dendro.series <- unique(db$series)
-
-for (dendro.no in dendro.series) {
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  dat.ts <- ts(data = dat$value, frequency = 96)
-  
-  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-
-  seasonality <- stl.out$time.series[,1]
-  
-  aux <- data.frame(
-    value = as.numeric(seasonality),
-    series = as.factor(dendro.no),
-    ts = dat$ts
-  )
-
-  seasonalities <- rbind.data.frame(seasonalities, aux)
-}
+seasonalities <- calculate_stl_seasonalities(db, unique(db$series))
 summary(seasonalities)
 
 seasonalities.agg <- seasonalities %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
@@ -228,9 +100,8 @@ summary(seasonalities.agg)
 ggplot( data = seasonalities.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for all trees")
-ggsave('output/mean-seasonalities.png', width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonalities.png'), width = 15, height = 10)
 ```
-
 
 # Calculate Seasonality by class
 
@@ -243,26 +114,7 @@ P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pul
 
 Mean seasonality for Quercus Ilex:
 ```{r}
-seasonalities.qi <- data.frame()
-
-for (dendro.no in Qi) {
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  dat.ts <- ts(data = dat$value, frequency = 96)
-  
-  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-
-  seasonality <- stl.out$time.series[,1]
-  
-  aux <- data.frame(
-    value = as.numeric(seasonality),
-    series = as.factor(dendro.no),
-    ts = dat$ts
-  )
-
-  seasonalities.qi <- rbind.data.frame(seasonalities.qi, aux)
-}
+seasonalities.qi <- calculate_stl_seasonalities(db, Qi)
 summary(seasonalities.qi)
 
 seasonalities.qi.agg <- seasonalities.qi %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
@@ -273,31 +125,12 @@ summary(seasonalities.qi.agg)
 ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Quercus Ilex")
-ggsave('output/mean-seasonality-Qi.png', width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Non-Declining Pinus
 ```{r}
-seasonalities.P_ND <- data.frame()
-
-for (dendro.no in P_ND) {
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  dat.ts <- ts(data = dat$value, frequency = 96)
-
-  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-
-  seasonality <- stl.out$time.series[,1]
-  
-  aux <- data.frame(
-    value = as.numeric(seasonality),
-    series = as.factor(dendro.no),
-    ts = dat$ts
-  )
-
-  seasonalities.P_ND <- rbind.data.frame(seasonalities.P_ND, aux)
-}
+seasonalities.P_ND <- calculate_stl_seasonalities(db, P_ND)
 summary(seasonalities.P_ND)
 
 seasonalities.P_ND.agg <- seasonalities.P_ND %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
@@ -308,32 +141,12 @@ summary(seasonalities.P_ND.agg)
 ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Non-Declining Pinus")
-ggsave('output/mean-seasonality-P_ND.png', width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Declining Pinus
 ```{r}
-seasonalities.P_D <- data.frame()
-
-for (dendro.no in P_D) {
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  dat = dat %>% select(ts, value)
-  dat.ts <- ts(data = dat$value, frequency = 96)
-  
-  stl.out = stl(dat.ts, s.window = 25, t.window = 673)
-
-  seasonality <- stl.out$time.series[,1]
-  
-  aux <- data.frame(
-    value = as.numeric(seasonality),
-    series = as.factor(dendro.no),
-    ts = dat$ts
-  )
-
-  seasonalities.P_D <- rbind.data.frame(seasonalities.P_D, aux)
-  remove(aux)
-}
+seasonalities.P_D <- calculate_stl_seasonalities(db, P_D)
 summary(seasonalities.P_D)
 
 seasonalities.P_D.agg <- seasonalities.P_D %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
@@ -344,13 +157,13 @@ summary(seasonalities.P_D.agg)
 ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Declining Pinus")
-ggsave('output/mean-seasonality-P_D.png', width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
 ```
 
-# Calculate amplitude for all trees
+# Calculate amplitude for all trees by class
 
 ```{r}
-# First, define dendro number
+# First, let's create an amplitude.df to store the output.
 column_names <- c("date", "min", "max", "ampl", "class")
 amplitude.df = data.frame(matrix(nrow = 0, ncol = length(column_names)))
 colnames(amplitude.df) <- column_names
@@ -362,9 +175,6 @@ for (dendro.no in selected_dendros) {
   # Filter data by that no
   dat = db[db$series == dendro.no,]
   dat = dat %>% select(ts, value)
-  
-  # Basic ts decomposition
-  # save_plot_decompose(dat, name)
   
   # Max - min daily amplitude
   dat.ampl <- calculate_amplitude(dat)
@@ -386,7 +196,6 @@ amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
 amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
 amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
 ```
-
 
 # Climate data
 
@@ -434,23 +243,7 @@ clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summari
 summary(clim.daily)
 ```
 
-
 # Correlations
-
-First, let's define some functions that we will need and use in this section
-
-```{r}
-find_Max_CCF = function(x,y) {
- # run cross-correlation function
- ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
- # build a dataset with lag times and correlation coefficients
- res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1]) 
- max = res_cc[which.max(abs(res_cc$cor)),] 
- # return only the data of interest
- return(max) 
-} 
-```
-
 
 ## Amplitude ~ climate
 
