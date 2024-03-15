@@ -75,7 +75,8 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
 (Ordenado de arriba a abajo por orden de procesado)
-(Faltan los datos de dos dendrómetros: 92222176 y 92222159, ambos correspondientes a Qc
+(Faltan los datos de dos dendrómetros: 92222176 y 92222159, ambos correspondientes a Qc)
+(El dendro 92222167 tiene mucho ruido y no tiene datos a partir de 10-jul-23)
 
 
 == 92222151 ==

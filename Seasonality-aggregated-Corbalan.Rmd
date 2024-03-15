@@ -29,22 +29,22 @@ PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 print(PATH)
 setwd(PATH)
 
-PLACE = 'Miedes'
-DATA_DIR = 'processed/Miedes-last'
-ENV_DIR = 'processed/Miedes-env-processed'
+PLACE = 'Corbalan'
+DATA_DIR = 'processed/Corbalan-processed'
+ENV_DIR = 'processed/Corbalan-env-processed'
 
 TreeList <- read.table("TreeList.txt", header=T)
 ```
 
 Select dendros for this analysis (all if FALSE)
 ```{r}
-selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")
-# selected_dendros <- FALSE
+# selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")
+selected_dendros <- FALSE
 ```
 
 Select TMS serial no for this analysis
 ```{r}
-SELECTED_TMS <- "94231940"
+SELECTED_TMS <- "94231943"
 ```
 
 

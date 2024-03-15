@@ -2,12 +2,13 @@ In this notebook we look when the sensors have been moved and, therefore, the lo
 
 ```{r}
 # import libraries
+source('lib-dendro.R')
+
 library(plotly)
 library(datacleanr) # to find invalid periods (interactively)
 library(readr) # for write_csv() function
 library(tidyverse) # for %>%
 library(glue)
-source('lib-dendro.R')
 
 # global variables
 PATH = dirname(rstudioapi::getSourceEditorContext()$path)
