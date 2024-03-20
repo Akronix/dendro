@@ -138,6 +138,17 @@ find_Max_CCF = function(x,y) {
   max = res_cc[which.max(abs(res_cc$cor)),] 
   # return only the data of interest
   return(max) 
+}
+
+## Find best fit of cross-correlation
+sort_CCF_values = function(x,y) {
+  # run cross-correlation function
+  ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
+  # build a dataset with lag times and correlation coefficients
+  res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1])
+  # sort by correlation values
+  res_cc <- res_cc[order(res_cc$cor, decreasing = T), ]
+  return(res_cc) 
 } 
 
 # cor.test all methods

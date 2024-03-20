@@ -16,6 +16,7 @@ source('lib-ts-analysis.R')
 library(glue)
 library(tidyverse)
 library(ggplot2)
+theme_set(theme_bw())
 library(lubridate)
 
 library(imputeTS)
@@ -39,12 +40,12 @@ TreeList <- read.table("TreeList.txt", header=T)
 Select dendros for this analysis (all if FALSE)
 ```{r}
 # selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")
-selected_dendros <- FALSE
+selected_dendros <- FALSE # except for 92222178 which is excluded
 ```
 
 Select TMS serial no for this analysis
 ```{r}
-SELECTED_TMS <- "94231950"
+SELECTED_TMS <- "94231934"
 ```
 
 
@@ -106,7 +107,7 @@ summary(seasonalities.agg)
 ggplot( data = seasonalities.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for all trees")
-ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
 ```
 
 # Calculate Seasonality by class
@@ -118,20 +119,25 @@ P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(
 P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
 ```
 
-Mean seasonality for Quercus Ilex:
+Mean seasonality for Quercus Coccifera:
 ```{r}
 seasonalities.qi <- calculate_stl_seasonalities(db, Qi)
 summary(seasonalities.qi)
 
-seasonalities.qi.agg <- seasonalities.qi %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
-summary(seasonalities.qi.agg)
+ggplot( data = seasonalities.qi, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Quercus Coccifera seasonalities by dendrometer - {PLACE} '))
+#ggsave(glue('output/{PLACE}-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
 ```{r}
+seasonalities.qi.agg <- seasonalities.qi %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.qi.agg)
+
 ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
-  ggtitle("Mean of seasonalities for Quercus Ilex")
-ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
+  ggtitle("Mean of seasonalities for Quercus Coccifera")
+#ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Non-Declining Pinus
@@ -139,15 +145,20 @@ Mean seasonality for Non-Declining Pinus
 seasonalities.P_ND <- calculate_stl_seasonalities(db, P_ND)
 summary(seasonalities.P_ND)
 
-seasonalities.P_ND.agg <- seasonalities.P_ND %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
-summary(seasonalities.P_ND.agg)
+ggplot( data = seasonalities.P_ND, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Non-Declining Pinus seasonalities by dendrometer - {PLACE} '))
+#ggsave(glue('output/{PLACE}-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
 ```{r}
+seasonalities.P_ND.agg <- seasonalities.P_ND %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_ND.agg)
+
 ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Non-Declining Pinus")
-ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Declining Pinus
@@ -155,15 +166,20 @@ Mean seasonality for Declining Pinus
 seasonalities.P_D <- calculate_stl_seasonalities(db, P_D)
 summary(seasonalities.P_D)
 
-seasonalities.P_D.agg <- seasonalities.P_D %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
-summary(seasonalities.P_D.agg)
+ggplot( data = seasonalities.P_D, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Declining Pinus seasonalities by dendrometer - {PLACE} '))
+#ggsave(glue('output/{PLACE}-seasonality-P_D.png'), width = 15, height = 10)
 ```
 
 ```{r}
+seasonalities.P_D.agg <- seasonalities.P_D %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_D.agg)
+
 ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Declining Pinus")
-ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
 ```
 
 # Calculate amplitude for all trees by class
@@ -192,9 +208,11 @@ for (dendro.no in unique(db$series)) {
 }
 ```
 
-With all daily amplitudes, calculate mean of each one by class
+With all daily amplitudes, calculate mean of each one by class and for all trees
 
 ```{r}
+amplitude.all = amplitude.df %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
+amplitude.all
 amplitude.df = amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
 amplitude.df
 ```
@@ -229,9 +247,9 @@ summary(db.env)
 Plot env data:
 ```{r}
 plot_temp_and_humidity <-
-  ggplot(data = db.env, aes(x=ts, y=soil.temp)) +
+  ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
     ggtitle(glue("Temperature and humidity for {PLACE} (2022-2023)")) +
-    geom_line(aes(colour = soil.temp)) +
+    geom_line(aes(colour = surface.temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
@@ -241,6 +259,7 @@ plot_temp_and_humidity <-
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
 plot_temp_and_humidity
+#ggsave('output/VWCytempAgg-selected-period-Penaflor.png', width = 15, height = 10)
 ```
 
 Calculations of useful aggregation data for climate:
@@ -248,7 +267,7 @@ Calculations of useful aggregation data for climate:
   * temp: Mean of daily temp, minimum daily temp and maximum daily temp, range temp and interquartile temp (Q3-Q1). We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences.
 
 ```{r}
-clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(soil.temp), min.temp = min(soil.temp), mean.temp = mean(soil.temp), sd.temp = sd(soil.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(soil.temp, prob=c(.75)) - quantile(soil.temp, prob=c(.25)) ) )
+clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(surface.temp), min.temp = min(surface.temp), mean.temp = mean(surface.temp), sd.temp = sd(surface.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(surface.temp, prob=c(.75)) - quantile(surface.temp, prob=c(.25)) ) )
 summary(clim.daily)
 ```
 
@@ -296,7 +315,27 @@ find_Max_CCF(amplitude.P_D$mean, clim.daily$interquartil.temp)
 ## Amplitude ~ Soil Moisture
 Explore cross-correlation within Soil Moisture and daily seasonal amplitude
 
-### for Quercus Ilex:
+### for all trees and classes:
+
+```{r}
+sort_CCF_values(amplitude.all$mean, clim.daily$max.vwc)
+```
+```{r}
+clim.daily
+```
+
+
+```{r}
+ccf (amplitude.all$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+sort_CCF_values(amplitude.all$mean, clim.daily$max.vwc)
+```
+
+
+### for Quercus Coccifera:
 
 Plot VWC and daily amplitude for Qi:
 
@@ -367,8 +406,8 @@ ccf (log10(amplitude.Qi$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.Qi$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.Qi$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.Qi$mean, clim.daily$max.vwc)
+# sort_CCF_values(log10(amplitude.Qi$mean), log10(clim.daily$max.vwc))
 ```
 
 ### For P_ND: amplitude ~ VWC 
@@ -404,7 +443,7 @@ join.df <- full_join(clim.daily, amplitude.P_ND, by="date")
 ```
 Exploring correlations:
 ```{r}
-cor.test(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc),
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
   # correlation methods (pearson, spearman, kendall)
   method = c("pearson"),
   # set confidence interval
@@ -443,8 +482,8 @@ ccf (log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.P_ND$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.P_ND$mean, clim.daily$max.vwc)
+# sort_CCF_values(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
 ```
 
 ## With P_D
@@ -489,8 +528,8 @@ ccf (log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.P_D$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.P_D$mean, clim.daily$max.vwc)
+# sort_CCF_values(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
 ```
 
 
@@ -538,7 +577,7 @@ find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
 
 Let's test correlations within temp and seasonality for each different class:
 
-### Quercus Ilex
+### Quercus Coccifera
 ```{r}
 matrix <- inner_join(seasonalities.qi.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
 matrix
@@ -557,7 +596,7 @@ ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
 find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
 ```
 
-We found that after 6 instances of 15 mins (1h and half), there is 0.70 inverse correlation within surface temperature and Quercus ilex maximum swelling.
+We found that after 6 instances of 15 mins (1h and half), there is 0.70 inverse correlation within surface temperature and Quercus Coccifera maximum swelling.
 
 ### Non-Declining Pinus
 ```{r}

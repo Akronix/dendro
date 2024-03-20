@@ -12,6 +12,8 @@ setwd(PATH)
 DATA_DIR = 'processed/Corbalan-processed'
 ENV_DIR = 'processed/Corbalan-env-processed'
 
+SELECTED_TMS <- "94231943"
+
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
@@ -266,10 +268,6 @@ ggsave('output/mean-byclass-Corbalan.png', width = 15, height = 10)
 # +   colors = c("blue")
 ```
 
-```{r}
-stop("This part for microclim needs to be redone")
-```
-
 
 # Environmental data from TMS sensors
 
@@ -280,91 +278,24 @@ db.env<-read.all.env.processed(list_files)
 str(db.env)
 ```
 
-```{r}
-plot_multiple_env <- function (data, title, y = data$value, unit)  {
-  ggplot(data = data, mapping = aes(x=ts, y=y, col=series))+
-  geom_line( )+
-  # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
-  labs(x=expression('Date'),
-       y=unit ) +
-  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
-  scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
-  ggtitle(title) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 30, hjust=1))
-}
-```
-
-```{r}
-plot_multiple_env(db.env, "Temperature per TMS sensor", y = db.env$temp, "Temperature (ºC)")
-```
-
-
-```{r}
-plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-```
-There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
-```{r}
-attach(db.env)
-# first for series1 = db.env$series == "94231944"
-series1 = (series == "94231944")
-
-# first interval: 2022-05-14T21:00:00Z al 2022-05-19T11:45:00Z
-interval1 = (ts >= "2022-05-14 20:00:00" & ts <= "2022-05-19 11:45:00")
-
-# equivalent to:
-#db.2 = db.env %>% filter((series == "94231944") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
-
-# second interval: 2022-09-09T21:30:00Z al 2022-11-16T13:45:00Z
-interval2 = (ts >= "2022-09-09 21:30:00" & ts <= "2022-11-16 13:45:00" )
-
-# third interval: 2023-08-07T08:15:00Z al 2023-09-28T14:00:00Z
-interval3 = (ts >= "2023-08-07 08:15:00" & ts <= "2023-09-28 14:00:00")
-
-db.env[series1 & (interval1 | interval2 | interval3),]$vwc <- NA
-db.env[series1 & (interval1 | interval2 | interval3),]$temp <- NA
-
-
-# now series == "94231945"
-series2 = series == "94231945"
-
-# first interval: 2023-07-26T08:45:00Z al 2023-09-28T13:30:00Z
-interval = ts >= "2023-07-26 08:45:00" & ts <= "2023-09-28 13:30:00"
-
-db.env[series2 & interval,]$vwc  <- NA
-db.env[series2 & interval,]$temp  <- NA
-
-# now series == "94231931"
-series3 = series == "94231931" 
-
-# first interval: 2023-08-23T08:00:00Z al 2023-09-28T14:00:00Z
-interval = ts >= "2023-08-23 08:00:00" & ts <= "2023-09-28 14:00:00"
-
-db.env[series3 & interval,]$vwc  <- NA
-db.env[series3 & interval,]$temp  <- NA
-detach("db.env")
-```
-
-
-This is the result of adding the NA to the invalid periods:
-```{r}
-plot_multiple_env (db.env, "Volumetric Water Content per TMS sensor", y = db.env$vwc, "VWC (%)")
-ggsave('output/vwc-Corbalan.png', width = 15, height = 10)
-```
-
 Now calculate the mean for vwc and temp:
 ```{r}
-db.env.agg = db.env %>% group_by(ts) %>% dplyr::summarise(temp = mean(temp, na.rm = T), vwc = mean(vwc, na.rm = T))
+db.env.agg = db.env %>% group_by(ts) %>% dplyr::summarise(temp = mean(surface.temp, na.rm = T), vwc = mean(vwc, na.rm = T))
 db.env.agg
+```
+
+Let's keep environmental data from only one dendro whose data is all valid:
+```{r}
+db.env <- db.env[db.env$series == SELECTED_TMS,]
 ```
 
 And we plot it:
 
 ```{r}
 plot_temp_and_humidity <-
-  ggplot(data = db.env.agg, aes(x=ts, y=temp)) +
+  ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
     ggtitle("Temperature and humidity for Corbalan (2022-2023)") +
-    geom_line(aes(colour = temp)) +
+    geom_line(aes(colour = surface.temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
@@ -378,15 +309,15 @@ ggsave('output/VWCytempAgg-Corbalan.png', width = 15, height = 10)
 ```
 
 ```{r}
-library(plotly)
-plot_ly(
-  data = db.env.agg,
-  x = ~ts,
-  y = ~vwc*100,
-  type = "scatter",
-  mode = "lines",
-  # color = ~state,
-  colors = c("blue")
-  )
+# library(plotly)
+# plot_ly(
+#   data = db.env,
+#   x = ~ts,
+#   y = ~vwc*100,
+#   type = "scatter",
+#   mode = "lines",
+#   # color = ~state,
+#   colors = c("blue")
+#   )
 ```
 

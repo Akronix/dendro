@@ -16,6 +16,7 @@ source('lib-ts-analysis.R')
 library(glue)
 library(tidyverse)
 library(ggplot2)
+theme_set(theme_bw())
 library(lubridate)
 
 library(imputeTS)
@@ -106,7 +107,7 @@ summary(seasonalities.agg)
 ggplot( data = seasonalities.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for all trees")
-ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
 ```
 
 # Calculate Seasonality by class
@@ -128,10 +129,17 @@ summary(seasonalities.qi.agg)
 ```
 
 ```{r}
+ggplot( data = seasonalities.qi, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  theme_bw()
+```
+
+
+```{r}
 ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Quercus Ilex")
-ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Non-Declining Pinus
@@ -144,10 +152,17 @@ summary(seasonalities.P_ND.agg)
 ```
 
 ```{r}
+ggplot( data = seasonalities.P_ND, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  theme_bw()
+```
+
+
+```{r}
 ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Non-Declining Pinus")
-ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
 Mean seasonality for Declining Pinus
@@ -160,10 +175,29 @@ summary(seasonalities.P_D.agg)
 ```
 
 ```{r}
+ggplot( data = seasonalities.P_D, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  theme_bw()
+```
+```{r}
+# library(plotly)
+# plot_ly(
+#   data = seasonalities.P_D,
+#   x = ~ts,
+#   y = ~value,
+#   type = "scatter",
+#   mode = "lines",
+#   color = ~series
+#   )
+```
+
+
+
+```{r}
 ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Declining Pinus")
-ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
+#ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
 ```
 
 # Calculate amplitude for all trees by class
@@ -195,6 +229,8 @@ for (dendro.no in unique(db$series)) {
 With all daily amplitudes, calculate mean of each one by class
 
 ```{r}
+amplitude.all = amplitude.df %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
+amplitude.all
 amplitude.df = amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
 amplitude.df
 ```
@@ -229,9 +265,9 @@ summary(db.env)
 Plot env data:
 ```{r}
 plot_temp_and_humidity <-
-  ggplot(data = db.env, aes(x=ts, y=soil.temp)) +
-    ggtitle(glue("Temperature and humidity for {PLACE} (2022-2023)")) +
-    geom_line(aes(colour = soil.temp)) +
+  ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
+    ggtitle(glue("Temperature and humidity for {PLACE} (May to September 2023)")) +
+    geom_line(aes(colour = surface.temp)) +
     theme_bw() +
     scale_colour_gradient(low = "light blue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
@@ -241,6 +277,7 @@ plot_temp_and_humidity <-
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
 plot_temp_and_humidity
+#ggsave('output/VWCytempAgg-selected-period-Corbalan.png', width = 15, height = 10)
 ```
 
 Calculations of useful aggregation data for climate:
@@ -248,7 +285,7 @@ Calculations of useful aggregation data for climate:
   * temp: Mean of daily temp, minimum daily temp and maximum daily temp, range temp and interquartile temp (Q3-Q1). We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences.
 
 ```{r}
-clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(soil.temp), min.temp = min(soil.temp), mean.temp = mean(soil.temp), sd.temp = sd(soil.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(soil.temp, prob=c(.75)) - quantile(soil.temp, prob=c(.25)) ) )
+clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(surface.temp), min.temp = min(surface.temp), mean.temp = mean(surface.temp), sd.temp = sd(surface.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(surface.temp, prob=c(.75)) - quantile(surface.temp, prob=c(.25)) ) )
 summary(clim.daily)
 ```
 
@@ -295,6 +332,17 @@ find_Max_CCF(amplitude.P_D$mean, clim.daily$interquartil.temp)
 
 ## Amplitude ~ Soil Moisture
 Explore cross-correlation within Soil Moisture and daily seasonal amplitude
+
+### for all trees and classes:
+
+```{r}
+ccf (amplitude.all$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+sort_CCF_values(amplitude.all$mean, clim.daily$max.vwc)
+```
 
 ### for Quercus Ilex:
 
@@ -367,8 +415,8 @@ ccf (log10(amplitude.Qi$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.Qi$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.Qi$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.Qi$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.Qi$mean), log10(clim.daily$max.vwc))
 ```
 
 ### For P_ND: amplitude ~ VWC 
@@ -443,8 +491,8 @@ ccf (log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.P_ND$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.P_ND$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
 ```
 
 ## With P_D
@@ -489,8 +537,8 @@ ccf (log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
 ```
 
 ```{r}
-find_Max_CCF(amplitude.P_D$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.P_D$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
 ```
 
 
