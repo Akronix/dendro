@@ -51,15 +51,12 @@ Then, we set NA when there's no valid data:
 series1 = (db.env$series == "94231949")
 
 # first interval:
-interval1.1 = (db.env$ts >= "2022-04-08 20:30:00" & db.env$ts <= "2022-05-04 14:00:00")
-
-# equivalent to: (adjust to corresponding series and interval)
-#db.2 = db.env %>% filter((series == "94231939") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
-
+interval1.1 = (db.env$ts >= "2022-04-08 20:30:00") & (db.env$ts <= "2022-05-04 14:00:00")
 # second interval, first series:
-interval1.2 = (db.env$ts > "2022-09-11 08:45:00" & db.env$ts < "2022-11-24 14:45:00" )
+interval1.2  = (db.env$ts >= "2022-09-11 09:45:00") & (db.env$ts < "2022-11-24 14:45:00")
+interval1.3  = (db.env$ts >= "2023-03-07 01:00:00") & (db.env$ts < "2023-06-01 18:45:00")
 
-db.env[series1 & (interval1.1 | interval1.2 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+db.env[series1 & (interval1.1 | interval1.2 | interval1.3), c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
 
 # now second series
 series2 = db.env$series == "94231942"
@@ -78,15 +75,6 @@ series3 = db.env$series == "94231947"
 interval3.1 = (db.env$ts >= "2023-07-04 09:30:00")
 
 db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
-
-# now series4 == "94231949"
-series4 = db.env$series == "94231949"
-
-interval4.1  = (db.env$ts >= "2022-04-08 20:30:00") & (db.env$ts <= "2022-05-04 14:00:00")
-interval4.2  = (db.env$ts >= "2022-09-11 09:45:00") & (db.env$ts < "2022-11-24 14:45:00")
-interval4.3  = (db.env$ts >= "2023-03-07 01:00:00") & (db.env$ts < "2023-06-01 18:45:00")
-
-db.env[series4 & (interval4.1 | interval4.2 | interval4.3), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 ```
 
 This is the result of adding the NA to the invalid periods:
