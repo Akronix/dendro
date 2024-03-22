@@ -2,6 +2,7 @@ library(anomalize) # time series decomposition
 library(stats) # stl Decomposition
 library(ggpubr) # ggarange
 library(zoo) # print dates in x-axis for ts objects
+library(tidyverse)
 
 # Decompose functions
 ##  Define plot_decompose function which uses basic time series decomposition
@@ -156,4 +157,31 @@ cor.test.all.methods <- function (x, y, ci) {
   print(cor.test(x,y, method = c("pearson"), conf.level = ci))
   print(cor.test(x,y, method = c("spearman"), conf.level = ci))
   print(cor.test(x,y, method = c("kendall"), conf.level = ci))
+}
+
+# Calculate daily growth rate from trend data
+calc.growth.rate <- function (trend.df) {
+  trend.df <- dendroM %>% select(ts, trend) %>% rename(value = trend)
+  
+  growth.df <- trend.df %>%
+    mutate(day = day(trend.df$ts), month = month(trend.df$ts), year = year(trend.df$ts)) %>% 
+    summarise(max = max(value), .by = c(year, month, day)) %>% 
+    arrange(year, month, day)
+  
+  # val.diff <- diff(t - t-1)
+  # growth.df$rate <- c(NA, val.diff[1:n] / val.diff[1:n])
+  
+  growth.df$rate <- c(0,(growth.df$max[2:nrow(growth.df)]-growth.df$max[1:(nrow(growth.df)-1)])/growth.df$max[1:(nrow(growth.df)-1)])
+  
+  return (growth.df)
+  
+  dendroY <- aggregate(dendroM$trend,by=list(dendroM$year,dendroM$month,dendroM$day),max)
+  dendroY <- dendroY[order(dendroY[,1],dendroY[,2],dendroY[,3],decreasing=F),]
+  
+  dim(dendroY)
+  head(dendroY)
+  plot(dendroY$x,type="l")
+  dendroY$x <- dendroY$x-min(dendroY$x-1)
+  dendroY$rate <- 0
+  dendroY$rate <- c(0,(dendroY$x[2:nrow(dendroY)]-dendroY$x[1:(nrow(dendroY)-1)])/dendroY$x[1:(nrow(dendroY)-1)])
 }

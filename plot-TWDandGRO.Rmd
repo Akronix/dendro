@@ -7,9 +7,7 @@ output: html_notebook
 source('lib-dendro.R')
 library(ggplot2)
 library(tidyverse)
-library(purrr)
 library(glue)
-library(gridExtra)
 library(patchwork)
 ```
 
@@ -18,6 +16,7 @@ ggplot custom theme
 theme_set( theme_bw() +
           theme(
             axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
             axis.title=element_text(size=14),
             plot.title = element_text(hjust = 0.5, face = "bold")
           ))
@@ -27,14 +26,28 @@ theme_set( theme_bw() +
 ```{r}
 TreeList <- read.table("TreeList.txt", header=T)
 
-PLACE = 'Miedes'
+PLACE = 'Corbalan'
 DATA_DIR = glue('processed/{PLACE}-processed')
+ENV_DIR = glue('processed/{PLACE}-env-processed')
+
+
+SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
+  PLACE == 'Miedes' ~ "94231940",
+  PLACE == 'Corbalan' ~ "94231943",
+  PLACE == 'Penaflor' ~ "94231934",
+  .default = NA
+)
 ```
 
 Load dataset:
 ```{r}
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
 db<-read.all.processed(list_files)
+head(db)
+
+db.env <- read.env.proc(file.path(".",ENV_DIR,'proc-env.csv'))
+db.env <- db.env[db.env$series == SELECTED_TMS,]
+head(db.env)
 ```
 Define classes which each series belong to:
 ```{r}
@@ -51,7 +64,7 @@ db = db %>% mutate(
                     series %in% Qi ~ factor("Quercus"),
                     series %in% P_D ~ factor("D"),
                     series %in% P_ND ~ factor("ND"),
-                    TRUE ~ NA
+                    .default = NA
                     )
                   ) %>%
             filter(!is.na(class))
@@ -67,9 +80,9 @@ db.twd
 ```
 
 ```{r}
-Q_n <-  db.twd2023 %>% filter(class == "Quercus") %>% first() %>% select(n)
-D_n <-  db.twd2023 %>% filter(class == "D") %>% first() %>% select(n)
-ND_n <- db.twd2023 %>% filter(class == "ND") %>% first() %>% select(n)
+Q_n <-  db.twd %>% filter(class == "Quercus") %>% select(n) %>% max()
+D_n <-  db.twd %>% filter(class == "D") %>% select(n) %>% max()
+ND_n <- db.twd %>% filter(class == "ND") %>% select(n) %>% max()
 ```
 
 ```{r}
@@ -77,26 +90,68 @@ labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
 c_labels = c(glue("{labels[1]} ({Q_n})"), glue("{labels[2]} ({D_n})"), glue("{labels[3]} ({ND_n})"))
 ```
 
+Boxplot:
 ```{r}
-plot.twd2023 <- db.twd2023 %>%
-  ggplot () +
-  geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-  scale_color_discrete(labels = c_labels) +
-  labs(title = glue("Boxplot of TWD dispersion for 2023 by classes - {PLACE}"), x = "Class", y = "Tree Water Deficit") +
-  scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
-                              "ND" = labels[3]))
 plot.twd2022 <- db.twd2022 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-  scale_color_discrete(labels = c_labels) +
-  labs(title = glue("Boxplot of TWD dispersion for 2022 by classes - {PLACE}"), x = "Class", y = "Tree Water Deficit") +
+   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2022", x = "Class", y = "Tree Water Deficit") +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
                               "ND" = labels[3]))
-grid_output1 <- grid.arrange(plot.twd2022, plot.twd2023, ncol = 2)
-combined <- plot.twd2022 + plot.twd2023 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
+plot.twd2023 <- db.twd2023 %>%
+  ggplot () +
+  geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
+   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2023", x = "Class", y = "Tree Water Deficit") +
+  scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
+                              "ND" = labels[3]))
+
+combined <- (plot.twd2022 | plot.twd2023) + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Boxplot of TWD dispersion - {PLACE}')) & theme(legend.position = "bottom")
+combined
 ```
 ```{r}
-ggsave(glue('output/TWD-byClass-{PLACE}.png'), combined, width = 22, height = 10)
+ggsave(glue('output/boxplot-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+```
+
+Continuous TWD evolution along with VWC:
+
+```{r}
+vwc <- db.env %>% mutate(date = date(db.env$ts)) %>% summarise(max = max(vwc), .by = date)
+vwc
+```
+
+
+```{r}
+plot.twd2023 <- db.twd %>%
+  ggplot () +
+  geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2023", x = "Date", y = "Tree Water Deficit") +
+  scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
+   geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
+  scale_linetype_manual(NULL, values = 2)
+
+plot.twd2022 <- db.twd %>%
+  ggplot () +
+  geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2022", x = "Date", y = "Tree Water Deficit") +
+  scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
+   geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
+  scale_linetype_manual(NULL, values = 2)
+
+combined <- plot.twd2022 / plot.twd2023 + 
+  plot_layout(guides = "collect", axis_titles = "collect") + 
+  plot_annotation(title = glue('TWD evolution by classes - {PLACE}')) &
+  theme(legend.position = "bottom")
+combined
+```
+```{r}
+ggsave(glue('output/evolution-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 
@@ -110,27 +165,27 @@ db.gro
 
 ```{r}
 plotgro2023 <- db.gro2023 %>% ggplot () +
-  ggtitle(glue('Acumulated Growth for 2023 - {PLACE}')) +
+  ggtitle('2023') +
   geom_line(aes (x = doy, y = gro, color = class)) +
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_discrete(labels = c_labels)
+   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange"))
 
 plotgro2022 <- db.gro2022 %>% 
   ggplot() +
-  ggtitle(glue('Acumulated growth for 2022 - {PLACE}')) +
+  ggtitle('2022') +
   geom_line(aes (x = doy, y = gro, color = class)) +
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_discrete(labels = c_labels)
+   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange"))
 
-grid_output <- grid.arrange(plotgro2022, plotgro2023, nrow = 2)
-grid_output
+combined <- plotgro2022 / plotgro2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Acumulated Growth - {PLACE}')) & theme(legend.position = "bottom")
+combined
 ```
 
 ```{r}
-ggsave(glue('output/GRO-byClass-{PLACE}.png'), grid_output, width = 15, height = 10)
+ggsave(glue('output/GRO-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
