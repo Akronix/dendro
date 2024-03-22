@@ -26,7 +26,7 @@ theme_set( theme_bw() +
 ```{r}
 TreeList <- read.table("TreeList.txt", header=T)
 
-PLACE = 'Corbalan'
+PLACE = 'Miedes'
 DATA_DIR = glue('processed/{PLACE}-processed')
 ENV_DIR = glue('processed/{PLACE}-env-processed')
 
@@ -127,22 +127,26 @@ vwc
 plot.twd2023 <- db.twd %>%
   ggplot () +
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
   labs(title = "2023", x = "Date", y = "Tree Water Deficit") +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
    geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
-  scale_linetype_manual(NULL, values = 2)
+  scale_linetype_manual(NULL, values = 4)
 
 plot.twd2022 <- db.twd %>%
   ggplot () +
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
   labs(title = "2022", x = "Date", y = "Tree Water Deficit") +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
    geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
-  scale_linetype_manual(NULL, values = 2)
+  scale_linetype_manual(NULL, values = 4)
 
 combined <- plot.twd2022 / plot.twd2023 + 
   plot_layout(guides = "collect", axis_titles = "collect") + 
