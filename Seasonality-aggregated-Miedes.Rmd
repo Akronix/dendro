@@ -18,6 +18,7 @@ library(tidyverse)
 library(ggplot2)
 theme_set(theme_bw())
 library(lubridate)
+library(hms)
 
 library(imputeTS)
 library(biwavelet)
@@ -119,6 +120,7 @@ P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(
 P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
 ```
 
+## Quercus
 Mean seasonality for Quercus Ilex:
 ```{r}
 seasonalities.qi <- calculate_stl_seasonalities(db, Qi)
@@ -135,7 +137,6 @@ ggplot( data = seasonalities.qi, mapping = aes(x=ts, y = value, color = series))
 #ggsave(glue('output/{PLACE}-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
-
 ```{r}
 ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
@@ -143,6 +144,81 @@ ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) +
 #ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
+# Aggregating in one day, by removing time-series dimension
+
+```{r}
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+```
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.qi.allperiod = seasonalities.qi.agg %>% mutate(time_of_day = as_hms(ts)) %>% summarise(mean_time_day = mean(mean), SE_time_day = sd(sd)/sqrt(n()), .by = time_of_day)
+seasons.qi.allperiod
+
+ggplot( data = seasons.qi.allperiod, mapping = aes(x=time_of_day, y = mean_time_day)) + 
+  geom_line() + 
+  geom_line(aes (x = time_of_day, y = (mean_time_day + SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = time_of_day, y = (mean_time_day - SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+  ggtitle("Aggregated mean in one day of seasonalities for Quercus Ilex") +
+  scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+# ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-Qi.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.qi.jun_jul = seasonalities.qi.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(time_of_day = as_hms(ts)) %>% summarise(mean_time_day = mean(mean), SE_time_day = sd(sd)/sqrt(n()), .by = time_of_day)
+seasons.qi.jun_jul
+
+ggplot( data = seasons.qi.jun_jul, mapping = aes(x = time_of_day, y = mean_time_day)) + 
+  geom_line() + 
+  geom_line(aes (x = time_of_day, y = (mean_time_day + SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = time_of_day, y = (mean_time_day - SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+  ggtitle("Aggregated mean in one day of seasonalities from June to July 2023 for Quercus Ilex") +
+  scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-Qi.png'), width = 15, height = 10)
+```
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.qi.jun_jul$period <- "June-July"
+seasons.qi.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.qi.allperiod, seasons.qi.jun_jul)
+```
+
+```{r}
+ggplot(seasons.periods.joined) +
+  ggtitle("Aggregated mean in one day for all period And for period june-july") +
+  geom_line(aes(x = time_of_day, y = mean_time_day, col = period)) + 
+  geom_line(aes (x = time_of_day, y = (mean_time_day + SE_time_day), col = period), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = time_of_day, y = (mean_time_day - SE_time_day), col = period), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+```
+
+
+```{r}
+# Another way to do it but using two different df sources
+# ggplot() +
+#   ggtitle("Aggregated mean in one day for all period And for period june-july") +
+#   geom_line(data = seasons.qi.allperiod, mapping = aes(x=time_of_day, y = mean_time_day), col = "blue") + 
+#   geom_line(data = seasons.qi.allperiod, aes (x = time_of_day, y = (mean_time_day + SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.allperiod, aes (x = time_of_day, y = (mean_time_day - SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.jun_jul, mapping = aes(x = time_of_day, y = mean_time_day), col= "purple") +
+#   geom_line(data = seasons.qi.jun_jul, aes (x = time_of_day, y = (mean_time_day + SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.jun_jul, aes (x = time_of_day, y = (mean_time_day - SE_time_day)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#   scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+#   labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+```
+
+
+## Non-Declining Pinus
 Mean seasonality for Non-Declining Pinus
 ```{r}
 seasonalities.P_ND <- calculate_stl_seasonalities(db, P_ND)
@@ -369,6 +445,7 @@ hist(log10(amplitude.Qi$mean+1))
 ```{r}
 hist(log10(clim.daily$max.vwc+1))
 ```
+
 Standard correlations using different methods:
 ```{r}
 cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
@@ -602,6 +679,38 @@ find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
 ```
 
 We found that after 6 instances of 15 mins (1h and half), there is 0.70 inverse correlation within surface temperature and Quercus ilex maximum swelling.
+
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+temp.jun_jul <- db.env %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanTemp = mean(surface.temp), se_temp = (sd(surface.temp) / sqrt(n()) ), .by = timeOfDay)
+temp.jun_jul
+```
+
+```{r}
+temperature.color <- "darkorange"
+season.color <- "darkgreen"
+
+ggplot( data = seasons.qi.jun_jul, mapping = aes(x=time_of_day, y = mean_time_day)) + 
+  geom_line(aes(col = "Seasonality"), show.legend = T) +
+  geom_line(aes (x = time_of_day, y = (mean_time_day + SE_time_day)), col = season.color, alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = time_of_day, y = (mean_time_day - SE_time_day)), col = season.color, alpha = 0.5, linetype = "dashed", show.legend = F) +
+  ggtitle("Aggregated mean in one day of seasonalities plus daily temperature variation from June to July 2023 for Quercus Ilex") +
+  scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels ) +
+  labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)") +
+  scale_y_continuous(breaks = seq(-5,5,1), sec.axis = sec_axis(trans = ~ ((. * 5) + 23), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
+  geom_line(data = temp.jun_jul, aes(x = timeOfDay, y = (meanTemp - 23) / 5, col = "Temperature"), alpha = 0.6, show.legend = T) +
+  geom_line(data = temp.jun_jul, aes(x = timeOfDay, y = (meanTemp - 23) / 5 + se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +
+  geom_line(data = temp.jun_jul, aes(x = timeOfDay, y = (meanTemp - 23) / 5 - se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +
+  scale_color_manual(values = c(season.color, temperature.color)) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.y = element_text(color = season.color, face = "bold", size = 13),
+    axis.text.y = element_text(color = season.color),
+    axis.title.y.right = element_text(color = temperature.color, face= "bold", size = 13),
+    axis.text.y.right = element_text(color = temperature.color)
+    )
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-Qi.png'), width = 15, height = 10)
+```
 
 ### Non-Declining Pines
 ```{r}
