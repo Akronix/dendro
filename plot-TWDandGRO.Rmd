@@ -96,7 +96,7 @@ plot.twd2022 <- db.twd2022 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
    scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2022", x = "Class", y = "Tree Water Deficit") +
+  labs(title = "2022", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
                               "ND" = labels[3]))
 
@@ -104,7 +104,7 @@ plot.twd2023 <- db.twd2023 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
    scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2023", x = "Class", y = "Tree Water Deficit") +
+  labs(title = "2023", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
                               "ND" = labels[3]))
 
@@ -130,7 +130,7 @@ plot.twd2023 <- db.twd %>%
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2023", x = "Date", y = "Tree Water Deficit") +
+  labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
    geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
@@ -142,7 +142,7 @@ plot.twd2022 <- db.twd %>%
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2022", x = "Date", y = "Tree Water Deficit") +
+  labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
    geom_line(data = vwc, aes(x = date, y = max*1000, linetype = "Volumetric Water Content (%)"), col = "blue", alpha = 0.8, show.legend	= c(colour = FALSE, linetype = T)) +
@@ -172,7 +172,7 @@ plot.twd2023 <- db.twd %>%
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2023", x = "Date", y = "Tree Water Deficit", alpha = "Climate") +
+  labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")) , alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
   geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
@@ -184,7 +184,7 @@ plot.twd2022 <- db.twd %>%
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2022", x = "Date", y = "Tree Water Deficit", alpha = "Climate") +
+  labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")), alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
   geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
