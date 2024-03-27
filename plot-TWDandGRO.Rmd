@@ -150,12 +150,55 @@ plot.twd2022 <- db.twd %>%
 
 combined <- plot.twd2022 / plot.twd2023 + 
   plot_layout(guides = "collect", axis_titles = "collect") + 
-  plot_annotation(title = glue('TWD evolution by classes - {PLACE}')) &
+  plot_annotation(title = glue('TWD evolution by classes along with Soil Moisture - {PLACE}')) &
   theme(legend.position = "bottom")
 combined
 ```
 ```{r}
 ggsave(glue('output/evolution-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+```
+
+Same but now along with temp min and temp max:
+
+```{r}
+temp <- db.env %>% mutate(date = date(db.env$ts)) %>% summarise(tmax = max(surface.temp), tmin = min(surface.temp), .by = date)
+temp
+```
+
+```{r}
+plot.twd2023 <- db.twd %>%
+  ggplot () +
+  geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2023", x = "Date", y = "Tree Water Deficit", alpha = "Climate") +
+  scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
+  geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
+  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.6)) # to set legend text
+
+plot.twd2022 <- db.twd %>%
+  ggplot () +
+  geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
+  geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  labs(title = "2022", x = "Date", y = "Tree Water Deficit", alpha = "Climate") +
+  scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
+  geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
+  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.6)) # to set legend text
+
+combined <- plot.twd2022 / plot.twd2023 + 
+  plot_layout(guides = "collect", axis_titles = "collect") + 
+  plot_annotation(title = glue('TWD evolution by classes along with Daily Temperature - {PLACE}')) &
+  theme(legend.position = "bottom")
+combined
+```
+
+```{r}
+ggsave(glue('output/evolution-Temp-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 
