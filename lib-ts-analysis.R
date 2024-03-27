@@ -153,7 +153,7 @@ sort_CCF_values = function(x,y) {
   # build a dataset with lag times and correlation coefficients
   res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1])
   # sort by correlation values
-  res_cc <- res_cc[order(res_cc$cor, decreasing = T), ]
+  res_cc <- res_cc[order(abs(res_cc$cor), decreasing = T), ]
   return(res_cc) 
 } 
 
@@ -199,7 +199,7 @@ plot_day_seasonality <- function (seasons, sp, site, period){
     ggtitle(glue("Aggregated mean in one day of seasonalities from {period} for {sp} in {site}")) +
     scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+    labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)")))
 }
 
 plot_day_seasonalities_periods <- function (seasons.periods.joined, sp, site){
@@ -210,7 +210,7 @@ ggplot(seasons.periods.joined) +
   geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime), col = period), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+  labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)")))
 }
 
 plot_day_seasonality_and_temp <- function (seasons, temp, sp, site, period) {
@@ -220,7 +220,7 @@ plot_day_seasonality_and_temp <- function (seasons, temp, sp, site, period) {
     geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), col = season.color, alpha = 0.5, linetype = "dashed", show.legend = F) +
     ggtitle(glue("Aggregated mean in one day of seasonalities plus daily temperature variation from {period} for {sp} in {site}")) +
     scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels ) +
-    labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)") +
+    labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) +
     scale_y_continuous(breaks = seq(-5,5,1), sec.axis = sec_axis(trans = ~ ((. * 5) + 23), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
     geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5, col = "Temperature"), alpha = 0.6, show.legend = T) +
     geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5 + se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +

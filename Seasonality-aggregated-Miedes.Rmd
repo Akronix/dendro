@@ -62,7 +62,7 @@ db<-read.all.processed(list_files)
 
 keep data of selected dendros only
 ```{r}
-if (length(selected_dendros) > 1) {db = db %>% filter(db$series %in% selected_dendros)}
+if (length(selected_dendros) > 0) {db = db %>% filter(db$series %in% selected_dendros)}
 str(db)
 ```
 
@@ -110,7 +110,7 @@ summary(seasonalities.agg)
 ggplot( data = seasonalities.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for all trees")
-#ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
 ```
 
 # Calculate Seasonality by class
@@ -120,6 +120,10 @@ Calculate mean of the seasonality for Qi, PD and P_ND
 Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
 P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
 P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
+```
+
+```{r}
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
 ```
 
 ## Quercus
@@ -136,28 +140,24 @@ summary(seasonalities.qi.agg)
 ggplot( data = seasonalities.qi, mapping = aes(x=ts, y = value, color = series)) + 
   geom_line(alpha = 0.5) +
   ggtitle(glue('Quercus Ilex seasonalities by dendrometer - {PLACE} '))
-#ggsave(glue('output/{PLACE}-seasonality-Qi.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
 ```{r}
 ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Quercus Ilex")
-#ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
 ```
 
-# Aggregating in one day, by removing time-series dimension
-
-```{r}
-every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
-```
+### Aggregating in one day, by removing time-series dimension
 
 removing the time-series dimension, mean of one day for all period:
 ```{r}
 seasons.qi.allperiod = seasonalities.qi.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
 seasons.qi.allperiod
 plot_day_seasonality(seasons.qi.allperiod, "Quercus Ilex", PLACE, ALL_PERIOD_ST)
-# ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-Qi.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-Qi.png'), width = 15, height = 10)
 ```
 
 removing the time-series dimension, mean of one day for June-July:
@@ -177,6 +177,7 @@ seasons.qi.jun_jul$period <- "June-July"
 seasons.qi.allperiod$period <- "All"
 seasons.periods.joined <- rbind.data.frame(seasons.qi.allperiod, seasons.qi.jun_jul)
 ```
+
 
 ```{r}
 plot_day_seasonalities_periods(seasons.periods.joined, "Quercus Ilex", PLACE)
@@ -200,8 +201,8 @@ ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-Qi.png'), width 
 ```
 
 
-## Non-Declining Pinus
-Mean seasonality for Non-Declining Pinus
+## Non-Declining Pines
+Mean seasonality for Non-Declining Pines
 ```{r}
 seasonalities.P_ND <- calculate_stl_seasonalities(db, P_ND)
 summary(seasonalities.P_ND)
@@ -214,17 +215,54 @@ summary(seasonalities.P_ND.agg)
 ggplot( data = seasonalities.P_ND, mapping = aes(x=ts, y = value, color = series)) + 
   geom_line(alpha = 0.5) +
   ggtitle(glue('Non-Declining Pinus seasonalities by dendrometer - {PLACE} '))
-#ggsave(glue('output/{PLACE}-seasonality-P_ND.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
 ```{r}
 ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Non-Declining Pinus")
-#ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
 ```
 
-Mean seasonality for Declining Pinus
+
+### Non-Declining Pines: Aggregating in one day, by removing time-series dimension
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.P_ND.allperiod = seasonalities.P_ND.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_ND.allperiod
+plot_day_seasonality(seasons.P_ND.allperiod, "Non-Declining Pines", PLACE, ALL_PERIOD_ST)
+ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.P_ND.jun_jul = seasonalities.P_ND.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_ND.jun_jul
+
+plot_day_seasonality(seasons.P_ND.jun_jul, "Non-Declining Pines", PLACE, "June to July 2023")
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.P_ND.jun_jul$period <- "June-July"
+seasons.P_ND.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.P_ND.allperiod, seasons.P_ND.jun_jul)
+```
+
+
+```{r}
+plot_day_seasonalities_periods(seasons.periods.joined, "Non-Declining Pines", PLACE)
+ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+
+## Declining Pines
+Mean seasonality for Declining Pines
 ```{r}
 seasonalities.P_D <- calculate_stl_seasonalities(db, P_D)
 summary(seasonalities.P_D)
@@ -237,14 +275,48 @@ summary(seasonalities.P_D.agg)
 ggplot( data = seasonalities.P_D, mapping = aes(x=ts, y = value, color = series)) + 
   geom_line(alpha = 0.5) +
   ggtitle(glue('Declining Pinus seasonalities by dendrometer - {PLACE} '))
-#ggsave(glue('output/{PLACE}-seasonality-P_D.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-seasonality-P_D.png'), width = 15, height = 10)
 ```
 
 ```{r}
 ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
   geom_line() + 
   ggtitle("Mean of seasonalities for Declining Pinus")
-#ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
+```
+
+
+### Declining Pines: Aggregating in one day, by removing time-series dimension
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.P_D.allperiod = seasonalities.P_D.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_D.allperiod
+plot_day_seasonality(seasons.P_D.allperiod, "Declining Pines", PLACE, ALL_PERIOD_ST)
+ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-P_D.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.P_D.jun_jul = seasonalities.P_D.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_D.jun_jul
+
+plot_day_seasonality(seasons.P_D.jun_jul, "Declining Pines", PLACE, "June to July 2023")
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-P_D.png'), width = 15, height = 10)
+```
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.P_D.jun_jul$period <- "June-July"
+seasons.P_D.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.P_D.allperiod, seasons.P_D.jun_jul)
+```
+
+
+```{r}
+plot_day_seasonalities_periods(seasons.periods.joined, "Declining Pines", PLACE)
+ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-P_D.png'), width = 15, height = 10)
 ```
 
 # Calculate amplitude for all trees by class
@@ -331,7 +403,7 @@ plot_temp_and_humidity <-
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Temperature (ºC)")
 plot_temp_and_humidity
-#ggsave('output/VWCytempAgg-selected-period-Miedes.png', width = 15, height = 10)
+ggsave(glue('output/{PLACE}-VWCytempAgg-selected-period.png'), width = 15, height = 10)
 ```
 
 Calculations of useful aggregation data for climate:
@@ -471,7 +543,7 @@ ccf (log10(amplitude.Qi$mean), log10(clim.daily$max.vwc),
 
 ```{r}
 find_Max_CCF(amplitude.Qi$mean, clim.daily$max.vwc)
-find_Max_CCF(log10(amplitude.Qi$mean), log10(clim.daily$max.vwc))
+sort_CCF_values(amplitude.Qi$mean, clim.daily$max.vwc)
 ```
 
 ### For P_ND: amplitude ~ VWC 
@@ -666,9 +738,7 @@ Let's plot this to visually see it for June and July Months (Daily mean seasonal
 ```{r}
 temp.jun_jul <- db.env %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanTemp = mean(surface.temp), se_temp = (sd(surface.temp) / sqrt(n()) ), .by = timeOfDay)
 temp.jun_jul
-```
 
-```{r}
 plot_day_seasonality_and_temp(seasons.qi.jun_jul, temp.jun_jul, "Quercus Ilex", PLACE, "June to July 2023")
 ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-Qi.png'), width = 15, height = 10)
 ```
@@ -692,6 +762,12 @@ ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
 find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
 ```
 
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+plot_day_seasonality_and_temp(seasons.P_ND.jun_jul, temp.jun_jul, "Non-Declining Pines", PLACE, "June to July 2023")
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-P_ND.png'), width = 15, height = 10)
+```
+
 ### Declining Pines
 ```{r}
 matrix <- inner_join(seasonalities.P_D.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
@@ -711,6 +787,11 @@ ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
 find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
 ```
 
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+plot_day_seasonality_and_temp(seasons.P_D.jun_jul, temp.jun_jul, "Declining Pines", PLACE, "June to July 2023")
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-P_D.png'), width = 15, height = 10)
+```
 
 # Exploring wavelets
 
