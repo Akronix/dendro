@@ -4,6 +4,8 @@ library(ggpubr) # ggarange
 library(zoo) # print dates in x-axis for ts objects
 library(tidyverse)
 
+source('correlations.R')
+
 # DEFINE COMMON COLORS
 temperature.color <- "darkorange"
 season.color <- "darkgreen"
@@ -133,62 +135,36 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
   
 }
 
-# Correlations
-
-## Find best fit of cross-correlation
-find_Max_CCF = function(x,y) {
-  # run cross-correlation function
-  ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
-  # build a dataset with lag times and correlation coefficients
-  res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1]) 
-  max = res_cc[which.max(abs(res_cc$cor)),] 
-  # return only the data of interest
-  return(max) 
-}
-
-## Find best fit of cross-correlation
-sort_CCF_values = function(x,y) {
-  # run cross-correlation function
-  ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
-  # build a dataset with lag times and correlation coefficients
-  res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1])
-  # sort by correlation values
-  res_cc <- res_cc[order(abs(res_cc$cor), decreasing = T), ]
-  return(res_cc) 
-} 
-
-# cor.test all methods
-cor.test.all.methods <- function (x, y, ci) {
-  print(cor.test(x,y, method = c("pearson"), conf.level = ci))
-  print(cor.test(x,y, method = c("spearman"), conf.level = ci))
-  print(cor.test(x,y, method = c("kendall"), conf.level = ci))
-}
 
 # Calculate daily growth rate from trend data
-calc.growth.rate <- function (trend.df) {
-  trend.df <- dendroM %>% select(ts, trend) %>% rename(value = trend)
+calc.growth.rate <- function (dendro.ts) {
+  trend.df <- dendro.ts %>% select(ts, trend) %>% rename(value = trend)
   
   growth.df <- trend.df %>%
-    mutate(day = day(trend.df$ts), month = month(trend.df$ts), year = year(trend.df$ts)) %>% 
-    summarise(max = max(value), .by = c(year, month, day)) %>% 
-    arrange(year, month, day)
+    mutate(date = date(trend.df$ts)) %>% 
+    summarise(max = max(value), .by = date) %>% 
+    arrange(date)
   
+  growth.df$value <- growth.df$max-min(growth.df$max-1) #TODOUBLECHECK
+  
+  # TOREWRITE USING diff()
   # val.diff <- diff(t - t-1)
   # growth.df$rate <- c(NA, val.diff[1:n] / val.diff[1:n])
   
-  growth.df$rate <- c(0,(growth.df$max[2:nrow(growth.df)]-growth.df$max[1:(nrow(growth.df)-1)])/growth.df$max[1:(nrow(growth.df)-1)])
+  growth.df$rate <- c(0,(growth.df$value[2:nrow(growth.df)]-growth.df$value[1:(nrow(growth.df)-1)])/growth.df$value[1:(nrow(growth.df)-1)])
+  growth.df$rate <- ifelse(growth.df$rate<0,0,growth.df$rate)
+  
+  head(growth.df)
   
   return (growth.df)
-  
-  dendroY <- aggregate(dendroM$trend,by=list(dendroM$year,dendroM$month,dendroM$day),max)
-  dendroY <- dendroY[order(dendroY[,1],dendroY[,2],dendroY[,3],decreasing=F),]
-  
-  dim(dendroY)
-  head(dendroY)
-  plot(dendroY$x,type="l")
-  dendroY$x <- dendroY$x-min(dendroY$x-1)
-  dendroY$rate <- 0
-  dendroY$rate <- c(0,(dendroY$x[2:nrow(dendroY)]-dendroY$x[1:(nrow(dendroY)-1)])/dendroY$x[1:(nrow(dendroY)-1)])
+}
+
+plot_growth_rate <- function (growth.df) {
+  growth.df %>%
+    mutate (year = as.factor(year(date)), doy = yday(date)) %>% 
+    ggplot() +
+      geom_line(aes(x = doy, y = rate, col = year)) +
+      scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 }
 
 plot_day_seasonality <- function (seasons, sp, site, period){

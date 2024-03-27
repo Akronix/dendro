@@ -1,6 +1,5 @@
 library(lubridate)
 
-
 # import one csv data
 read.one.dendro <- function(nameFile, ts_start, ts_end, old_format = FALSE){
   File <- read.csv(nameFile,  
