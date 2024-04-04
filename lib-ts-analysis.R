@@ -135,35 +135,94 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
   
 }
 
+decompose_ts_stl <- function(db, dendro.series) {
+  
+  if (any(is.na(db$value))) { return ("Couldn't be calculated due to NA values")}
+  
+  all.ts.decomposed <- data.frame()
+  
+  for (dendro.no in dendro.series) {
+    # Filter data by that no
+    dat = db[db$series == dendro.no,] %>% select(ts, value)
+    
+    dat.ts <- ts(data = dat$value, frequency = 96)
+    
+    stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+    
+    # plot(stl.out)
+    # title(dendro.no)
+    
+    aux <- data.frame(
+      series = as.factor(dendro.no),
+      ts = dat$ts,
+      stl.out$time.series
+    )
+    
+    all.ts.decomposed <- rbind.data.frame(all.ts.decomposed, aux)
+  }
+  
+  return( all.ts.decomposed )
+  
+}
 
-# Calculate daily growth rate from trend data
+
+# Calculate daily growth rate in micrometers per day
 calc.growth.rate <- function (dendro.ts) {
-  trend.df <- dendro.ts %>% select(ts, trend) %>% rename(value = trend)
   
-  growth.df <- trend.df %>%
-    mutate(date = date(trend.df$ts)) %>% 
-    summarise(max = max(value), .by = date) %>% 
+  growth.df <- dendro.ts %>%
+    mutate(date = date(dendro.ts$ts)) %>% 
+    summarise(maxOfDay = max(value), .by = date) %>% 
     arrange(date)
-  
-  growth.df$value <- growth.df$max-min(growth.df$max-1) #TODOUBLECHECK
   
   # TOREWRITE USING diff()
   # val.diff <- diff(t - t-1)
-  # growth.df$rate <- c(NA, val.diff[1:n] / val.diff[1:n])
+  # growth.df$rate <- c(0, val.diff[2:n])
   
-  growth.df$rate <- c(0,(growth.df$value[2:nrow(growth.df)]-growth.df$value[1:(nrow(growth.df)-1)])/growth.df$value[1:(nrow(growth.df)-1)])
+  growth.df$value <- growth.df$maxOfDay-min(growth.df$maxOfDay) # the max of the day minus the mininum of all days
+  
+  growth.df$rate <- c(0,(growth.df$value[2:nrow(growth.df)]-growth.df$value[1:(nrow(growth.df)-1)]))
   growth.df$rate <- ifelse(growth.df$rate<0,0,growth.df$rate)
-  
-  head(growth.df)
   
   return (growth.df)
 }
+
 
 plot_growth_rate <- function (growth.df) {
   growth.df %>%
     mutate (year = as.factor(year(date)), doy = yday(date)) %>% 
     ggplot() +
       geom_line(aes(x = doy, y = rate, col = year)) +
+      labs(y = expression("Daily growth rate ratio(um · "~ day^{-1}), x = "Day of the year") +
+      scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
+}
+
+# Calculate daily growth rate from trend data from 0 to 1 ratio.
+calc.growth.rate.ratio <- function (dendro.ts) {
+  trend.df <- dendro.ts %>% select(ts, trend) %>% rename(value = trend)
+  
+  growth.df <- trend.df %>%
+    mutate(date = date(trend.df$ts)) %>% 
+    summarise(maxOfDay = max(value), .by = date) %>% 
+    arrange(date)
+  
+  growth.df$value <- growth.df$maxOfDay-min(growth.df$maxOfDay) + 1 # the max of the day minus the mininum of all days, plus 1 so we don't have 0 as denominator
+  
+  # TOREWRITE USING diff()
+  # val.diff <- diff(t - t-1)
+  # growth.df$rate <- c(0, val.diff[2:n] / values[1:n-1])
+  
+  growth.df$rate <- c(0,(growth.df$value[2:nrow(growth.df)]-growth.df$value[1:(nrow(growth.df)-1)])/growth.df$value[1:(nrow(growth.df)-1)])
+  growth.df$rate <- ifelse(growth.df$rate<0,0,growth.df$rate)
+  
+  return (growth.df)
+}
+
+plot_growth_rate_ratio <- function (growth.df) {
+  growth.df %>%
+    mutate (year = as.factor(year(date)), doy = yday(date)) %>% 
+    ggplot() +
+      geom_line(aes(x = doy, y = rate, col = year)) +
+      labs(y = "Daily Growth rate ratio (0-1)", x = "Day of the year") +
       scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 }
 
