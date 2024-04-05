@@ -426,14 +426,6 @@ Here we show a plot with VWC vs amplitude per class
 
 ```{r}
 ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
-  ggtitle('Compare soil moisture with trees amplitude (linked to activity)') +
-  geom_line() +
-  scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
-  geom_line(data = clim.daily, mapping = aes(x = date, y = max.vwc * 100, linetype = "Max Volumetric Water Content (%)"), col="blue")
-```
-
-```{r}
-ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
   ggtitle(glue('Soil moisture vs daily stem amplitude difference for {PLACE}')) +
   geom_line() +
   scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+

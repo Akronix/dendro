@@ -3,7 +3,7 @@ library(correlation)
 # Correlations
 
 ## Find best fit of cross-correlation
-find_Max_CCF = function(x,y) {
+find_Max_CCF = function(x, y, lag.max = NULL) {
   # run cross-correlation function
   ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
   # build a dataset with lag times and correlation coefficients
@@ -14,9 +14,9 @@ find_Max_CCF = function(x,y) {
 }
 
 ## Find best fit of cross-correlation
-sort_CCF_values = function(x,y) {
+sort_CCF_values = function(x, y, lag.max = NULL) {
   # run cross-correlation function
-  ccf = ccf(x, y, plot = FALSE, na.action = na.pass) 
+  ccf = ccf(x, y, plot = FALSE, na.action = na.pass, lag.max = lag.max) 
   # build a dataset with lag times and correlation coefficients
   res_cc = data.frame(lag = ccf$lag[,,1], cor = ccf$acf[,,1])
   # sort by correlation values

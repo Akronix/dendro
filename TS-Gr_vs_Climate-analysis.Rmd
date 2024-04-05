@@ -1,0 +1,350 @@
+---
+title: "Seasonality-analysis"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import packages:
+```{r}
+source('lib-dendro.R')
+source('lib-ts-analysis.R')
+source('correlations.R')
+
+library(glue)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw())
+library(lubridate)
+library(hms)
+
+library(imputeTS)
+library(biwavelet)
+```
+
+Set global vars
+```{r}
+### DEFINE GLOBAL VARS ###
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+
+PLACE = 'Miedes'
+DATA_DIR = glue('processed/{PLACE}-processed')
+ENV_DIR = glue('processed/{PLACE}-env-processed')
+
+
+# Select TMS serial no for this analysis
+SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
+  PLACE == 'Miedes' ~ c("94231940", "94231935"),
+  PLACE == 'Corbalan' ~ c("94231943"),
+  PLACE == 'Penaflor' ~ c("94231934", "94231950"),
+  .default = NA
+)
+
+TreeList <- read.table("TreeList.txt", header=T)
+
+ALL_PERIOD_ST <- "May to September (all study period)"
+```
+
+Select dendros for this analysis (all if FALSE)
+```{r}
+if (PLACE == 'Miedes') {
+  selected_dendros <- c("92222156", "92222169", "92222175", "92222157", "92222154", "92222170", "92222173", "92222180", "92222155", "92222163", "92222171", "92222161", "92222164")  
+} else {
+ selected_dendros <- c() 
+}
+```
+
+Load datasets:
+```{r}
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
+db<-read.all.processed(list_files)
+
+db.env <- read.env.proc(file.path(".",ENV_DIR,'proc-env.csv'))
+```
+Set ggplot options, themes & vars:
+
+```{r}
+theme_set( theme_bw() +
+          theme(
+            axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
+            axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 0.5, face = "bold")
+          ))
+
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+```
+
+# CLEAN & PREPARE DATA #
+
+keep data of selected dendros only
+```{r}
+if (length(selected_dendros) > 0) {db = db %>% filter(db$series %in% selected_dendros)}
+str(db)
+```
+
+select from May 2023 to Sept 2023
+```{r}
+# Set initial and final date for analysis
+ts_start <- "2023-05-01 09:00:00" # from first of May
+ts_end <-"2023-09-10 07:00:00" # to 10th of september
+db <- reset.initial.values(db, ts_start, ts_end)
+db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),]
+```
+
+Add classes column:
+Define set of series for each class
+```{r}
+Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
+P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
+```
+
+
+```{r}
+db <- db %>%  mutate (class = case_when(
+                    series %in% Qi ~ factor("Quercus"),
+                    series %in% P_D ~ factor("D"),
+                    series %in% P_ND ~ factor("ND"),
+                    .default = NA
+                    )
+              )
+```
+
+
+
+Calculate means of selected TMSs only:
+```{r}
+db.env <- db.env %>% filter(series %in% SELECTED_TMS)
+
+# interpolate NAs with:
+if (any(is.na(db.env$vwc))) {
+  for (series_no in SELECTED_TMS) {
+    db.env[db.env$series == series_no,] <- db.env[db.env$series == series_no,] %>%
+      mutate_at(vars(air.temp, surface.temp, soil.temp, vwc), \(x) (na_interpolation(x, option = "spline")))
+  }
+}
+
+statsNA(db.env$vwc)
+
+db.env <- db.env %>% group_by(ts) %>% summarise(soil.temp = mean(soil.temp), surface.temp = mean(surface.temp), air.temp = mean(air.temp), vwc = mean(vwc)) 
+```
+
+Plot env data:
+```{r}
+plot_temp_and_humidity <-
+  ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
+    ggtitle(glue("Temperature and humidity for {PLACE} (May to September 2023)")) +
+    geom_line(aes(colour = surface.temp)) +
+    theme_bw() +
+    scale_colour_gradient(low = "light blue", high = "red") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1)) +
+    scale_y_continuous("Temperature (ºC)", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+    geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
+    scale_linetype_manual(NULL, values = 1) +
+    labs(x=expression(''), colour = "Temperature (ºC)")
+plot_temp_and_humidity
+# ggsave(glue('output/{PLACE}-VWCytempAgg-selected-period.png'), width = 15, height = 10)
+```
+
+
+
+### Data imputation for dendros
+
+Missing data
+```{r}
+statsNA(db$value)
+```
+
+Let's fill it through interpolation
+```{r}
+db$value <- db$value %>% 
+            na_interpolation(option = "spline")
+```
+
+### Inspect data
+
+#### dendros
+```{r}
+str(db)
+head(db)
+tail(db)
+```
+
+#### climate
+```{r}
+head(db.env)
+summary(db.env)
+```
+
+### Others
+Calculations of useful aggregation data for climate:
+  * soil moisture: max VWC, range VWC, mean of VWC (misleading)
+  * temp: Mean of daily temp, minimum daily temp and maximum daily temp, range temp and interquartile temp (Q3-Q1). We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences.
+
+```{r}
+clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(surface.temp), min.temp = min(surface.temp), mean.temp = mean(surface.temp), sd.temp = sd(surface.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(surface.temp, prob=c(.75)) - quantile(surface.temp, prob=c(.25)) ) )
+summary(clim.daily)
+
+clim.hourly <- db.env %>% mutate (date = date(ts), hour = hour(ts)) %>% group_by(date, hour) %>% summarise(max.temp = max(surface.temp), min.temp = min(surface.temp), mean.temp = mean(surface.temp), sd.temp = sd(surface.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(surface.temp, prob=c(.75)) - quantile(surface.temp, prob=c(.25))), .groups = "drop" )
+summary(clim.hourly)
+```
+
+# TIME SERIES DECOMPOSITION
+
+Extract trend, residuals and seasonality for all trees and by class:
+
+```{r}
+decomposed.db <- decompose_ts_stl(db, selected_dendros)
+decomposed.db <- decomposed.db %>% mutate (
+                date = date(ts),
+                hour = hour(ts),
+                class = case_when(
+                    series %in% Qi ~ factor("Quercus"),
+                    series %in% P_D ~ factor("D"),
+                    series %in% P_ND ~ factor("ND"),
+                    .default = NA
+                    )
+                )
+decomposed.db
+```
+
+Calculate aggregated dataframes (hourly)
+```{r}
+decomposed.db.alltrees <- decomposed.db %>% group_by(date, hour) %>% summarise(seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
+decomposed.Qi <- decomposed.db %>% filter(series %in% Qi) %>% group_by(date, hour) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
+decomposed.P_D <- decomposed.db %>% filter(series %in% P_D) %>% group_by(ts) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder))
+decomposed.P_ND <- decomposed.db %>% filter(series %in% P_ND) %>% group_by(ts) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder))
+```
+
+
+Calculate growth rate:
+
+```{r}
+db.gr <- data.frame()
+for (dendro.no in selected_dendros) {
+  # Filter data by that no
+  dat = decomposed.db[decomposed.db$series == dendro.no,] %>% select(ts, trend, class) %>% rename(value = trend)
+  
+  aux <- data.frame(
+     series = as.factor(dendro.no),
+     class = dat$class[1],
+     calc.growth.rate(dat)
+  ) 
+  db.gr <- rbind.data.frame(db.gr, aux)
+}
+
+db.gr
+
+db.gr.alltrees <- db.gr %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date)) %>% mutate(doy = yday(date))
+db.gr.byclass <- db.gr %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
+```
+
+
+# Plots
+
+plot trend ~ vwc
+```{r}
+
+```
+
+
+plot trend ~ temperatures
+
+plot residuals ~ vwc
+
+plot residuals ~ temperatures
+
+plot growth rate ~ vwc
+
+```{r}
+ggplot(data = db.gr.byclass, mapping = aes(x = date, y = mean_gr, col = class)) +
+  ggtitle('Compare soil moisture with daily growth rate') +
+  geom_line() +
+  scale_y_continuous("Growth rate (um per day)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = max.vwc * 100, linetype = "Max Volumetric Water Content (%)"), col="blue")
+```
+
+plot growth rate ~ temperatures
+
+```{r}
+ggplot(data = db.gr.byclass, mapping = aes(x = date, y = mean_gr, col = class)) +
+  ggtitle('Compare soil moisture with daily growth rate') +
+  geom_line() +
+  scale_y_continuous("Growth rate (um per day)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Temperature (ºC)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.temp, linetype = "Range Temp (ºC)"), col="red")
+```
+
+
+# Correlations
+
+## trend ~ climate
+
+All trees :
+- Soil moisture
+
+```{r}
+cor.test(decomposed.db.alltrees$trend, clim.hourly$max.vwc)
+```
+
+
+```{r}
+ccf (decomposed.db.alltrees$trend, clim.hourly$max.vwc, lag.max = 168, plot = "TRUE")
+sort_CCF_values(decomposed.db.alltrees$trend, clim.hourly$max.vwc, lag.max = 168)
+```
+
+
+All trees ~ temp
+```{r}
+ccf (decomposed.db.alltrees$trend, clim.hourly$range.temp, lag.max = 168, plot = "TRUE")
+sort_CCF_values(decomposed.db.alltrees$trend, clim.hourly$range.temp, lag.max = 168)
+
+ccf (decomposed.db.alltrees$trend, clim.daily$range.temp,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+Quercus:
+
+```{r}
+ccf (decomposed.Qi$trend, clim.hourly$max.vwc, lag.max = 168, plot = "TRUE")
+sort_CCF_values(decomposed.Qi$trend, clim.hourly$max.vwc, lag.max = 168)
+```
+
+```{r}
+clim.hourly
+```
+
+
+Non-Declining Pines:
+
+Declining pines:
+
+
+## residuals ~ climate
+
+## growth rate ~ climate
+
+All trees ~ moisture
+```{r}
+ccf (db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 48, plot = "TRUE")
+sort_CCF_values(db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 48)
+```
+
+All trees ~ temp
+```{r}
+cor.test(db.gr.alltrees$mean_gr, clim.daily$range.temp)
+cor.test(db.gr.alltrees$mean_gr, clim.daily$mean.temp)
+cor.test(db.gr.alltrees$mean_gr, clim.daily$max.temp)
+cor.test(db.gr.alltrees$mean_gr, clim.daily$min.temp)
+```
+
