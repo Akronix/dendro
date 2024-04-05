@@ -1,0 +1,114 @@
+In this notebook we look when the sensors have been moved and, therefore, the logged data isn't valid.
+
+```{r}
+# import libraries
+source('lib-dendro.R')
+
+library(plotly)
+library(datacleanr) # to find invalid periods (interactively)
+library(readr) # for write_csv() function
+library(tidyverse) # for %>%
+library(glue)
+
+# global variables
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(PATH)
+
+PLACE = 'Miedes'
+BUFFER_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
+OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-processed')
+```
+
+
+```{r}
+# importing processed environmental data #
+list_files <- list.files(file.path(PATH,BUFFER_ENV_DIR), pattern="*.csv$", full.names=TRUE)
+db.env<-read.all.env.processed(list_files)
+str(db.env)
+```
+
+With VWC we can better see when the sensor is moved (VWC equals to 0 for a long period):
+```{r}
+f <- plot_ly(db.env, x = ~ts, y = ~vwc, color = ~series, type = 'scatter', mode = 'lines')
+f
+```
+
+Defining and clearing the periods of invalid data. There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
+
+First, we remove all the data prior to installation:
+```{r}
+ts_start = "2022-03-10 13:00:00"
+head(db.env)
+db.env <- db.env[which(db.env$ts>=ts_start),]
+head(db.env)
+```
+
+Then, we set NA when there's no valid data:
+```{r}
+# Then we clear the invalid data for each series:
+# for series1 = db.env$series == "94231939"
+series1 = (db.env$series == "94231939")
+
+# first interval:
+interval1.1 = (db.env$ts >= "2022-06-28 22:45:00" & db.env$ts <= "2022-08-19 10:45:00")
+
+# equivalent to: (adjust to corresponding series and interval)
+#db.2 = db.env %>% filter((series == "94231939") & between(ts, ymd_hms("2022-05-14 21:00:00", tz = "Europe/Madrid"), ymd_hms("2022-05-19 11:45:00", tz = "Europe/Madrid") ))
+
+# second interval: 2022-09-11T08:45:00Z al 2022-11-24T14:45:00Z
+interval1.2 = (db.env$ts > "2022-09-08 22:15:00" & db.env$ts < "2022-11-18 10:15:00" )
+
+# third interval: from 2023-07-28T08:15:00Z to the end
+interval1.3 = (db.env$ts > "2023-07-28 08:15:00")
+
+db.env[series1 & (interval1.1 | interval1.2 | interval1.3 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+
+# now series == "94231938"
+series2 = db.env$series == "94231938"
+
+# interval1: 
+interval2.1 = db.env$ts >= "2022-06-11 20:15:00" & db.env$ts <= "2022-08-19 10:45:00"
+interval2.2 = db.env$ts >= "2022-09-08 22:15:00" & db.env$ts <= "2022-11-24 11:30:00"
+
+# interval2: 2023-09-02T03:45:00Z to the end
+interval2.3 = db.env$ts >= "2023-09-02 03:45:00"
+
+
+db.env[series2 & (interval2.1 | interval2.2 | interval2.3), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+
+# now series == "94231936"
+series3 = db.env$series == "94231936" 
+
+# first interval: 
+interval3.1 = (db.env$ts >= "2023-07-11 19:30:00") & (db.env$ts < "2023-09-02 20:45:00")
+
+db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+```
+
+
+This is the result of adding the NA to the invalid periods:
+```{r}
+f <- plot_ly(db.env, x = ~ts, y = ~vwc, color = ~series, type = 'scatter', mode = 'lines')
+f
+```
+
+save result
+```{r}
+OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
+if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
+write_csv(db.env, file.path(OUTPUT_PATH, "proc-env.csv" ), append = F, col_names = T)
+
+db.agg <- subset(db.env, select = c("ts", "soil.temp", "surface.temp", "air.temp", "vwc") )
+
+# Do mean of all sensors
+db.agg <- db.env %>%
+  #filter(ts < ymd_hms("2022-12-31 00:00:00")) %>%
+  group_by(ts) %>%
+  dplyr::summarise(soil.temp = mean(soil.temp, na.rm = T), surface.temp = mean(surface.temp, na.rm = T), air.temp = mean(air.temp, na.rm = T), vwc = mean(vwc, na.rm = T))
+
+summary(db.agg)
+
+# write aggregated data to file.
+if (!dir.exists(file.path(OUTPUT_PATH, 'aggregated'))) {dir.create(file.path(OUTPUT_PATH, 'aggregated'))}
+write_csv(db.agg, file.path(OUTPUT_PATH, 'aggregated', "proc-agg-env.csv"), append = F, col_names = T)
+```
