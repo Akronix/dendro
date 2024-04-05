@@ -13,6 +13,8 @@ Import packages:
 ```{r}
 source('lib-dendro.R')
 source('lib-ts-analysis.R')
+source('correlations.R')
+
 library(glue)
 library(tidyverse)
 library(ggplot2)
@@ -369,6 +371,7 @@ db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
 db.env <- db.env[db.env$series == SELECTED_TMS,]
 ```
 
+Calculate mean among all climate sensors with all its data *complete* (no gaps)
 ```{r}
 # statsNA(db.env$vwc)
 # db.env$vwc <- db.env$vwc %>% 
@@ -431,7 +434,7 @@ ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
 
 ```{r}
 ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
-  ggtitle('Compare soil moisture with trees amplitude (linked to activity)') +
+  ggtitle(glue('Soil moisture vs daily stem amplitude difference for {PLACE}')) +
   geom_line() +
   scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
   geom_line(data = clim.daily, mapping = aes(x = date, y = range.vwc * 100, linetype = "Max - Min Volumetric Water Content (%)"), col="blue")
@@ -440,7 +443,7 @@ ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
 Following, we will explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude.
 
 ## Amplitude ~ Temperature
-Explore correlation within temperature and daily seasonal amplitude (Not significant)
+Explore correlation within temperature and daily stem amplitude difference (Not significant)
 
 ```{r}
 cor.test(
