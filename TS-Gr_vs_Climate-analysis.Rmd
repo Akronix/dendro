@@ -18,12 +18,11 @@ source('correlations.R')
 library(glue)
 library(tidyverse)
 library(ggplot2)
-theme_set(theme_bw())
+
 library(lubridate)
 library(hms)
 
 library(imputeTS)
-library(biwavelet)
 ```
 
 Set global vars
@@ -42,7 +41,7 @@ ENV_DIR = glue('processed/{PLACE}-env-processed')
 SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
   PLACE == 'Miedes' ~ c("94231940", "94231935"),
   PLACE == 'Corbalan' ~ c("94231943"),
-  PLACE == 'Penaflor' ~ c("94231934", "94231950"),
+  PLACE == 'Penaflor' ~ c("94231934"), # 94231950 is delayed? and throws wrong results? double check
   .default = NA
 )
 
@@ -67,20 +66,6 @@ db<-read.all.processed(list_files)
 
 db.env <- read.env.proc(file.path(".",ENV_DIR,'proc-env.csv'))
 ```
-Set ggplot options, themes & vars:
-
-```{r}
-theme_set( theme_bw() +
-          theme(
-            axis.text=element_text(size=12),
-            legend.text=element_text(size=10),
-            axis.title=element_text(size=14),
-            plot.title = element_text(hjust = 0.5, face = "bold")
-          ))
-
-every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
-```
-
 # CLEAN & PREPARE DATA #
 
 keep data of selected dendros only
@@ -117,8 +102,6 @@ db <- db %>%  mutate (class = case_when(
               )
 ```
 
-
-
 Calculate means of selected TMSs only:
 ```{r}
 db.env <- db.env %>% filter(series %in% SELECTED_TMS)
@@ -154,6 +137,27 @@ plot_temp_and_humidity
 # ggsave(glue('output/{PLACE}-VWCytempAgg-selected-period.png'), width = 15, height = 10)
 ```
 
+Set ggplot label options, themes & vars:
+
+```{r}
+theme_set( theme_bw() +
+          theme(
+            axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
+            axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 0.5, face = "bold")
+          ))
+
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
+
+n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+
+c_labels = c(glue("{labels[1]} ({n.per.class$Quercus})"), glue("{labels[2]} ({n.per.class$D})"), glue("{labels[3]} ({n.per.class$ND})"))
+c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+scale_colour_custom <- function(...) scale_color_manual(labels = c_labels, values=c_values)
+options(ggplot2.discrete.colour = scale_colour_custom)
+```
 
 
 ### Data imputation for dendros
@@ -216,16 +220,20 @@ decomposed.db <- decomposed.db %>% mutate (
 decomposed.db
 ```
 
-Calculate aggregated dataframes (hourly)
+Time-series decomposition by class
 ```{r}
-decomposed.db.alltrees <- decomposed.db %>% group_by(date, hour) %>% summarise(seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
-decomposed.Qi <- decomposed.db %>% filter(series %in% Qi) %>% group_by(date, hour) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
-decomposed.P_D <- decomposed.db %>% filter(series %in% P_D) %>% group_by(ts) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder))
-decomposed.P_ND <- decomposed.db %>% filter(series %in% P_ND) %>% group_by(ts) %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder))
+decomposed.db.alltrees <- decomposed.db %>% group_by(ts) %>% summarise(seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
+decomposed.db.byclass <- decomposed.db %>% group_by(ts, class) %>% summarise(seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .groups = "drop")
 ```
 
+Calculate time-series decomposition in aggregated dataframes (daily)
 
-Calculate growth rate:
+```{r}
+decomposed.db.daily.alltrees <- decomposed.db %>% summarise(seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .by = date)
+decomposed.db.daily.byclass <- decomposed.db %>% summarise( seasonal = mean(seasonal), trend = mean(trend), remainder = mean(remainder), .by = c(date, class))
+```
+
+Calculate growth rate: !!! Cambiar por growth rate ratio mejor??
 
 ```{r}
 db.gr <- data.frame()
@@ -247,26 +255,59 @@ db.gr.alltrees <- db.gr %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = 
 db.gr.byclass <- db.gr %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
 ```
 
+# Determining the time frequency for each comparison:
+
+residuals ~ climate -> every 15': it should be each 15' or each hour, since the remainder is what excess from the seasonality, which we treated each 15'. 
+trend ~ climate -> daily: Better daily, as the trend takes some time to change and it makes sense also for climate variables: max.vwc stays some days after a rain episode.
+growth rate ~ climate -> daily: This has to be treated daily since the growth rate is a daily rate.
+TWD ~ climate -> daily. acumulado por momentos diarios
 
 # Plots
 
 plot trend ~ vwc
 ```{r}
-
+ggplot(data = decomposed.db.daily.byclass, mapping = aes(x = date, y = trend, col = class)) +
+  ggtitle('Compare trend vs soil moisture') +
+  geom_line() +
+  scale_y_continuous("Trend (um per day)", breaks=seq(0,900,100), sec.axis = sec_axis(trans = ~ . /1000, name = "Volumetric Water Content (%)")) +
+  geom_line(data = clim.daily, mapping = aes(x = date, y = max.vwc * 1000, linetype = "Max Volumetric Water Content (%)"), col="blue")
 ```
 
-
 plot trend ~ temperatures
+```{r}
+ggplot(data = decomposed.db.daily.byclass, mapping = aes(x = date, y = trend, col = class)) +
+  ggtitle('Compare trend vs temperature') +
+  geom_line() +
+  scale_y_continuous("Trend (um per day)", breaks=seq(0,900,100), sec.axis = sec_axis(trans = ~ . /20, name = "Temperature (ºC)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.temp*20, linetype = "Range Temp (ºC)"), col="firebrick1")
+```
 
 plot residuals ~ vwc
 
+```{r}
+ggplot(data = decomposed.db.byclass, mapping = aes(x = ts, y = remainder, col = class)) +
+  ggtitle('Compare residuals vs soil moisture') +
+  geom_line() +
+  scale_y_continuous("Remainder (um per day)", sec.axis = sec_axis(trans = ~ . /100, name = "Volumetric Water Content (%)")) +
+  geom_line(data = db.env, mapping = aes(x = ts, y = vwc * 100, linetype = "Max Volumetric Water Content (%)"), col="blue")
+```
+
+
 plot residuals ~ temperatures
+```{r}
+ggplot(data = decomposed.db.byclass, mapping = aes(x = ts, y = remainder, col = class)) +
+  ggtitle('Compare residuals vs Temperature') +
+  geom_line() +
+  scale_y_continuous("Remainder (um per day)", sec.axis = sec_axis(trans = ~ . /2, name = "Temperature (ºC)" ))+
+  geom_line(data = db.env, mapping = aes(x = ts, y = surface.temp*2, linetype = "Range Temp (ºC)"), col="firebrick1")
+```
 
 plot growth rate ~ vwc
 
 ```{r}
 ggplot(data = db.gr.byclass, mapping = aes(x = date, y = mean_gr, col = class)) +
   ggtitle('Compare soil moisture with daily growth rate') +
+  scale_color_manual(labels = c_labels, values=c_values) +
   geom_line() +
   scale_y_continuous("Growth rate (um per day)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
   geom_line(data = clim.daily, mapping = aes(x = date, y = max.vwc * 100, linetype = "Max Volumetric Water Content (%)"), col="blue")
@@ -276,10 +317,10 @@ plot growth rate ~ temperatures
 
 ```{r}
 ggplot(data = db.gr.byclass, mapping = aes(x = date, y = mean_gr, col = class)) +
-  ggtitle('Compare soil moisture with daily growth rate') +
+  ggtitle('Compare temperature with daily growth rate') +
   geom_line() +
   scale_y_continuous("Growth rate (um per day)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Temperature (ºC)" ))+
-  geom_line(data = clim.daily, mapping = aes(x = date, y = range.temp, linetype = "Range Temp (ºC)"), col="red")
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.temp, linetype = "Range Temp (ºC)"), col="firebrick1")
 ```
 
 
@@ -287,30 +328,23 @@ ggplot(data = db.gr.byclass, mapping = aes(x = date, y = mean_gr, col = class)) 
 
 ## trend ~ climate
 
-All trees :
+All trees:
 - Soil moisture
 
 ```{r}
-cor.test(decomposed.db.alltrees$trend, clim.hourly$max.vwc)
+cor.test(decomposed.db.daily.alltrees$trend, clim.daily$max.vwc)
 ```
-
+^ Nope
 
 ```{r}
-ccf (decomposed.db.alltrees$trend, clim.hourly$max.vwc, lag.max = 168, plot = "TRUE")
-sort_CCF_values(decomposed.db.alltrees$trend, clim.hourly$max.vwc, lag.max = 168)
+ccf (decomposed.db.daily.alltrees$trend, clim.daily$max.vwc, lag.max = 50, plot = "TRUE")
+sort_CCF_values(decomposed.db.daily.alltrees$trend, clim.daily$max.vwc, lag.max = 50)
 ```
-
 
 All trees ~ temp
 ```{r}
-ccf (decomposed.db.alltrees$trend, clim.hourly$range.temp, lag.max = 168, plot = "TRUE")
-sort_CCF_values(decomposed.db.alltrees$trend, clim.hourly$range.temp, lag.max = 168)
-
-ccf (decomposed.db.alltrees$trend, clim.daily$range.temp,
-     #indicate what to do with "NA".
-     na.action = na.pass,
-     #indicate if you want the plot
-     plot = "TRUE")
+ccf (decomposed.db.daily.alltrees$trend, clim.daily$range.temp, lag.max = 50, plot = "TRUE")
+sort_CCF_values(decomposed.db.daily.alltrees$trend, clim.daily$range.temp, lag.max = 50)
 ```
 
 Quercus:
@@ -331,13 +365,35 @@ Declining pines:
 
 
 ## residuals ~ climate
+All trees ~ moisture
+```{r}
+ccf (decomposed.db.alltrees$remainder, db.env$vwc, lag.max = 96, plot = "TRUE")
+sort_CCF_values(decomposed.db.alltrees$remainder, db.env$vwc, lag.max = 96)
+```
+^ Some correlation 10 hours after a rain episode.
+
+Quercus ~ Soil moisture
+```{r}
+Qi <- decomposed.db.byclass[decomposed.db.byclass$class == 'Quercus',]
+ccf (Qi$remainder, db.env$vwc, lag.max = 96, plot = "TRUE")
+sort_CCF_values(Qi$remainder, db.env$vwc, lag.max = 96)
+```
+^ Some correlation ~2 hours after a rain episode.
+
+
+All trees ~ temp
+```{r}
+ccf (decomposed.db.alltrees$remainder, db.env$surface.temp, lag.max = 96, plot = "TRUE")
+sort_CCF_values(decomposed.db.alltrees$remainder, db.env$surface.temp, lag.max = 96)
+```
+^ There's no good correlation
 
 ## growth rate ~ climate
 
 All trees ~ moisture
 ```{r}
-ccf (db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 48, plot = "TRUE")
-sort_CCF_values(db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 48)
+ccf (db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 30, plot = "TRUE")
+sort_CCF_values(db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 30)
 ```
 
 All trees ~ temp
@@ -346,5 +402,10 @@ cor.test(db.gr.alltrees$mean_gr, clim.daily$range.temp)
 cor.test(db.gr.alltrees$mean_gr, clim.daily$mean.temp)
 cor.test(db.gr.alltrees$mean_gr, clim.daily$max.temp)
 cor.test(db.gr.alltrees$mean_gr, clim.daily$min.temp)
+```
+
+```{r}
+ccf (db.gr.alltrees$mean_gr, clim.daily$range.temp, lag.max = 30, plot = "TRUE")
+sort_CCF_values(db.gr.alltrees$mean_gr, clim.daily$range.temp, lag.max = 30)
 ```
 

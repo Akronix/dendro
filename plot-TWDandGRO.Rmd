@@ -13,18 +13,6 @@ library(patchwork)
 library(imputeTS)
 ```
 
-ggplot custom theme
-```{r}
-theme_set( theme_bw() +
-          theme(
-            axis.text=element_text(size=12),
-            legend.text=element_text(size=10),
-            axis.title=element_text(size=14),
-            plot.title = element_text(hjust = 0.5, face = "bold")
-          ))
-```
-
-
 ```{r}
 TreeList <- read.table("TreeList.txt", header=T)
 
@@ -82,6 +70,25 @@ db = db %>% mutate(
 db
 ```
 
+Set ggplot label options, themes & vars:
+```{r}
+theme_set( theme_bw() +
+          theme(
+            axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
+            axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 0.5, face = "bold")
+          ))
+
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
+
+n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+
+c_labels = c(glue("{labels[1]} ({n.per.class$Quercus})"), glue("{labels[2]} ({n.per.class$D})"), glue("{labels[3]} ({n.per.class$ND})"))
+c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+```
+
 # TWD
 ```{r}
 db.twd <- db %>% summarise( mean_twd = mean(twd, na.rm = T), twd_se = sd(twd / sqrt(n()), na.rm = T), .by = c(date, class), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
@@ -90,31 +97,19 @@ db.twd2023 <- db.twd %>% filter(year(date) == 2023)
 db.twd
 ```
 
-```{r}
-Q_n <-  db.twd %>% filter(class == "Quercus") %>% select(n) %>% max()
-D_n <-  db.twd %>% filter(class == "D") %>% select(n) %>% max()
-ND_n <- db.twd %>% filter(class == "ND") %>% select(n) %>% max()
-```
-
-```{r}
-labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
-c_labels = c(glue("{labels[1]} ({Q_n})"), glue("{labels[2]} ({D_n})"), glue("{labels[3]} ({ND_n})"))
-```
-
 Boxplot:
 ```{r}
 plot.twd2022 <- db.twd2022 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
-  labs(title = "2022", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
-  scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
-                              "ND" = labels[3]))
+  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2], "ND" = labels[3])) +
+  labs(title = "2022", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)")))
 
 plot.twd2023 <- db.twd2023 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+   scale_color_manual(labels = c_labels, values=c_values) +
   labs(title = "2023", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
                               "ND" = labels[3]))
@@ -140,7 +135,7 @@ plot.twd2023 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
@@ -152,7 +147,7 @@ plot.twd2022 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
@@ -176,30 +171,30 @@ temp <- db.env %>% mutate(date = date(db.env$ts)) %>% summarise(tmax = max(surfa
 temp
 ```
 
-```{r}
+```{r warning=FALSE}
 plot.twd2023 <- db.twd %>%
   ggplot () +
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")) , alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
-  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
-  geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
-  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.6)) # to set legend text
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /20, name = "Temperature (ºC)")) +
+  geom_linerange(data = temp, aes(x = date, ymin = tmin*20, ymax = tmax*20, alpha = "temp"), col = "firebrick1") +
+  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.4)) # to set legend text
 
 plot.twd2022 <- db.twd %>%
   ggplot () +
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")), alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
-  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Temperature (ºC)")) +
-  geom_linerange(data = temp, aes(x = date, ymin = tmin*10, ymax = tmax*10, alpha = "temp"), col = "firebrick2") +
-  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.6)) # to set legend text
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . /20, name = "Temperature (ºC)")) +
+  geom_linerange(data = temp, aes(x = date, ymin = tmin*20, ymax = tmax*20, alpha = "temp"), col = "firebrick1") +
+  scale_alpha_manual(labels = c("Range from minimum to maximum temperature (ºC)"), values = c(temp = 0.4)) # to set legend text
 
 combined <- plot.twd2022 / plot.twd2023 + 
   plot_layout(guides = "collect", axis_titles = "collect") + 
@@ -229,7 +224,7 @@ plotgro2022 <- db.gro2022 %>%
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 plotgro2023 <- db.gro2023 %>% ggplot () +
@@ -238,7 +233,7 @@ plotgro2023 <- db.gro2023 %>% ggplot () +
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 combined <- plotgro2022 / plotgro2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Acumulated Growth - {PLACE}')) & theme(legend.position = "bottom")
@@ -308,7 +303,7 @@ plotgr2022 <- db.gr2022 %>%
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 plotgr2023 <- db.gr2023 %>%
@@ -318,7 +313,7 @@ plotgr2023 <- db.gr2023 %>%
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year",  y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
+  scale_color_manual(labels = c_labels, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 combined <- plotgr2022 / plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Growth rate per day - {PLACE}')) & theme(legend.position = "bottom")

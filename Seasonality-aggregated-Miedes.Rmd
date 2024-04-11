@@ -96,6 +96,25 @@ db$value <- db$value %>%
             na_interpolation(option = "spline")
 ```
 
+Set ggplot label options, themes & vars:
+```{r}
+theme_set( theme_bw() +
+          theme(
+            axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
+            axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 0.5, face = "bold")
+          ))
+
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
+
+n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+
+c_labels = c(glue("{labels[1]} ({n.per.class$Quercus})"), glue("{labels[2]} ({n.per.class$D})"), glue("{labels[3]} ({n.per.class$ND})"))
+c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+```
+
 # Time Series decomposition
 
 # Calculate mean Seasonality
