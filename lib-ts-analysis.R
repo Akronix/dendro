@@ -145,9 +145,13 @@ decompose_ts_stl <- function(db, dendro.series) {
     # Filter data by that no
     dat = db[db$series == dendro.no,] %>% select(ts, value)
     
-    dat.ts <- ts(data = dat$value, frequency = 96)
+    dat.ts <- ts(data = dat$value, frequency = 96) # natural time period <- day, data sampled every quarter <- 4*24 = 96 samples per day
     
-    stl.out = stl(dat.ts, s.window = 25, t.window = 673)
+    stl.out = stl(dat.ts, s.window = 97, t.window = 673)
+    # ^ About the given paramenters:
+    # s.window <- 97 is like a day of data (it has to be odd), but the value 25 was working as well (6h and a quarter)
+    # t.window <- 97 is like a week of data (it has to be odd), it showed smooth values of trend
+    
     
     # plot(stl.out)
     # title(dendro.no)
