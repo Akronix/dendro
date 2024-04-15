@@ -392,9 +392,15 @@ sort_CCF_values(decomposed.db.alltrees$remainder, db.env$surface.temp, lag.max =
 
 All trees ~ moisture
 ```{r}
-ccf (db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 30, plot = "TRUE")
-sort_CCF_values(db.gr.alltrees$mean_gr, clim.daily$max.vwc, lag.max = 30)
+ccf (clim.daily$max.vwc, db.gr.alltrees$mean_gr, lag.max = 30, plot = "TRUE")
+sort_CCF_values(clim.daily$max.vwc,db.gr.alltrees$mean_gr, lag.max = 30)
 ```
+
+```{r}
+ccf (clim.daily$max.vwc, log10(db.gr.alltrees$mean_gr+1), lag.max = 30, plot = "TRUE")
+sort_CCF_values(clim.daily$max.vwc, log10(db.gr.alltrees$mean_gr+1), lag.max = 30)
+```
+
 
 All trees ~ temp
 ```{r}

@@ -59,6 +59,7 @@ Prepare db
 ```{r}
 db = db %>% mutate(
                   date = date(db$ts),
+                  year = year(date),
                   class = case_when(
                     series %in% Qi ~ factor("Quercus"),
                     series %in% P_D ~ factor("D"),
@@ -83,9 +84,10 @@ theme_set( theme_bw() +
 every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
 labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
 
-n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+n.per.class <- db %>% group_by(class, year) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
 
-c_labels = c(glue("{labels[1]} ({n.per.class$Quercus})"), glue("{labels[2]} ({n.per.class$D})"), glue("{labels[3]} ({n.per.class$ND})"))
+c_labels_2022 = c(glue("{labels[1]} ({n.per.class[1,'Quercus']})"), glue("{labels[2]} ({n.per.class[1,'D']})"), glue("{labels[3]} ({n.per.class[1,'ND']})"))
+c_labels_2023 = c(glue("{labels[1]} ({n.per.class[2,'Quercus']})"), glue("{labels[2]} ({n.per.class[2,'D']})"), glue("{labels[3]} ({n.per.class[2,'ND']})"))
 c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
 ```
 
@@ -97,19 +99,44 @@ db.twd2023 <- db.twd %>% filter(year(date) == 2023)
 db.twd
 ```
 
+```{r}
+db.twd.agg.yearly <- db %>% mutate(year = year(date)) %>% summarise( mean_twd = mean(twd, na.rm = T), twd_se = sd(twd / sqrt(n()), na.rm = T), n = n_distinct(series), .by = c(series, class, year))
+boxplot(mean_twd ~ class + year, data = db.twd.agg.yearly)
+```
+
+```{r}
+db.twd.agg.2022 <- db.twd.agg.yearly %>% filter(year == 2022)
+db.twd.agg.2023 <- db.twd.agg.yearly %>% filter(year == 2023)
+boxplot(mean_twd ~ class, data = db.twd.agg.2022, title = '2022')
+boxplot(mean_twd ~ class, data = db.twd.agg.2023)
+```
+
+
+
+```{r}
+aov.model <- aov(mean_twd ~ class + year, data = db.twd.agg.yearly)
+summary(aov.model)
+aov.model <- aov(mean_twd ~ class, data = db.twd.agg.yearly)
+summary(aov.model)
+aov.model <- aov(mean_twd ~ class, data = db.twd.agg.2022)
+summary(aov.model)
+aov.model <- aov(mean_twd ~ class, data = db.twd.agg.2023)
+summary(aov.model)
+```
+
 Boxplot:
 ```{r}
 plot.twd2022 <- db.twd2022 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2022, values=c_values) +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2], "ND" = labels[3])) +
   labs(title = "2022", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)")))
 
 plot.twd2023 <- db.twd2023 %>%
   ggplot () +
   geom_boxplot(aes (x = class, y = mean_twd, color = class)) +
-   scale_color_manual(labels = c_labels, values=c_values) +
+   scale_color_manual(labels = c_labels_2023, values=c_values) +
   labs(title = "2023", x = "Class", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_discrete(labels=c("Q" = labels[1], "D" = labels[2],
                               "ND" = labels[3]))
@@ -117,6 +144,28 @@ plot.twd2023 <- db.twd2023 %>%
 combined <- (plot.twd2022 | plot.twd2023) + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Boxplot of TWD dispersion - {PLACE}')) & theme(legend.position = "bottom")
 combined
 ```
+```{r}
+aov.model <- aov(mean_twd ~ class, data = db.twd2022)
+summary(aov.model)
+TukeyHSD(aov.model)
+```
+
+```{r}
+aov.model <- aov(mean_twd ~ class, data = db.twd2023)
+summary(aov.model)
+TukeyHSD(aov.model)
+```
+
+
+```{r}
+db.twd <- db.twd %>% mutate( year = year(date))
+str(db.twd)
+aov.model <- aov(mean_twd ~ class + year, data = db.twd)
+summary(aov.model)
+```
+
+
+
 ```{r}
 # ggsave(glue('output/boxplot-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
@@ -135,7 +184,7 @@ plot.twd2023 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2022, values=c_values) +
   labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
@@ -147,7 +196,7 @@ plot.twd2022 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2023, values=c_values) +
   labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)"))) +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /10, name = "Volumetric Water Content (%)")) +
@@ -177,7 +226,7 @@ plot.twd2023 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2022, values=c_values) +
   labs(title = "2023", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")) , alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2023-01-01", "2023-12-31")), breaks = seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /20, name = "Temperature (ºC)")) +
@@ -189,7 +238,7 @@ plot.twd2022 <- db.twd %>%
   geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   geom_line(aes (x = date, y = (mean_twd + twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
   geom_line(aes (x = date, y = (mean_twd - twd_se), color = class), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2023, values=c_values) +
   labs(title = "2022", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")), alpha = "Climate") +
   scale_x_date(limits = as.Date(c("2022-01-01", "2022-12-31")), breaks = seq(as.Date("2022-01-01"), as.Date("2022-12-31"), by = "1 month"), date_labels = "%b-%y") +
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . /20, name = "Temperature (ºC)")) +
@@ -224,7 +273,7 @@ plotgro2022 <- db.gro2022 %>%
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2022, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 plotgro2023 <- db.gro2023 %>% ggplot () +
@@ -233,7 +282,7 @@ plotgro2023 <- db.gro2023 %>% ggplot () +
   geom_line(aes (x = doy, y = (gro + gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (gro - gro_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = expression(paste("Acumulated growth (",mu, "m)")) ) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2023, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 combined <- plotgro2022 / plotgro2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Acumulated Growth - {PLACE}')) & theme(legend.position = "bottom")
@@ -303,7 +352,7 @@ plotgr2022 <- db.gr2022 %>%
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year", y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2022, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 plotgr2023 <- db.gr2023 %>%
@@ -313,7 +362,7 @@ plotgr2023 <- db.gr2023 %>%
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   labs(x = "Day of the year",  y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels, values=c_values) +
+  scale_color_manual(labels = c_labels_2023, values=c_values) +
   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 
 combined <- plotgr2022 / plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Growth rate per day - {PLACE}')) & theme(legend.position = "bottom")
