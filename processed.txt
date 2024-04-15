@@ -1,13 +1,26 @@
 === DATOS MIEDES HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
-Dendros Qi: 92222155
-Dendros P ND: 92222154, 92222157
-Dendros P D: 92222156
+Dendros Qi: 92222155, 92222161, 92222164, 92222163, 92222171
+Dendros P ND: 92222154, 92222157, 92222170, 92222173, 92222180
+Dendros P D: 92222156, 92222162, 92222169, 92222174, 92222175
 
 
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
-ts_end<-"2024-03-26 08:00:00"
+ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
+DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
+
+== 92222161 ==
+- Quercus Ilex
+  tol_out = 10,
+  tol_jump = 10,
+
+  force.now = c("2023-09-13 11:15:00"),
+  delete = c("2023-09-13 11:30:00", "2023-09-13 11:45:00"),
+
+- treenetproc pilla automáticamente algunos saltos y algunos outliers.
+- faltaría únicamente por corregir salto del 2023-09-13.
+
 
 == 92222157 ==
   tol_out = 10,
