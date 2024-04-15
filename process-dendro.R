@@ -18,11 +18,12 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222155"
+  SELECTED_DENDROMETER = "92222156"
 }
 
 TOL_OUT = 10
-TOL_JUMP = 13
+TOL_JUMP = 10
+DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 
 # GENERAL GLOBAL VARIABLES #
 DATA_DIR = 'raw/Miedes-dataD'
@@ -37,8 +38,8 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
 
 
-ts_start<-"2022-03-10 09:15:00"
-ts_end<-"2024-03-25 23:45:00" # last timestamp of downloaded data
+ts_start<-"2022-03-12 19:00:00"
+ts_end<-"2024-03-25 23:45:00"
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
@@ -49,7 +50,7 @@ cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
 
 # importing dendro data #
 db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end,
-                      date_format = "%d/%m/%Y %H:%M:%S")
+                      date_format = DATE_FORMAT)
 
 ### CLEAN & PREPARE DATA ###
 
@@ -186,8 +187,8 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(4),
-                                       force.now = c( "2023-12-13 11:30:00"),
+                                       reverse = c(2),
+                                       force.now = c( "2022-08-19 08:15:00"),
                                        #                "2022-08-10 17:00:00",
                                        #                "2022-08-17 08:00:00",
                                        #                "2022-08-24 18:45:00",
@@ -198,7 +199,7 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        #                ),
                                        # force = "2022-08-02 20:00:00",
                                        # n_days = 1,
-                                       delete = c("2023-12-13 11:30:00", "2023-12-13 11:30:00"),
+                                       # delete = c("2023-12-13 11:30:00", "2023-12-13 11:30:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

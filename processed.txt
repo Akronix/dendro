@@ -1,12 +1,34 @@
 === DATOS MIEDES HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
+Dendros Qi: 92222155
+Dendros P ND: 92222154
+Dendros P D: 92222156
+
+
+ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-26 08:00:00"
+
+
+== 92222156 ==
+- Pino decaído
+  tol_out = 10,
+  tol_jump = 10,
+  date_format = "%d.%m.%Y %H:%M:%S",
+  
+  reverse = c(2)
+  force.now = c( "2022-08-19 08:15:00"),
+  
+- un salto con huecos vacíos en mayo 2022 -> no sabemos qué datos corresponden a esas fechas, así que así se queda, con NA. 
+- falta por corregir salto en agosto 2022 -> corregido a mano.
+- Mirar salto mediados de sept23 -> treenetproc
+- piquito parriba enero24 -> ídem
 
 == 92222155 ==
 - Quercus Ilex
   tol_out = 10,
   tol_jump = 13,
+  date_format = "%d/%m/%Y %H:%M:%S"
   ts_start<-"2022-03-10 09:15:00"
   
   reverse = c(4),
