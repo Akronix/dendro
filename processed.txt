@@ -10,6 +10,29 @@ ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 
+== 92222163 ==
+- Quercus Ilex
+   tol_out = 10,
+   tol_jump = 10, 
+   
+  Así pilla el salto del 24-nov. Aunque detecta algunos otros saltos que a mi entender no son tal, los revierto:  c(8, 11:12, 13):
+  
+  corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                    dendro_L2 = dendro_data_L2,
+                                    reverse = c(8, 11:12, 13),
+                                    #force = c("2022-08-19 07:15:00"),
+                                    #delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
+                                    plot = TRUE,
+                                    plot_export = TRUE,
+                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
+                                    tz="Europe/Madrid")
+                                    
+             
+== 92222162 ==
+- Pp Decaído
+
+- Tiene fechas extrañas. (Ver NOTAS más abajo)
+
 == 92222161 ==
 - Quercus Ilex
   tol_out = 10,
