@@ -18,11 +18,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222156"
+  SELECTED_DENDROMETER = "92222157"
 }
 
 TOL_OUT = 10
-TOL_JUMP = 10
+TOL_JUMP = 30
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 
 # GENERAL GLOBAL VARIABLES #
@@ -70,15 +70,16 @@ db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in fi
 TreeList<-read.table("TreeList.txt",header=T)
 db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
-dim(db)
+# dim(db)
 
 # This removes duplicates on timestamps (many of them due to daylight savingtime issues)
 print("These are the duplicated data by timestamp:")
 print(db[duplicated(db$ts),])
 db = db[!duplicated(db$ts),];
 # db = db[(!duplicated(db$ts)) | !dst(db$ts),];
-print(db[duplicated(db$ts),])
-dim(db)
+# print(db[duplicated(db$ts),])
+
+summary(db)
 
 ### PLOT RAW DATA ###
 
@@ -115,9 +116,9 @@ ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.pn
 
 ### PROCESS WITH TREENETPROC ###
 
-str(db)
-head(db)
-tail(db)
+# str(db)
+# head(db)
+# tail(db)
 
 ## TREENETPROC: Prepare data ##
 
@@ -135,8 +136,8 @@ temp_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
 
 colnames(temp_data_L0)<-colnames(dendro_data_L0)
 
-str(dendro_data_L0)
-str(temp_data_L0)
+# str(dendro_data_L0)
+# str(temp_data_L0)
 
 ## TREENETPROC: Time-alignment processing (L1) ##
 
@@ -147,8 +148,8 @@ dendro_data_L1 <- proc_L1(data_L0 = dendro_data_L0,
                           input = "long",
                           year = "asis",
                           tz = "Europe/Madrid")
-head(dendro_data_L1)
-str(dendro_data_L1)
+# head(dendro_data_L1)
+# str(dendro_data_L1)
 
 
 # temp data
@@ -158,8 +159,8 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
                         input = "long",
                         year = "asis",
                         tz = "Europe/Madrid")
-head(temp_data_L1)
-str(temp_data_L1)
+# head(temp_data_L1)
+# str(temp_data_L1)
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
@@ -173,8 +174,8 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot")),
                                  tz="Europe/Madrid")
 # check the data
-head(dendro_data_L2)
-tail(dendro_data_L2)
+# head(dendro_data_L2)
+# tail(dendro_data_L2)
 
 #highlight corrections made on the dendrometer data:
 # if ( length(which(is.na(dendro_data_L2$flags)==F) > 0)) {
@@ -187,8 +188,10 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(2),
-                                       force.now = c( "2022-08-19 08:15:00"),
+                                       reverse = c(6),
+                                       force.now = c( "2023-09-13 10:00:00",
+                                                      "2023-12-13 11:15:00"),
+                                                      
                                        #                "2022-08-10 17:00:00",
                                        #                "2022-08-17 08:00:00",
                                        #                "2022-08-24 18:45:00",
@@ -197,9 +200,10 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        #                "2022-12-06 09:45:00",
                                        #                "2023-02-16 13:45:00"
                                        #                ),
-                                       # force = "2022-08-02 20:00:00",
+                                       force = c("2022-11-20 10:00:00"),
                                        # n_days = 1,
-                                       # delete = c("2023-12-13 11:30:00", "2023-12-13 11:30:00"),
+                                       delete = c("2022-08-02 21:45:00", "2022-08-04 14:45:00", "2022-11-24 08:00:00", "2022-11-24 9:45:00",
+                                                  "2023-09-13 10:00:00", "2023-09-13 10:30:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

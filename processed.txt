@@ -2,13 +2,29 @@
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
 Dendros Qi: 92222155
-Dendros P ND: 92222154
+Dendros P ND: 92222154, 92222157
 Dendros P D: 92222156
 
 
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-26 08:00:00"
 
+== 92222157 ==
+  tol_out = 10,
+  tol_jump = 30,
+  
+  reverse = c(6),
+  force.now = c( "2023-09-13 10:00:00",
+                  "2023-12-13 11:15:00"),
+  force = c("2022-11-20 10:00:00"),
+  delete = c("2022-08-02 21:45:00", "2022-08-04 14:45:00", "2022-11-24 08:00:00", "2022-11-24 9:45:00",
+                                                  "2023-09-13 10:00:00", "2023-09-13 10:30:00"),
+  
+- tol jump alto porque si no había que deshacer un montón de saltos que no eran.
+- Hay que forzar un jump del 20 de nov
+- y borrar en agosto una parte que el dendrómetro se ha quedado colgado (valor cte y luego un bajón)
+- también forzar jump 13sept23
+- y otro más el 13 de diciembre que se había quedado como outlier (reverse(6))
 
 == 92222156 ==
 - Pino decaído
@@ -17,7 +33,7 @@ ts_end<-"2024-03-26 08:00:00"
   date_format = "%d.%m.%Y %H:%M:%S",
   
   reverse = c(2)
-  force.now = c( "2022-08-19 08:15:00"),
+  force.now = c("2022-08-19 08:15:00"),
   
 - un salto con huecos vacíos en mayo 2022 -> no sabemos qué datos corresponden a esas fechas, así que así se queda, con NA. 
 - falta por corregir salto en agosto 2022 -> corregido a mano.
@@ -955,7 +971,7 @@ corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        tz="Europe/Madrid")
 
 
-
+== 92222157 (antes) ==
 
 - Pino no decaído.
   tol_out = 10,
