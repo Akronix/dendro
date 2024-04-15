@@ -3,6 +3,19 @@
 
 ts_end<-"2024-03-26 08:00:00"
 
+== 92222155 ==
+- Quercus Ilex
+  tol_out = 10,
+  tol_jump = 13,
+  ts_start<-"2022-03-10 09:15:00"
+  
+  reverse = c(4),
+  force.now = c( "2023-12-13 11:30:00"),
+  delete = c("2023-12-13 11:30:00", "2023-12-13 11:30:00"),
+
+- Sin datos hasta 10 de marzo (valor de 0 cte hasta esta fecha). Cambiado ts_start en consonancia.
+- Para que pille salto del 2023-09-13 10:30:00 tengo que bajar el tol_jump a 13 y entonces también me pone como salto una descongelación del 2023-02-28. La tengo que deshacer para que esté todo OK: reverse = c(4),
+- un salto parriba con un dato intermedio el 13 de diciembre a las 11:30. Me parece muy raro que sea una descongelación, así que lo voy a quitar: force.now = c( "2023-12-13 11:30:00") y delete = c("2023-12-13 11:30:00", "2023-12-13 11:30:00"),
 
 
 == 92222154 ==
