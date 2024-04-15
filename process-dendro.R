@@ -8,7 +8,7 @@ library(tidyverse)
 PATH = '/home/akronix/workspace/dendro'
 setwd(PATH)
 
-SAVE <- FALSE # to save output csv processed file at the end of the script
+SAVE <- T # to save output csv processed file at the end of the script
 
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
@@ -18,24 +18,27 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222178"
+  SELECTED_DENDROMETER = "92222154"
 }
 
-# GENERAL GLOBAL VARIABLES #
-DATA_DIR = 'raw/Penaflor-dataD'
-OUTPUT_DATA_DIR = 'processed/Penaflor-processed'
-OUTPUT_ASSETS_DIR = 'output'
-FILENAME_EXCESS = "_2023_09_27_0.csv"
+TOL_OUT = 7
+TOL_JUMP = 10
 
-OLD_FORMAT = TRUE
+# GENERAL GLOBAL VARIABLES #
+DATA_DIR = 'raw/Miedes-dataD'
+OUTPUT_DATA_DIR = 'processed/Miedes-processed'
+OUTPUT_ASSETS_DIR = 'output'
+FILENAME_EXCESS = "_2024_03_26_0.csv"
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
 # Set initial and final date and sampling dates
 # ts_start<-"2022-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
-ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
-ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
+
+
+ts_start<-"2022-05-15 09:00:00" # first valid data after some days or hours of setup
+ts_end<-"2024-03-25 23:45:00" # last timestamp of downloaded data
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
@@ -46,12 +49,12 @@ cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
 
 # importing dendro data #
 db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end,
-                      old_format = OLD_FORMAT)
+                      date_format = "%d/%m/%Y %H:%M:%S")
 
 ### CLEAN & PREPARE DATA ###
 
-# Keep data of dates we're interested in
-db<-db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+# Keep data of dates we're interested in (already done in read.one.dendro)
+# db <- db[which(db$ts>=ts_start & db$ts<=ts_end),] 
 
 # zeroing variations in diameter
 # db$value<-db$um-db$um[1]
@@ -88,7 +91,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
-plotTemp
+# plotTemp
 
 ## DENDRO DATA ##
 
@@ -104,10 +107,10 @@ dendro_raw_plot <-
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
   
-#dendro_raw_plot
+# dendro_raw_plot
 
-ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
-     width = 15, height = 10)
+# ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
+#      width = 15, height = 10)
 
 ### PROCESS WITH TREENETPROC ###
 
@@ -159,17 +162,13 @@ str(temp_data_L1)
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 50
-TOL_OUT = 15
-
-
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = TOL_OUT,
                                  tol_jump = TOL_JUMP,
                                  plot_period = "monthly",
-                                 plot = T,
-                                 plot_export = T,
+                                 plot = F,
+                                 plot_export = F,
                                  plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot")),
                                  tz="Europe/Madrid")
 # check the data
@@ -187,32 +186,30 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(3, 14),
-                                       force.now = c( "2022-08-03 20:15:00",
-                                                      "2022-08-10 17:00:00",
-                                                      "2022-08-17 08:00:00",
-                                                      "2022-08-24 18:45:00",
-                                                      "2022-05-04 11:45:00",
-                                                      "2022-11-24 14:15",
-                                                      "2022-12-06 09:45:00",
-                                                      "2023-02-16 13:45:00"
-                                                      ),
+                                       reverse = c(4,5),
+                                       # force.now = c( "2022-08-03 20:15:00",
+                                       #                "2022-08-10 17:00:00",
+                                       #                "2022-08-17 08:00:00",
+                                       #                "2022-08-24 18:45:00",
+                                       #                "2022-05-04 11:45:00",
+                                       #                "2022-11-24 14:15",
+                                       #                "2022-12-06 09:45:00",
+                                       #                "2023-02-16 13:45:00"
+                                       #                ),
                                        # force = "2022-08-02 20:00:00",
                                        # n_days = 1,
-                                       delete = c("2022-08-03 20:30:00", "2022-08-03 21:15:00",
-                                                  "2022-08-10 17:15:00", "2022-08-10 21:00:00",
-                                                  "2022-08-24 19:00:00", "2022-08-25 19:30:00",
-                                                  "2022-05-04 12:00:00", "2022-05-04 12:00:00",
-                                                  "2022-12-06 10:00", "2022-12-06 10:45:00"
-                                       ),
-                                       plot = TRUE,
-                                       plot_export = TRUE,
+                                       delete = c("2023-02-16 10:00:00", "2023-02-16 18:00:00"),
+                                       plot = T,
+                                       plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
                                        tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
 View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
+
+grow_seas(dendro_L2 = final_processed_data, agg_yearly=TRUE, tz="Europe/Madrid")
+
 
 ### SAVE PROCESSED DATA ###
 if (SAVE) {

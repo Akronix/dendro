@@ -1,14 +1,13 @@
 library(lubridate)
 
 # import one csv data
-read.one.dendro <- function(nameFile, ts_start, ts_end, old_format = FALSE){
+# Examples of date_format: "%Y.%m.%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"
+read.one.dendro <- function(nameFile, ts_start, ts_end, date_format){
   File <- read.csv(nameFile,  
                    sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
   
-  if (old_format)
-    File$ts<-as.POSIXct(File$V2, format="%Y.%m.%d %H:%M", tz="Europe/Madrid")
-  else
-    File$ts<-as.POSIXct(File$V2, format="%d.%m.%Y %H:%M:%S", tz="Europe/Madrid")
+  File$ts<-as.POSIXct(File$V2, format=date_format, tz="Europe/Madrid")
+  
   File$date <- as.Date(File$ts)
   File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
   File$um<-as.numeric(File$V7)
