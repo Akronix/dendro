@@ -31,6 +31,7 @@ With VWC we can better see when the sensor is moved (VWC equals to 0 for a long 
 ```{r}
 f <- plot_ly(db.env, x = ~ts, y = ~vwc, color = ~series, type = 'scatter', mode = 'lines')
 f
+# library(datacleanr); dcr_app(db.env)
 ```
 
 Defining and clearing the periods of invalid data. There's quite a bunch of invalid data (timeframes where the sensor has been removed by an animal), we need to remove those:
@@ -58,10 +59,12 @@ interval1.1 = (db.env$ts >= "2022-06-28 22:45:00" & db.env$ts <= "2022-08-19 10:
 # second interval: 2022-09-11T08:45:00Z al 2022-11-24T14:45:00Z
 interval1.2 = (db.env$ts > "2022-09-08 22:15:00" & db.env$ts < "2022-11-18 10:15:00" )
 
-# third interval: from 2023-07-28T08:15:00Z to the end
-interval1.3 = (db.env$ts > "2023-07-28 08:15:00")
+# third interval: from 2023-07-28T08:15:00Z to 2023-09-26 18:00:00
+interval1.3 = (db.env$ts > "2023-07-28 08:15:00" & db.env$ts < "2023-09-26 18:00:00")
 
-db.env[series1 & (interval1.1 | interval1.2 | interval1.3 ),c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+interval1.4 = (db.env$ts > "2024-01-14 08:15:00")
+
+db.env[series1 & (interval1.1 | interval1.2 | interval1.3 | interval1.4) ,c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
 
 # now series == "94231938"
 series2 = db.env$series == "94231938"
@@ -71,7 +74,7 @@ interval2.1 = db.env$ts >= "2022-06-11 20:15:00" & db.env$ts <= "2022-08-19 10:4
 interval2.2 = db.env$ts >= "2022-09-08 22:15:00" & db.env$ts <= "2022-11-24 11:30:00"
 
 # interval2: 2023-09-02T03:45:00Z to the end
-interval2.3 = db.env$ts >= "2023-09-02 03:45:00"
+interval2.3 = db.env$ts >= "2023-09-02 03:45:00" & db.env$ts < "2023-09-26 15:30:00" 
 
 
 db.env[series2 & (interval2.1 | interval2.2 | interval2.3), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
@@ -79,10 +82,17 @@ db.env[series2 & (interval2.1 | interval2.2 | interval2.3), c("vwc", "soil.temp"
 # now series == "94231936"
 series3 = db.env$series == "94231936" 
 
-# first interval: 
-interval3.1 = (db.env$ts >= "2023-07-11 19:30:00") & (db.env$ts < "2023-09-02 20:45:00")
+# third interval: 
+interval3.1 = (db.env$ts >= "2023-07-11 19:30:00") & (db.env$ts < "2023-09-13 14:45:00")
+interval3.2 = (db.env$ts > "2024-03-19 21:15:00")
 
-db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+db.env[series3 & (interval3.1 | interval3.2), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+
+# now series == "94231940"
+series4 = db.env$series == "94231940" 
+interval4.1 <- db.env$ts > "2023-12-24 00:45:00" & db.env$ts < "2023-12-24 02:30:00"
+interval4.2 <- db.env$ts > "2024-03-09 18:15:00"
+db.env[series4 & (interval4.1 | interval4.2), c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 ```
 
 

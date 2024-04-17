@@ -14,11 +14,11 @@ setwd(PATH)
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 # ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-PLACE = 'Penaflor'
+PLACE = 'Miedes'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
-SOIL_TYPE = "sandy loam B"
+SOIL_TYPE = "sandy loam A"
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -44,7 +44,7 @@ for (filename in list_files) {
   
   # use myClim library for soil moisture conversion to volumetric water content (VWC)
   tms.f <- mc_read_files(filename, dataformat_name = "TOMST", silent = FALSE,
-                         date_format = c("%d.%m.%Y %H:%M:%S", "%Y.%m.%d %H:%M", "%Y.%m.%d %H:%M:%S"))
+                         date_format = c("%d.%m.%Y %H:%M:%S", "%d.%m.%Y", "%Y.%m.%d %H:%M", "%Y.%m.%d %H:%M:%S"))
   tms.f
   
   sernum <- mc_info(tms.f)$serial_number[1]
@@ -82,6 +82,10 @@ for (filename in list_files) {
   
   tms.df <- mc_reshape_wide(tms.vwc, sensors = c("vwc", "TMS_T1", "TMS_T2", "TMS_T3"))
   names(tms.df) <- c("ts", "soil.temp", "surface.temp", "air.temp", "vwc")
+  
+  # print duplicates for dendro:
+  print(paste0("Is there any duplicates for dendro ", sernum, " ?"))
+  print(tms.df[duplicated(tms.df$ts),])
   
   if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
   
