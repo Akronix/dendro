@@ -10,24 +10,38 @@ ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 
+== 92222164 ==
+- Quercus Ilex                             
+  tol_out = 10,
+  tol_jump = 10,
+  DATE_FORMAT = "%d/%m/%Y %H:%M:%S"
+
+  force.now = c("2022-05-04 08:00:00",
+                 "2022-07-30 21:30:00",
+                 "2023-12-13 11:30:00"
+                  ),
+  delete = c("2022-05-04 08:15:00", "2022-05-04 08:15:00",
+            "2023-12-13 11:45:00", "2023-12-13 11:45:00"),
+
+Repito corrección procesado anterior:
+- Inducido un salto que no pillaba por defecto treenetproc en 2022-05-04 08:00:00. Lo corrijo force.now y delete.
+- corregido otro pequeño saltito de 24 um un poco atípico a finales jul22.
+- treenetproc pilla automáticamente algunos saltos en 2023-09-13 y feb23.
+- corregido a mano salto el 13dic23
+- Podría haber un saltito el 2024-02-10T16:00:00Z pero por 11 um de diferencia no me voy a matar
+- Sigue mostrando un crecimiento extraordinario este individuo.
+
+
+
 == 92222163 ==
 - Quercus Ilex
    tol_out = 10,
    tol_jump = 10, 
    
-  Así pilla el salto del 24-nov. Aunque detecta algunos otros saltos que a mi entender no son tal, los revierto:  c(8, 11:12, 13):
-  
-  corr_dendro_data_L2<-corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                    dendro_L2 = dendro_data_L2,
-                                    reverse = c(8, 11:12, 13),
-                                    #force = c("2022-08-19 07:15:00"),
-                                    #delete = c("2023-01-30 00:00:00", "2023-01-30 12:45:00"),
-                                    plot = TRUE,
-                                    plot_export = TRUE,
-                                    #plot_name = paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot"),
-                                    tz="Europe/Madrid")
+   reverse = c(8, 11:12, 13),
+   
+  Así pilla el salto del 24-nov. Aunque detecta algunos otros saltos que a mi entender no son tal, los revierto:  c(8, 11:12, 13).
                                     
-             
 == 92222162 ==
 - Pp Decaído
 
