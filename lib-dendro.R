@@ -19,12 +19,12 @@ read.one.dendro <- function(nameFile, ts_start, ts_end, date_format){
 }
 
 
-# import all csv data and put it altogetuer in one dataframe
-read.all.dendro <- function(nameFiles, ts_start, ts_end, old_format = FALSE){
+# import all csv data and put it altogether in one dataframe
+read.all.dendro <- function(nameFiles, ts_start, ts_end, date_format){
   FileList <- list()
   print(nameFiles)
   for (i in 1:length(nameFiles)){
-    File <- read.one.dendro(nameFiles[i], ts_start, ts_end, old_format)
+    File <- read.one.dendro(nameFiles[i], ts_start, ts_end, date_format)
     # print(File)
     FileList[[i]] <- File
   }
