@@ -18,10 +18,10 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222170"
+  SELECTED_DENDROMETER = "92222171"
 }
 
-TOL_OUT = 7
+TOL_OUT = 10
 TOL_JUMP = 10
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 
@@ -109,10 +109,10 @@ dendro_raw_plot <-
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
   
-# dendro_raw_plot
-# 
-# ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
-#      width = 15, height = 10)
+dendro_raw_plot
+
+ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
+     width = 15, height = 10)
 
 ### PROCESS WITH TREENETPROC ###
 
@@ -188,14 +188,14 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       # reverse = c(6, 9:10, 11:13, 14,15),
-                                       # force.now = c("2023-07-06 13:00:00"),
+                                       reverse = c(7, 8),
+                                       force.now = c("2023-07-06 13:00:00"),
                                        #               "2022-07-30 21:30:00",
                                        #               "2023-12-13 11:30:00"
                                                       # ),
                                        # force = c("2022-11-20 10:00:00"),
                                        # n_days = 1,
-                                       delete = c("2023-12-17 17:30:00", "2023-12-17 17:30:00"),
+                                       # delete = c("2023-12-17 17:30:00", "2023-12-17 17:30:00"),
                                                   # "2023-12-17 17:30:00", "2023-12-17 17:30:00"),
                                        plot = T,
                                        plot_export = T,

@@ -10,6 +10,18 @@ ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 
+== 92222171 == 
+  - Quercus
+  tol_out = 10,
+  tol_jump = 10,
+
+  reverse = c(7, 8),
+  force.now = c("2023-07-06 13:00:00"),
+
+- revertida congelación-descongelación puesta como salto
+- forzado salto en dos pasos que estaba como outlier
+- el 12ene24 hay una congelación que al descongelar no vuelve a su valor anterior, sino 30pico um menos (se queda alrededor de 0 relativo), quizás tendría que cambiarlo para que volviera a esos 30 y pico pero no me atrevo a tocarlo.
+
 == 92222170 ==
 - Pino No Decaído.
   tol_out = 7, # 10 also works
