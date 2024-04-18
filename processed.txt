@@ -12,9 +12,17 @@ DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 
 == 92222170 ==
 - Pino No Decaído.
-  tol_out = 10,
+  tol_out = 7, # 10 also works
   tol_jump = 10,
+  
+  delete = c("2023-12-17 17:30:00", "2023-12-17 17:30:00"),
 
+* NOTAS *
+- Más duplicados aparte de los cambios de hora esperables: a principios de septiembre2023. Aunque borrándolos parece que está OK.
+- el 2023-07-06T13:00:00Z hay otro caso de salto pero con un dato entre medias (que treenetproc marca como outlier). Borro el dato marcado como outlier (2023-07-06T13:15:00Z) y fuerzo jump.
+- outlier en 2023-12-17T17:30:00Z, habría que bajar TOL_OUT a 4 para que lo pille que es demasiado -> Lo borro a mano.
+- curioso que el "crecimiento" según treenetproc acaba a prpcios de diciembre2023. Es cierto que hay episodios de lluvia a principios de ese diciembre y es de suponer que el árbol se está hinchando.
+- El primero hasta ahora de Miedes que da crecimiento en 2024! (según treenetproc) 
 
 == 92222169 ==
 - Pino en decaimiento.
