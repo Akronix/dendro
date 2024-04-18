@@ -18,11 +18,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222171"
+  SELECTED_DENDROMETER = "92222173"
 }
 
 TOL_OUT = 10
-TOL_JUMP = 10
+TOL_JUMP = 7
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 
 # GENERAL GLOBAL VARIABLES #
@@ -93,7 +93,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
-# plotTemp
+plotTemp
 
 ## DENDRO DATA ##
 
@@ -188,15 +188,15 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(7, 8),
-                                       force.now = c("2023-07-06 13:00:00"),
-                                       #               "2022-07-30 21:30:00",
+                                       reverse = c(6),
+                                       force.now = c("2022-08-19 08:30:00",
+                                                     "2023-12-20 10:30:00"),
                                        #               "2023-12-13 11:30:00"
                                                       # ),
-                                       # force = c("2022-11-20 10:00:00"),
+                                       force = c("2022-06-12 00:00:00"),
                                        # n_days = 1,
-                                       # delete = c("2023-12-17 17:30:00", "2023-12-17 17:30:00"),
-                                                  # "2023-12-17 17:30:00", "2023-12-17 17:30:00"),
+                                       delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                                                  "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

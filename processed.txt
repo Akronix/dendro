@@ -10,6 +10,27 @@ ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 
+== 92222173 ==
+- Pino No Decaido
+  tol_out = 10,
+  tol_jump = 7,
+  
+  reverse = c(6),
+  force.now = c("2022-08-19 08:30:00",
+                "2023-12-20 10:30:00"),
+  force = c("2022-06-12 00:00:00"),                                                     
+  delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
+          "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
+  
+- En 11Abril22 tiene una caída brusca y vuelta aunque no exactamente al mismo lugar. No hay congelación así que creo que es un fallo del muelle. Dejo el salto de treenetproc que recoloca los datos en su sitio pero borro los datos intermedios que parecen incorrectos (movida del muelle).
+- 2 saltitos en jun-22 -> Uno lo pilla treenetproc con tol_jump=7 y el otro lo fuerzo a mano.
+- subida 2ª mitad de ago-22 -> treenetproc lo detecta como out pero para mí es claramente un jump. Lo fuerzo a mano.
+- En el procesado anterior había deshecho dos saltos q ahora me parecen correctos: 1) a mediados de ene23 que ahora me parece correcto por ser una congelación (árbol se deshincha bruscamente) y con la correción de treenetproc sale algo más coherente; 2) Con la correción de treenetproc, la tendencia descendente se mantiene pero la seasonality se mantiene más coherente con el resto de datos vecinos, por lo que me parecen más coherentes los datos así corregidos.
+- 13sept-23 alguien fue un poco manazas y movió el dendrómetro en exceso, por lo que hay un pequeño desajuste. más o menos se corrige con el jump de treenetproc, pero seguro que debería quedar con los datos más arriba porque la figura no se parece nada.
+- entorno al 20 de dic23 hay un subidón ->  Descarto congelación por las horas (11:45) y xq este dendrómetro no hace cambios tan bruscos en congelaciones -> creo que sí es un salto a corregir, pero tiene 2 datos (pasos) enmedio, así que hay que borrarlos y después forzar el jump (borrando los pasos intermedios)
+
+* también crece en 2024!
+
 == 92222171 == 
   - Quercus
   tol_out = 10,
