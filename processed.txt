@@ -3,12 +3,35 @@
 
 Dendros Qi: 92222155, 92222161, 92222164, 92222163, 92222171
 Dendros P ND: 92222154, 92222157, 92222170, 92222173, 92222180
-Dendros P D: 92222156, 92222162, 92222169, 92222174, 92222175
+Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, 92222174, 92222175
 
 
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
+
+== 92222170 ==
+- Pino No Decaído.
+  tol_out = 10,
+  tol_jump = 10,
+
+
+== 92222169 ==
+- Pino en decaimiento.
+  tol_out = 10,
+  tol_jump = 10,
+  DATE_FORMAT = "%d/%m/%Y %H:%M:%S"
+
+  reverse = c(6, 9:10, 11:13, 14,15),
+  force.now = c("2023-07-06 13:00:00"),
+  delete = c("2023-07-06 13:15:00", "2023-07-06 13:15:00"),
+
+* NOTAS*
+- Salto raro en Agosto y 3 saltitos en diciembre sin razón aparente pero que parecen totalmente correctos.
+- Deshecho congelación-descongelaciones corregidas indebidamente por treenetproc (reverse = c(6, 9:10, 11:14),)
+- forzado salto 1 de jul del 23 (reverse 15 + force.now)
+- Arreglado treenetproc para que los reverse de más de un jump consecutivos en el tiempo se reste una vez la diferencia acumulada de todos esos saltos.
+
 
 == 92222164 ==
 - Quercus Ilex                             
@@ -23,6 +46,7 @@ DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
   delete = c("2022-05-04 08:15:00", "2022-05-04 08:15:00",
             "2023-12-13 11:45:00", "2023-12-13 11:45:00"),
 
+* NOTAS*
 Repito corrección procesado anterior:
 - Inducido un salto que no pillaba por defecto treenetproc en 2022-05-04 08:00:00. Lo corrijo force.now y delete.
 - corregido otro pequeño saltito de 24 um un poco atípico a finales jul22.
@@ -40,12 +64,23 @@ Repito corrección procesado anterior:
    
    reverse = c(8, 11:12, 13),
    
-  Así pilla el salto del 24-nov. Aunque detecta algunos otros saltos que a mi entender no son tal, los revierto:  c(8, 11:12, 13).
+- Así pilla el salto del 24-nov. Aunque detecta algunos otros saltos que a mi entender no son tal, los revierto:  c(8, 11:12, 13).
                                     
 == 92222162 ==
 - Pp Decaído
 
-- Tiene fechas extrañas. (Ver NOTAS más abajo)
+  tol_out = 7,
+  tol_jump = 10,
+  ts_end<-"2023-09-10 00:30:00" <- NOOO. HAY DUPLICADOS EN ESTE INTERVALO TAMBIÉN.
+
+***NO VALE PARA ANALISIS. TIENE FECHAS DUPLICADAS, FECHAS MAL y ES MUY DIFICIL SACAR LOS DATOS "CORRECTOS" ***
+
+- Tiene fechas extrañas.
+- ver NOTAS de procesado anterior.
+- en fichero _1.csv hay fechas y datos presumiblemente correctos hasta la fila 69633 con fecha "10.09.2023 00:30:00", después de ese punto hay muchos datos repetidos sin razón. Es muy difícil sacar datos válidos después de esa fecha. Así que hay que fijar el ts_end en esa fecha y no usar ningún valor después.
+
+
+
 
 == 92222161 ==
 - Quercus Ilex
