@@ -3,12 +3,32 @@
 
 Dendros Qi: 92222155, 92222161, 92222164, 92222163, 92222171
 Dendros P ND: 92222154, 92222157, 92222170, 92222173, 92222180
-Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (missing), 92222175
+Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (missing), 92222175 (largo periodo sin datos)
 
 
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
+
+== 92222180 ==
+- Pino No Decaido
+  tol_out = 10,
+  tol_jump = 20,
+ 
+  ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
+
+   reverse = c(1,2),
+   force.now = c("2023-09-13 11:00:00"),
+   delete = c("2023-09-13 11:15:00", "2023-09-13 11:30:00"),
+
+- No tiene valores hasta el 2023-02-16. Así que ajusto ts_start en consecuencia al 2023-02-17.
+- congelaciones-descongelaciones a finales enero, finales febrero y pcpios marzo. -> son OK. con valores de tol_ altos no los pilla.
+- subidón primero de junio. -> Parece totalmente OK.
+- Falta correcgir salgo 13 sept marcado como outlier (salto con dos pasos en medio) -> Los borro y provoco el salto.
+- gran subida pcpios dic23, pero que puede ser perfectamente correcta porque se corresponde con un episodio de lluvia que puede usar el árbol para hincharse y además la subida es paulatina y realista.
+- 20ene24 también hace una subida un poco acusada, pero puede ser de una descongelación perfectamente por la hora (mediodía) y la época del año, además la subida es paulatina.
+- en la gráfica me parece ver un outlier hacia bajo cercano al 8mar24, pero luego de cerca no lo veo tal. Además también podría ser de una congelación (son fechas y horas de madrugada), treenetproc no lo marca así y yo tampoco lo voy a tocar.
+
 
 == 92222175 ==
 
@@ -23,7 +43,7 @@ DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
               "2022-12-31 13:30:00", "2022-12-31 17:30:00"),
   
 ! Muchos datos duplicados a pcpios de sept 2023 y muchos en noviembre23 (desde pcpios hasta el 11 de noviembre23)
-! Muchos datos pérdidos / inválidos (dendrómetro dejó de funcionar).
+! Periodo meseta -> Muchos datos pérdidos / inválidos (dendrómetro dejó de funcionar desde junio22 hasta nov22).
 
 - Salto a finales de mar-23 que no pillaba treenetproc (solo como outlier) -> Lo fuerzo a mano (reverse + force.now)
 - Valores ctes desde mediados jun-22 a finales 11-22 (Supongo que se miró el día del muestreo) -> Efectivamente no hay datos desde aprox. 14-06-22 a poco antes del 24-11-22, el 20-11-23 aprox. que vuelve a funcionar. Tiene pinta que lo cogieron y lo volvieron a instalar. -> Preguntar a Chechu y a Antonio. -> De momento voy a borrar toda esa franja de datos: delete = c("2022-06-14 02:45:00", "2022-11-20 10:15:00")`
