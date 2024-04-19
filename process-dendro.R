@@ -1,5 +1,6 @@
 library(treenetproc)
 library(tidyverse)
+library(glue)
 
 
 ### DEFINE GLOBAL VARS ###
@@ -18,18 +19,19 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222180"
+  SELECTED_DENDROMETER = "92222151"
 }
 
 TOL_OUT = 10
-TOL_JUMP = 20
-DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
+TOL_JUMP = 15
+DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
 # GENERAL GLOBAL VARIABLES #
-DATA_DIR = 'raw/Miedes-dataD'
-OUTPUT_DATA_DIR = 'processed/Miedes-processed'
+PLACE = 'Penaflor'
+DATA_DIR = glue('raw/{PLACE}-dataD')
+OUTPUT_DATA_DIR = glue('processed/{PLACE}-processed')
 OUTPUT_ASSETS_DIR = 'output'
-FILENAME_EXCESS = "_2024_03_26_0.csv"
+FILENAME_EXCESS = "_2024_03_27_0.csv"
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
@@ -38,8 +40,8 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
 
 
-ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
-ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
+ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
@@ -188,15 +190,15 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(1,2),
-                                       force.now = c("2023-09-13 11:00:00"),
+                                       # reverse = c(1,2),
+                                       # force.now = c("2023-09-13 11:00:00"),
                                        #               "2022-12-31 13:15:00"),
                                        #               "2023-12-13 11:30:00"
                                                       # ),
                                        # force = c("2022-06-12 00:00:00"),
                                        # n_days = 1,
-                                       delete = c("2023-09-13 11:15:00", "2023-09-13 11:30:00"),
-                                                  # "2022-12-31 13:30:00", "2022-12-31 17:30:00"),
+                                       delete = c("2022-05-20 18:15:00", "2022-10-31 23:45:00",
+                                                  "2024-01-26 17:30:00", "2024-01-31 14:45:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

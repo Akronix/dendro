@@ -96,6 +96,8 @@ db.env[series4 & (interval4.1 | interval4.2), c("vwc", "soil.temp", "surface.tem
 
 ## Peñaflor ##
 
+! Nuevos datos hasta Marzo24 falta datos de dos sensores. 
+
 SELECTED_TMS  <- c(94231934, 94231950)
 
 SOIL_TYPE = "sandy loam B"

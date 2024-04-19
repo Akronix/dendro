@@ -1,3 +1,36 @@
+=== DATOS PEÑAFLOR HASTA MAR-24 ===
+** NUEVOS DATOS: desde sept-23 a mar24 **
+
+Dendros Qc: 92222153, 92222159, 92222166, !92222176 (missing), 92222178
+Dendros P ND: 92222152, 92222168, 92222177, 92222179
+Dendros P D: 92222151, 92222158, 92222160, 92222165, 92222167, 92222172
+
+
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
+ts_end<-"2024-03-26 23:45:00" # default. day before last data.
+DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
+
+== 92222151 ==
+- Pinus halepensis - D - params:
+
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  
+  delete = c("2022-05-20 18:15:00", "2022-10-31 23:00:00",
+            "2024-01-26 17:30:00", "2024-01-31 14:45:00"),
+
+! Faltan muchos datos de 2022 por tener valores ctes.
+! sin crecimiento ?
+
+- saltito pcios may-22 -> corregido
+- saltito mediados may-22 -> OK
+- valor cte desde mediados may-22 hasta nov-22 (demasiadisimo, por lo que me imagino que no hay datos válidos) -> Hay que borrar todo este periodo a mano. Desde, más o menos, la madrugada del 19-may-22 (2022-05-19 05:00:00) hasta el 1-nov-22 -> En este reprocesado he mejorado un poco estas fechas por otras más precisas o más adecuadas.
+- salto mediados feb-23 -> aunque corregido por treenetproc, no me gusta ese cambio tan grande en forma de las ondas que se da a partir de ese momento y después de la corrección. Pero creo que plantear otro arreglo más fantasioso es demasiado complicado.
+- subidón pcpios jun-23 y pcpios sept-23 -> OK. inicios sept-23 coincide con descenso temperaturas.
+- 18ene24 hace una cosita un poco rara: valor cte, bajón bastante pronunciado y subidita paulatina. -> Me imagino que algo le podría pasar al dendrómetro (quizás se congela al tener algo de agua o rocío por la noche y se descongela y vuelve a su lugar al día siguiente??). -> dos opciones: dejarlo como está o borrarlo e interpolar datos con RF. Lo voy a dejar así cómo está.
+- Otra fase de valor ctes a finales de enero24 -> esta sí la veo más clara y la voy a eliminar. Del 2024-01-26T17:30:00Z al 2024-01-31T14:45:00Z.
+- varios miniperiodos de valores ctes en feb24
+
 === DATOS MIEDES HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
@@ -9,6 +42,7 @@ Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (miss
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
+FILENAME_EXCESS = "_2024_03_26_0.csv"
 
 == 92222180 ==
 - Pino No Decaido
