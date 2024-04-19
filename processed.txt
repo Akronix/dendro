@@ -10,6 +10,22 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+== 92222152 ==
+- Pinus halepensis - ND - params:
+
+  TOL_JUMP = 10
+  TOL_OUT = 15
+
+  ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
+  
+! sin crecimiento ?
+  
+ - No tiene datos hasta el 2023-02-16 14:00:00 -> cambiado ts_start
+ - 2 bajones en jul-23 -> parecen bien OK.
+ - corregido autom. outlier sept23
+
+
+
 == 92222151 ==
 - Pinus halepensis - D - params:
 
