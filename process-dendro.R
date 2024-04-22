@@ -19,11 +19,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222165"
+  SELECTED_DENDROMETER = "92222166"
 }
 
 TOL_JUMP = 12
-TOL_OUT = 14
+TOL_OUT = 8
 
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
@@ -192,15 +192,15 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       # reverse = c(1),
-                                       # force.now = c("2023-10-09 23:00:00"),
-                                       #               "2023-10-16 08:00:00"),
-                                       # #               "2023-12-13 11:30:00"
+                                       reverse = c(1,3,4),
+                                       force.now = c("2022-08-17 08:30:00",
+                                                     "2023-02-16 14:30:00",
+                                                     "2023-09-27 08:30:00"),
                                                       # ),
-                                       # force = c("2022-08-17 00:00:00"),
-                                       # n_days = 1,
-                                       delete = c("2022-05-21 16:30:00", "2022-11-12 04:00:00"),
-                                                  # "2023-01-22 16:45:00", "2023-01-22 17:00:00",
+                                       force = c("2022-05-16 00:00:00"),
+                                       n_days = 1,
+                                       delete = c("2023-02-16 14:45:00", "2023-02-17 09:00:00",
+                                                  "2023-07-27 18:00:00", "2023-07-27 18:00:00"),
                                                   # "2023-01-27 16:15:00", "2023-01-27 16:15:00",
                                                   # "2023-10-16 08:15:00", "2023-10-17 17:15:00"
                                        # ),
