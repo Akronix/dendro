@@ -19,11 +19,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222159"
+  SELECTED_DENDROMETER = "92222160"
 }
 
-TOL_OUT = 15
-TOL_JUMP = 15
+TOL_OUT = 14
+TOL_JUMP = 12
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
 # GENERAL GLOBAL VARIABLES #
@@ -95,7 +95,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
-plotTemp
+# plotTemp
 
 ## DENDRO DATA ##
 
@@ -111,10 +111,11 @@ dendro_raw_plot <-
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
   
-# dendro_raw_plot
+dendro_raw_plot
 
-# ggsave( file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png')),
-     # width = 15, height = 10)
+raw.output.fn <- file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png'))
+
+if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, width = 15, height = 10)}
 
 ### PROCESS WITH TREENETPROC ###
 
@@ -190,14 +191,14 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(3),
-                                       force.now = c("2023-10-09 23:00:00"),
+                                       reverse = c(1),
+                                       # force.now = c("2023-10-09 23:00:00"),
                                        #               "2023-10-16 08:00:00"),
                                        # #               "2023-12-13 11:30:00"
                                                       # ),
-                                       # force = c("2022-08-16 00:00:00"),
+                                       force = c("2022-08-17 00:00:00"),
                                        # n_days = 1,
-                                       delete = c("2022-08-24 19:00:00", "2022-08-24 19:00:00"),
+                                       # delete = c("2022-08-24 19:00:00", "2022-08-24 19:00:00"),
                                                   # "2023-01-22 16:45:00", "2023-01-22 17:00:00",
                                                   # "2023-01-27 16:15:00", "2023-01-27 16:15:00",
                                                   # "2023-10-16 08:15:00", "2023-10-17 17:15:00"

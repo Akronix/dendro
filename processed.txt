@@ -10,6 +10,26 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+== 92222160 ==
+- Pinus halepensis - D - params:
+  
+  TOL_JUMP = 12
+  TOL_OUT = 14
+  
+  reverse = c(1),
+  force = c("2022-08-17 00:00:00"),
+  
+  ! Solo hay datos hasta dic-22
+  
+  - bajadas abril-22 -> treenetproc marcaba 1 como salto pero para mí es OK. hago reverse(1).
+  - sube-baja pcpios may-22 -> corregido treenetproc.
+  - subidón pcpios jul-22 -> OK
+  - subidón 2ª mitad 10-22 -> OK
+  - missing data en agosto -> lo arreglo usando un force.
+  - subidas nov-22.> hay que provocar jump al final. -> tol_jump a 12
+  - octubre22 hay como una campana cuando el resto del mes es plano -> de cerca parece OK y además coincide con lluvia después de una larrrgaa sequía. lo dejo así.
+
+
 == 92222159 ==
 - Qc - params:
 
