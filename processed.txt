@@ -10,6 +10,26 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+
+== 92222168 ==
+- Pinus halepensis - ND - params:
+
+  TOL_JUMP = 15
+  TOL_OUT = 6
+  
+  ts_start<-"2022-11-24 15:15:00"
+  
+  reverse = c(3),
+  force.now = c("2023-09-27 12:30:00"),
+  
+  ! sin datos hasta finales nov-22 -> Hay que fijar ts_start a 2022-11-24T15:15:00Z
+  
+  - saltazo a mediados feb-23 -> corregido
+  - subidilla pcpios jun-23 -> OK.
+  - salto sept23 -> pone como outlier pero es salto que hay que corregir a mano.
+  - dic23 mucho ruido -> bajo TOL_OUT y pilla algunos aunque todavía le quedarían por quitar... También pueden ser congelaciones. Lo dejo así por practicidad.
+
+
 == 92222167 ==
 
 - Pinus halepensis - D - params:
