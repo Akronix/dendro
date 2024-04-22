@@ -96,9 +96,12 @@ db.env[series4 & (interval4.1 | interval4.2), c("vwc", "soil.temp", "surface.tem
 
 ## Peñaflor ##
 
-! Nuevos datos hasta Marzo24 falta datos de dos sensores. 
+! Nuevos datos hasta Marzo24 falta datos de dos sensores. Con lo cual solo tenemos datos de 3 que vayan hasta marzo24 (94231947, 94231949 y 94231950).
 
-SELECTED_TMS  <- c(94231934, 94231950)
+! 94231947 tiene muchos huecos sin datos a partir de diciembre23
+! 94231949 quedó fuera del suelo y no tiene datos desde 4jul23
+
+SELECTED_TMS  <- c(94231950)
 
 SOIL_TYPE = "sandy loam B"
 
@@ -113,7 +116,7 @@ ts_start = "2022-03-15 12:30:00"
   interval1.1 = (db.env$ts >= "2022-04-08 20:30:00") & (db.env$ts <= "2022-05-04 14:00:00")
   # second interval, first series:
   interval1.2  = (db.env$ts >= "2022-09-11 09:45:00") & (db.env$ts < "2022-11-24 14:45:00")
-  interval1.3  = (db.env$ts >= "2023-03-07 01:00:00") & (db.env$ts < "2023-06-01 18:45:00")
+  interval1.3  = (db.env$ts > "2023-09-30 20:45:00")
 
   db.env[series1 & (interval1.1 | interval1.2 | interval1.3), c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
 
@@ -131,7 +134,7 @@ ts_start = "2022-03-15 12:30:00"
   series3 = db.env$series == "94231947" 
 
   # first interval: 
-  interval3.1 = (db.env$ts >= "2023-07-04 09:30:00")
+  interval3.1 = (db.env$ts >= "2023-07-04 09:30:00" & db.env$ts < "2023-09-27 15:00:00")
 
   db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
   ```

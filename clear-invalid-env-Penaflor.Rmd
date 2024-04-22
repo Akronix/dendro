@@ -54,7 +54,7 @@ series1 = (db.env$series == "94231949")
 interval1.1 = (db.env$ts >= "2022-04-08 20:30:00") & (db.env$ts <= "2022-05-04 14:00:00")
 # second interval, first series:
 interval1.2  = (db.env$ts >= "2022-09-11 09:45:00") & (db.env$ts < "2022-11-24 14:45:00")
-interval1.3  = (db.env$ts >= "2023-03-07 01:00:00") & (db.env$ts < "2023-06-01 18:45:00")
+interval1.3  = (db.env$ts > "2023-09-30 20:45:00")
 
 db.env[series1 & (interval1.1 | interval1.2 | interval1.3), c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
 
@@ -72,7 +72,7 @@ db.env[series2 & (interval2.0 | interval2.1), c("vwc", "soil.temp", "surface.tem
 series3 = db.env$series == "94231947" 
 
 # first interval: 
-interval3.1 = (db.env$ts >= "2023-07-04 09:30:00")
+interval3.1 = (db.env$ts >= "2023-07-04 09:30:00" & db.env$ts < "2023-09-27 15:00:00")
 
 db.env[series3 & interval3.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
 ```

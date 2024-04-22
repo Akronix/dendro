@@ -14,11 +14,11 @@ setwd(PATH)
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 # ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-PLACE = 'Miedes'
+PLACE = 'Penaflor'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
-SOIL_TYPE = "sandy loam A"
+SOIL_TYPE = "sandy loam B"
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
