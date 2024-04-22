@@ -11,6 +11,25 @@ ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
 
+== 92222177 ==
+- Pinus halepensis - ND - params:
+  TOL_JUMP = 12
+  TOL_OUT = 15
+  reverse = c(1),
+
+  - deshacer primer salto mar-22 que sigue un patrón previo de bajadas bruscas. -> reverse(1)
+  - salto pcios abril22 -> corregido
+  - salto arriba pcpios may22 -> corregido
+  - subidón arriba 1ª mitad jul22 -> ok
+  - piquillo arriba mediados ago-22 y otro abajo 2ª mitad ago22 -> El 1º es un missing data (lo relleno con force) y el segundo es un salto que pilla treenetproc
+  - subidón mediados nov-22 -> mirándolo de cerca en realidad es brusco pero es OK.
+  - salto finales nov-22 -> corregido
+  - bajón 2ª mitad ene23 -> es brusco pero es OK. Creo que es debido a una congelación.
+  - saltazo mediados feb23 -> corregido
+  - piquillo abajo mediados jun23 -> OK
+  - bajón mediados jul23 -> OK
+  - 25enero24 para mí hay un salto claro. -> salto en dos pasos. Borro paso intermedio y provoco salto.
+
 == 92222172 ==
 - Pinus halepensis - D - params:
   TOL_JUMP = 10
