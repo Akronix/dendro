@@ -10,11 +10,32 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+== 92222153 ==
+- Qc - params:
+
+  TOL_JUMP = 10
+  TOL_OUT = 10
+  
+  force = c("2022-11-24 00:00:00"),
+  
+  ! Dendrómetro muy inestable, especialmente para ser Quercus.
+  
+ - subidón pcpios may-22 -> salto treenetproc
+ - piquito abajo finales jun-22 -> brusco pero OK.
+ - subidón pcpios jul-22 -> brusco pero OK.
+ - 2 subidones agosto-22: 1ª mitad y 2ª mitad - bruscos pero OK.
+ - subidón mediados y finales nov-22 -> mediados es OK y finales es un missing data (lo corrigo con force jump)
+ - salto mediados feb-23 -> Lo corrige treenetproc en aparciencia un poco raro porque sigue quedando un saltillo. Aunque es poca diferencia de um así que lo voy a dejar así.
+ - campana subida y bajada del 22 al 24 de jun-23 -> evento de lluvia
+ - pcpios jul23 -> parece salto pero no lo es. Justo hubo un evento de lluvia.
+ - muchas subidas y bajadas bruscas tipo campanas en todos los siguientes meses. -> Suelen coincidir con eventos de lluvia.
+
+
 == 92222152 ==
 - Pinus halepensis - ND - params:
 
   TOL_JUMP = 10
-  TOL_OUT = 15
+  TOL_OUT = 10
 
   ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
   

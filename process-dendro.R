@@ -19,7 +19,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222152"
+  SELECTED_DENDROMETER = "92222153"
 }
 
 TOL_OUT = 10
@@ -40,7 +40,7 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
 
 
-ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 
 print("process-dendro script running with the next parameters:")
@@ -188,21 +188,21 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! MANUAL CORRECTIONS #
-# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                        dendro_L2 = dendro_data_L2,
-#                                        # reverse = c(1,2),
-#                                        # force.now = c("2023-09-13 11:00:00"),
-#                                        #               "2022-12-31 13:15:00"),
-#                                        #               "2023-12-13 11:30:00"
-#                                                       # ),
-#                                        # force = c("2022-06-12 00:00:00"),
-#                                        # n_days = 1,
-#                                        delete = c("2022-05-20 18:15:00", "2022-10-31 23:45:00",
-#                                                   "2024-01-26 17:30:00", "2024-01-31 14:45:00"),
-#                                        plot = T,
-#                                        plot_export = T,
-#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-#                                        tz="Europe/Madrid")
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       # reverse = c(1,2),
+                                       # force.now = c("2023-09-13 11:00:00"),
+                                       #               "2022-12-31 13:15:00"),
+                                       #               "2023-12-13 11:30:00"
+                                                      # ),
+                                       force = c("2022-11-24 00:00:00"),
+                                       # n_days = 1,
+                                       # delete = c("2022-05-20 18:15:00", "2022-10-31 23:45:00",
+                                       #            "2024-01-26 17:30:00", "2024-01-31 14:45:00"),
+                                       plot = T,
+                                       plot_export = T,
+                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+                                       tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
