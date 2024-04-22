@@ -10,6 +10,22 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+== 92222159 ==
+- Qc - params:
+
+  TOL_JUMP = 10
+  TOL_OUT = 10
+  
+  reverse = c(3),
+  force.now = c("2023-10-09 23:00:00"),
+  delete = c("2022-08-24 19:00:00", "2022-08-24 19:00:00"),
+    
+ * No estaba en el procesado anterior porque no se descargaron sus datos
+- A primera vista inspeccionando el raw, dendrómetro muyyy inestable.
+- Borrar outlier a mano 2022-08-24T19:00:00
+- Tiene muchas campanas como otros Qc (ver 92222153). También parece que coincide con eventos de lluvia.
+- corregido a mano salto en oct23
+
 
 == 92222158 ==
 - Pinus halepensis - D - params:
