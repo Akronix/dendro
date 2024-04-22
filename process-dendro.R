@@ -19,11 +19,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222177"
+  SELECTED_DENDROMETER = "92222178"
 }
 
-TOL_JUMP = 12
-TOL_OUT = 15
+TOL_JUMP = 50
+TOL_OUT = 18
 
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
@@ -192,18 +192,25 @@ final_processed_data <- dendro_data_L2;
 # DANGER! MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       reverse = c(1),
-                                       force.now = c("2024-03-11 21:15:00"),
-                                                     # "2023-02-16 14:30:00",
-                                                     # "2023-09-27 08:30:00"),
-                                                      # ),
-                                       force = c("2022-08-17 00:00:00", "2024-01-25 00:00:00"),
-                                       n_days = 1,
-                                       delete = c("2024-03-11 21:30:00", "2024-03-11 21:30:00"),
-                                       #            "2023-07-27 18:00:00", "2023-07-27 18:00:00"),
-                                                  # "2023-01-27 16:15:00", "2023-01-27 16:15:00",
-                                                  # "2023-10-16 08:15:00", "2023-10-17 17:15:00"
-                                       # ),
+                                       reverse = c(2,3,11),
+                                       force = c("2022-08-17"),
+                                       force.now = c( "2022-08-03 20:15:00",
+                                                      "2022-08-10 17:00:00",
+                                                      "2022-08-17 08:00:00",
+                                                      "2022-08-24 18:45:00",
+                                                      "2022-05-04 11:45:00",
+                                                      "2022-11-24 14:15",
+                                                      "2022-12-06 09:45:00",
+                                                      "2023-02-16 13:45:00",
+                                                      "2023-07-14 16:30:00"
+                                       ),
+                                       delete = c("2022-08-03 20:30:00", "2022-08-03 21:15:00",
+                                                  "2022-08-10 17:15:00", "2022-08-10 21:00:00",
+                                                  "2022-08-24 19:00:00", "2022-08-25 19:30:00",
+                                                  "2022-05-04 12:00:00", "2022-05-04 12:00:00",
+                                                  "2022-12-06 10:00", "2022-12-06 10:45:00",
+                                                  "2023-07-14 16:45:00", "2023-07-14 16:45:00"
+                                       ),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
