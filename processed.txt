@@ -11,6 +11,24 @@ ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
 
+== 92222172 ==
+- Pinus halepensis - D - params:
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  
+  reverse = c(3),
+
+! Parece un dendrómetro bastante inestable en general.
+  - subidilla may-22 -> corregido.
+  - salto mal detectado por treenetproc en jun-22 al bajar tol_jump -> reverse = c(3),
+  - dos minicampanas en jul y en sept22 -> porqué puede ser? -> diría que lluvia.
+  - salto mediados nov-22 -> OK
+  - salto 2ª mitad nov-22 -> corregido
+  - baja-sube 2ª mitad feb23 -> la subida coincide con un aumento de temperaturas quedando la mínima por encima de 0ºC lo cual significaría una descongelación y un aumento del tronco. El baja parece un salto a corregir. Con datacleanr se ve muy claro.
+  - campana arriba a pcpios jun-23 -> OK
+  - subidón 2ª mitad sept23 -> OK
+  - campana invertida un poco raro 19 de enero24, justo antes de periodo de congelación. -> es raro pero, excepto algunos pocos datos en meseta, de cerca parece OK.
+
 == 92222168 ==
 - Pinus halepensis - ND - params:
 

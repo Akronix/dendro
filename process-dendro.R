@@ -19,11 +19,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222168"
+  SELECTED_DENDROMETER = "92222172"
 }
 
-TOL_JUMP = 15
-TOL_OUT = 6
+TOL_JUMP = 10
+TOL_OUT = 15
 
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
@@ -41,8 +41,7 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
 
 
-# ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
-ts_start<-"2022-11-24 15:15:00"
+ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 
 print("process-dendro script running with the next parameters:")
@@ -194,7 +193,7 @@ final_processed_data <- dendro_data_L2;
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
                                        reverse = c(3),
-                                       force.now = c("2023-09-27 12:30:00"),
+                                       # force.now = c("2023-09-27 12:30:00"),
                                                      # "2023-02-16 14:30:00",
                                                      # "2023-09-27 08:30:00"),
                                                       # ),
