@@ -10,6 +10,26 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+
+== 92222165 ==
+- Pinus halepensis - D - params:
+  TOL_JUMP = 12
+  TOL_OUT = 14
+
+  delete = c("2022-05-21 16:30:00", "2022-11-12 04:00:00"),
+  
+  ! 6 meses de 2022 valor cte (sin datos)
+  
+  - subidón pcpios may-22 -> salto corregido.
+  - valor cte desde mediados may-22 a mediados nov-22 -> más menos desde 2022-05-21T16:30:00 hasta el 2022-11-12T04:00:00Z. Borramos todo ese periodo.
+  - salto finales nov-22 -> corregido
+  - saltazo mediados feb-23 -> corregido
+  - bajón mediados mar-23 -> OK
+  - bajón 2ª mitad jul-23 -> OK
+  - subidón mediados sept-23 -> OK
+
+
+
 == 92222160 ==
 - Pinus halepensis - D - params:
   
