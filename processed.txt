@@ -10,6 +10,34 @@ ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (sa
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
+
+== 92222158 ==
+- Pinus halepensis - D - params:
+  
+  TOL_JUMP = 10
+  TOL_OUT = 14
+  
+  reverse = c(5),
+  force.now = c("2023-09-01 17:00:00",
+               "2023-10-16 08:00:00"),
+  force = c("2022-08-16 00:00:00"),
+  delete = c("2023-01-22 15:15:00", "2023-01-22 15:15:00",
+            "2023-01-22 16:45:00", "2023-01-22 17:00:00",
+            "2023-01-27 16:15:00", "2023-01-27 16:15:00",
+            "2023-10-16 08:15:00", "2023-10-17 17:15:00"
+  ),
+  
+  - subidón pcpios de mayo. -> corregido.
+  - subidón mediados de agosto -> missing data. corrijo con forcejump
+  - subidón finales agosto -> corregido
+  - subidón finales nov-22 -> corregido
+  - varios outliers en ene-23 -> no los pilla treenetproc, sino que pone un salto con tol_jump 10 a no ser que baje tol_out hasta valores que me extropean otras correcciones. -> deshago el jump y quito a mano los más molestos: 2023-01-22 15:15:00, 2023-01-22 16:45:00, 2023-01-22 17:00:00, 2023-01-27 16:15:00
+  - saltazo mediados feb-23 -> corregido
+  - piquillo 1ª mitad de jul-23 -> es raro pero parece OK. No son muchos um.
+  - bajón pcpios de sept-23 -> lo mismo. Es brusco y raro. -> fuerzo un salto para corregirlo. En el pdf de correción de salida sigue pareciendo como si hubiera demasiado salto, pero al pintarlo con plotly (datacleanr) no se ve así, así que lo voy a dejar así.
+  - 17 de oct23 hay como una bajada paulatina que no es esperable para esas fechas y que baja en 40um la tendencia. También con mesetas, outliers y cosas raras. Voy a borrar todos esos datos y corregir esa bajada para que quede algo más coherente. -> delete("2023-10-16 08:15:00", "2023-10-17 17:15:00") y force = c("2022-08-16 00:00:00"),
+
+
 == 92222153 ==
 - Qc - params:
 
