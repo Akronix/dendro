@@ -19,11 +19,11 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222166"
+  SELECTED_DENDROMETER = "92222167"
 }
 
-TOL_JUMP = 12
-TOL_OUT = 8
+TOL_JUMP = 10
+TOL_OUT = 10
 
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
