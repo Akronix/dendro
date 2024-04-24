@@ -70,8 +70,8 @@ db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in fi
 
 
 # Add tree information to each dendrometer (series)
-TreeList<-read.table("TreeList.txt",header=T)
-db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+# TreeList<-read.table("TreeList.txt",header=T)
+# db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 # dim(db)
 
@@ -127,8 +127,8 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, width = 15, height = 10
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
+db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+# db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -213,7 +213,8 @@ if (SAVE) {
   if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
   ### SAVE IN PROCESSED FORMAT ###
   output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
-  write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
+  write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], ".csv")), append = FALSE)
+  # write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
 }
 
 ### SAVE IN INPUT SENSOR FORMAT ###
