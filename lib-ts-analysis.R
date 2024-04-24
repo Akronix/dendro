@@ -10,6 +10,8 @@ source('correlations.R')
 temperature.color <- "darkorange"
 season.color <- "darkgreen"
 
+c_labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
+c_class_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
 
 # Decompose functions
 ##  Define plot_decompose function which uses basic time series decomposition
@@ -235,6 +237,18 @@ plot_day_seasonality <- function (seasons, sp, site, period){
     geom_line(col = season.color, show.legend = F) + 
     geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), col = season.color, alpha = 0.5, linetype = "dashed", show.legend = F) +
     geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), col = season.color, alpha = 0.5, linetype = "dashed", show.legend = F) +
+    ggtitle(glue("Aggregated mean in one day of seasonalities from {period} for {sp} in {site}")) +
+    scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)")))
+}
+
+plot_day_seasonality_byclass <- function (seasons, sp, site, period){
+  ggplot( data = seasons, mapping = aes(x = timeOfDay, y = meanSeasonalityTime, col = class)) + 
+    geom_line() + 
+    geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), alpha = 0.5, linetype = "dashed", show.legend = F) +
+    geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), alpha = 0.5, linetype = "dashed", show.legend = F) +
+    scale_color_manual(labels = c_labels, values=c_class_values) +
     ggtitle(glue("Aggregated mean in one day of seasonalities from {period} for {sp} in {site}")) +
     scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
