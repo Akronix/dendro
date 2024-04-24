@@ -1,0 +1,1032 @@
+---
+title: "Seasonality-analysis"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import packages:
+```{r}
+source('lib-dendro.R')
+source('lib-ts-analysis.R')
+source('correlations.R')
+
+library(glue)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw())
+library(lubridate)
+library(hms)
+
+library(imputeTS)
+library(biwavelet)
+```
+
+Set global vars
+```{r}
+### DEFINE GLOBAL VARS ###
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+
+PLACE = 'Penaflor'
+DATA_DIR = glue('processed/{PLACE}-processed')
+ENV_DIR = glue('processed/{PLACE}-env-processed')
+
+TreeList <- read.table("TreeList.txt", header=T)
+
+ALL_PERIOD_ST <- "May to October"
+```
+
+Select dendros for this analysis (all if empty vector)
+```{r}
+# selected_dendros <- c("92222154", "92222155", "92222156", "92222157", "92222161", "92222163", "92222164", "92222169", "92222170", "92222171", "92222173", "92222175", "92222180")
+selected_dendros <- c()
+```
+
+Select TMS serial no for this analysis
+```{r}
+SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
+  PLACE == 'Miedes' ~ "94231935",
+  PLACE == 'Corbalan' ~ "94231943",
+  PLACE == 'Penaflor' ~ "94231950",
+  .default = NA
+)
+```
+
+Load dataset:
+```{r}
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
+db<-read.all.processed(list_files)
+```
+
+## CLEAN & PREPARE DATA ###
+
+keep data of selected dendros only
+```{r}
+if (length(selected_dendros) > 0) {db = db %>% filter(db$series %in% selected_dendros)}
+str(db)
+```
+
+select from May 2023 to November 2023
+```{r}
+# Set initial and final date for analysis
+ts_start <- "2023-05-01 09:00:00" # from first of May
+ts_end <-"2023-11-01 07:00:00" # to 1st of november
+db <- reset.initial.values(db, ts_start, ts_end)
+```
+
+Define classes which each series belong to:
+```{r}
+Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
+P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
+```
+
+Add group column
+```{r}
+db <- db %>% mutate (
+  class = case_when(
+    series %in% Qi ~ factor("Quercus"),
+    series %in% P_D ~ factor("D"),
+    series %in% P_ND ~ factor("ND"),
+    .default = NA
+  )
+)
+```
+
+
+# INSPECT DATA
+```{r}
+str(db)
+head(db)
+tail(db)
+```
+
+# Data imputation
+
+Missing data
+```{r}
+statsNA(db$value)
+```
+
+Let's fill it through interpolation
+```{r}
+db$value <- db$value %>% 
+            na_interpolation(option = "spline")
+```
+
+Set ggplot label options, themes & vars:
+```{r}
+theme_set( theme_bw() +
+          theme(
+            axis.text=element_text(size=12),
+            legend.text=element_text(size=10),
+            axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 0.5, face = "bold")
+          ))
+
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
+
+n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+
+c_labels = c(Quercus = glue("{labels[1]} ({n.per.class$Quercus})"), D = glue("{labels[2]} ({n.per.class$D})"), ND = glue("{labels[3]} ({n.per.class$ND})"))
+c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+```
+
+# Time Series decomposition
+
+# Calculate mean Seasonality
+Mean seasonality for all trees:
+```{r}
+seasonalities <- calculate_stl_seasonalities(db, unique(db$series))
+summary(seasonalities)
+
+seasonalities.agg <- seasonalities %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for all trees")
+# ggsave(glue('output/{PLACE}-mean-seasonalities-all.png'), width = 15, height = 10)
+```
+
+# Calculate Seasonality by class
+
+Calculate mean of the seasonality for Qi, PD and P_ND
+```{r}
+Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
+P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND", series %in% unique(db$series)) %>% pull(series)
+```
+
+```{r}
+every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+```
+
+## Quercus
+Mean seasonality for Quercus Ilex:
+```{r}
+seasonalities.qi <- calculate_stl_seasonalities(db, Qi)
+summary(seasonalities.qi)
+
+seasonalities.qi.agg <- seasonalities.qi %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.qi.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.qi, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Quercus Ilex seasonalities by dendrometer - {PLACE} '))
+# ggsave(glue('output/{PLACE}-seasonality-Qi.png'), width = 15, height = 10)
+```
+
+```{r}
+ggplot( data = seasonalities.qi.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Quercus Ilex")
+# ggsave(glue('output/{PLACE}-mean-seasonality-Qi.png'), width = 15, height = 10)
+```
+
+### Aggregating in one day, by removing time-series dimension
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.qi.allperiod = seasonalities.qi.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.qi.allperiod
+plot_day_seasonality(seasons.qi.allperiod, "Quercus Ilex", PLACE, ALL_PERIOD_ST)
+# ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-Qi.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.qi.jun_jul = seasonalities.qi.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.qi.jun_jul
+
+plot_day_seasonality(seasons.qi.jun_jul, "Quercus Ilex", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-Qi.png'), width = 15, height = 10)
+```
+
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.qi.jun_jul$period <- "June-July"
+seasons.qi.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.qi.allperiod, seasons.qi.jun_jul)
+```
+
+
+```{r}
+plot_day_seasonalities_periods(seasons.periods.joined, "Quercus Ilex", PLACE)
+# ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-Qi.png'), width = 15, height = 10)
+```
+
+
+```{r}
+# Another way to do it but using two different df sources
+# ggplot() +
+#   ggtitle("Aggregated mean in one day for all period And for period june-july") +
+#   geom_line(data = seasons.qi.allperiod, mapping = aes(x=timeOfDay, y = meanSeasonalityTime), col = "blue") + 
+#   geom_line(data = seasons.qi.allperiod, aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.allperiod, aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.jun_jul, mapping = aes(x = timeOfDay, y = meanSeasonalityTime), col= "purple") +
+#   geom_line(data = seasons.qi.jun_jul, aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   geom_line(data = seasons.qi.jun_jul, aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), col = "red", alpha = 0.5, linetype = "dashed", show.legend = F) +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#   scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+#   labs(x = "Hour of the day", y = "Micrometers of Daily seasonality (um)")
+```
+
+
+## Non-Declining Pines
+Mean seasonality for Non-Declining Pines
+```{r}
+seasonalities.P_ND <- calculate_stl_seasonalities(db, P_ND)
+summary(seasonalities.P_ND)
+
+seasonalities.P_ND.agg <- seasonalities.P_ND %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_ND.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.P_ND, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Non-Declining Pinus seasonalities by dendrometer - {PLACE} '))
+# ggsave(glue('output/{PLACE}-seasonality-P_ND.png'), width = 15, height = 10)
+```
+
+```{r}
+ggplot( data = seasonalities.P_ND.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Non-Declining Pinus")
+# ggsave(glue('output/{PLACE}-mean-seasonality-P_ND.png'), width = 15, height = 10)
+```
+
+
+### Non-Declining Pines: Aggregating in one day, by removing time-series dimension
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.P_ND.allperiod = seasonalities.P_ND.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_ND.allperiod
+plot_day_seasonality(seasons.P_ND.allperiod, "Non-Declining Pines", PLACE, ALL_PERIOD_ST)
+# ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.P_ND.jun_jul = seasonalities.P_ND.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_ND.jun_jul
+
+plot_day_seasonality(seasons.P_ND.jun_jul, "Non-Declining Pines", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.P_ND.jun_jul$period <- "June-July"
+seasons.P_ND.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.P_ND.allperiod, seasons.P_ND.jun_jul)
+```
+
+
+```{r}
+plot_day_seasonalities_periods(seasons.periods.joined, "Non-Declining Pines", PLACE)
+# ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-P_ND.png'), width = 15, height = 10)
+```
+
+
+## Declining Pines
+Mean seasonality for Declining Pines
+```{r}
+seasonalities.P_D <- calculate_stl_seasonalities(db, P_D)
+summary(seasonalities.P_D)
+
+seasonalities.P_D.agg <- seasonalities.P_D %>% group_by(ts) %>% summarise(mean = mean(value), sd = sd(value))
+summary(seasonalities.P_D.agg)
+```
+
+```{r}
+ggplot( data = seasonalities.P_D, mapping = aes(x=ts, y = value, color = series)) + 
+  geom_line(alpha = 0.5) +
+  ggtitle(glue('Declining Pinus seasonalities by dendrometer - {PLACE} '))
+# ggsave(glue('output/{PLACE}-seasonality-P_D.png'), width = 15, height = 10)
+```
+
+```{r}
+ggplot( data = seasonalities.P_D.agg, mapping = aes(x=ts, y = mean)) + 
+  geom_line() + 
+  ggtitle("Mean of seasonalities for Declining Pinus")
+# ggsave(glue('output/{PLACE}-mean-seasonality-P_D.png'), width = 15, height = 10)
+```
+
+
+### Declining Pines: Aggregating in one day, by removing time-series dimension
+
+removing the time-series dimension, mean of one day for all period:
+```{r}
+seasons.P_D.allperiod = seasonalities.P_D.agg %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_D.allperiod
+plot_day_seasonality(seasons.P_D.allperiod, "Declining Pines", PLACE, ALL_PERIOD_ST)
+# ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-P_D.png'), width = 15, height = 10)
+```
+
+removing the time-series dimension, mean of one day for June-July:
+```{r}
+seasons.P_D.jun_jul = seasonalities.P_D.agg %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(mean), SE_SeasonalityTime = sd(sd)/sqrt(n()), .by = timeOfDay)
+seasons.P_D.jun_jul
+
+plot_day_seasonality(seasons.P_D.jun_jul, "Declining Pines", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-P_D.png'), width = 15, height = 10)
+```
+
+Now, the two plots above together in one plot:
+
+```{r}
+seasons.P_D.jun_jul$period <- "June-July"
+seasons.P_D.allperiod$period <- "All"
+seasons.periods.joined <- rbind.data.frame(seasons.P_D.allperiod, seasons.P_D.jun_jul)
+```
+
+
+```{r}
+plot_day_seasonalities_periods(seasons.periods.joined, "Declining Pines", PLACE)
+# ggsave(glue('output/{PLACE}_aggoneday-bothperiods-seasonalities-P_D.png'), width = 15, height = 10)
+```
+
+
+### Plot aggregated data of each class in one plot
+
+All study period:
+```{r}
+seasons.allclases.allperiod <- data.frame()
+seasons.P_D.allperiod$class = "D"
+seasons.P_ND.allperiod$class = "ND"
+seasons.qi.allperiod$class = "Quercus"
+seasons.allclases.allperiod <- rbind.data.frame(seasons.allclases.allperiod, seasons.P_D.allperiod, seasons.P_ND.allperiod, seasons.qi.allperiod)
+plot_day_seasonality_byclass(seasons.allclases.allperiod, "All trees", PLACE, ALL_PERIOD_ST)
+ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-alltrees-byclass.png'), width = 15, height = 10)
+```
+
+June to July:
+```{r}
+seasons.allclases.jun_jul <- data.frame()
+seasons.P_D.jun_jul$class = "D"
+seasons.P_ND.jun_jul$class = "ND"
+seasons.qi.jun_jul$class = "Quercus"
+seasons.allclases.jun_jul <- rbind.data.frame(seasons.allclases.jun_jul, seasons.P_D.jun_jul, seasons.P_ND.jun_jul, seasons.qi.jun_jul)
+plot_day_seasonality_byclass(seasons.allclases.jun_jul, "All trees", PLACE, "June to July 2023")
+ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities-alltrees-byclass.png'), width = 15, height = 10)
+```
+
+
+# Calculate amplitude for all trees by class
+
+```{r}
+# First, let's create an amplitude.df to store the output.
+column_names <- c("date", "min", "max", "ampl", "class")
+amplitude.df = data.frame(matrix(nrow = 0, ncol = length(column_names)))
+colnames(amplitude.df) <- column_names
+for (dendro.no in unique(db$series)) {
+  
+  # skip if we don't have the dendro registered in TreeList
+  if (! (dendro.no %in% TreeList$series)) next;
+  
+  class = (TreeList[TreeList$series == dendro.no,])$class
+  name = paste(dendro.no, class, sep="-")
+  
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  dat = dat %>% select(ts, value)
+  
+  # Max - min daily amplitude
+  dat.ampl <- calculate_amplitude(dat)
+  aux <- cbind(ampl = dat.ampl, name = name, class=class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+  amplitude.df = rbind.data.frame(amplitude.df, aux)
+}
+```
+
+With all daily amplitudes, calculate mean of each one by class
+
+```{r}
+amplitude.all = amplitude.df %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
+amplitude.all
+amplitude.df = amplitude.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
+amplitude.df
+```
+
+Create one different dataframe for every class
+```{r}
+amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
+amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
+amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
+```
+
+# Climate data
+
+Importing environmental data and keeping the one sensor with all valid data
+```{r}
+db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
+db.env <- db.env[db.env$series == SELECTED_TMS,]
+```
+
+Calculate mean among all climate sensors with all its data *complete* (no gaps)
+```{r}
+# statsNA(db.env$vwc)
+# db.env$vwc <- db.env$vwc %>% 
+#             na_interpolation(option = "spline")
+```
+
+
+```{r}
+#library(plotly)
+#plot_ly(db.env, x = ~ts, y = ~vwc, color = ~series, type = 'scatter', mode = 'lines')
+```
+
+
+Filter env data to period of study
+```{r}
+db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),]
+summary(db.env)
+```
+
+Plot env data:
+```{r}
+plot_temp_and_humidity <-
+  ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
+    ggtitle(glue("Temperature and humidity for {PLACE} (May to September 2023)")) +
+    geom_line(aes(colour = surface.temp)) +
+    theme_bw() +
+    scale_colour_gradient(low = "light blue", high = "red") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1)) +
+    scale_y_continuous("Temperature (ºC)", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+    geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
+    scale_linetype_manual(NULL, values = 1) +
+    labs(x=expression(''), colour = "Temperature (ºC)")
+plot_temp_and_humidity
+# ggsave(glue('output/{PLACE}-VWCytempAgg-selected-period.png'), width = 15, height = 10)
+```
+
+Calculations of useful aggregation data for climate:
+  * soil moisture: max VWC, range VWC, mean of VWC (misleading)
+  * temp: Mean of daily temp, minimum daily temp and maximum daily temp, range temp and interquartile temp (Q3-Q1). We will use soil temperature as it's used on many other studies and it isn't so much influenced by sun irradiation and night/day differences.
+
+```{r}
+clim.daily <- db.env %>% mutate (date = date(ts)) %>% group_by(date) %>% summarise(max.temp = max(surface.temp), min.temp = min(surface.temp), mean.temp = mean(surface.temp), sd.temp = sd(surface.temp), range.vwc = max(vwc) - min(vwc), max.vwc = max(vwc), mean.vwc = mean(vwc), range.temp = max.temp - min.temp, interquartil.temp = as.numeric(quantile(surface.temp, prob=c(.75)) - quantile(surface.temp, prob=c(.25)) ) )
+summary(clim.daily)
+```
+
+# Correlations
+
+## Amplitude ~ climate
+
+Here we show a plot with VWC vs amplitude per class
+
+```{r}
+ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
+  ggtitle(glue('Soil moisture vs daily stem amplitude difference for {PLACE}')) +
+  geom_line() +
+  scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.vwc * 100, linetype = "Max - Min Volumetric Water Content (%)"), col="blue")
+```
+
+Following, we will explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude.
+
+## Amplitude ~ Temperature
+Explore correlation within temperature and daily stem amplitude difference (Not significant)
+
+```{r}
+cor.test(
+  #specify the two variables to correlate
+  amplitude.P_D$mean, clim.daily$interquartil.temp,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+find_Max_CCF(amplitude.P_D$mean, clim.daily$interquartil.temp)
+```
+
+## Amplitude ~ Soil Moisture
+Explore cross-correlation within Soil Moisture and daily seasonal amplitude
+
+### for all trees and classes:
+
+```{r}
+ccf (amplitude.all$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+sort_CCF_values(amplitude.all$mean, clim.daily$max.vwc)
+```
+
+### for Quercus Ilex:
+
+Plot VWC and daily amplitude for Qi:
+
+```{r}
+plot(clim.daily$max.vwc, amplitude.Qi$mean)
+```
+
+```{r}
+plot(log10(clim.daily$max.vwc), log10(amplitude.Qi$mean))
+```
+
+Test correlation:
+```{r}
+cor.test(
+  #specify the two variables to correlate
+  clim.daily$max.vwc, amplitude.Qi$mean,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+hist(log10(amplitude.Qi$mean+1))
+```
+```{r}
+hist(log10(clim.daily$max.vwc+1))
+```
+
+Standard correlations using different methods:
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+Cross-correlations:
+```{r}
+ccf (amplitude.Qi$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.Qi$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+find_Max_CCF(amplitude.Qi$mean, clim.daily$max.vwc)
+sort_CCF_values(amplitude.Qi$mean, clim.daily$max.vwc)
+```
+
+### For P_ND: amplitude ~ VWC 
+
+Exploring plots VWC ~ daily amplitude:
+
+```{r}
+plot(clim.daily$max.vwc, amplitude.P_ND$mean)
+# plot(lm(log10(clim.daily$mean.vwc) ~ log10(amplitude.P_ND$mean)))
+```
+
+
+```{r}
+plot(log10(clim.daily$max.vwc), log10(amplitude.P_ND$mean))
+# plot(lm(clim.daily$mean.vwc ~ amplitude.P_ND$mean))
+```
+
+
+```{r}
+join.df <- full_join(clim.daily, amplitude.P_ND, by="date")
+  ggplot(data = join.df, aes(log10(max.vwc), log10(mean))) +
+  # black points graph
+  geom_point() +
+  # add correlation with errors and blue color
+  stat_smooth(method = 'lm',
+              method.args = list(start= c(a = 1,b=1)),
+              se=T, color = "blue") +
+   # theme
+  theme_classic() +
+  # add labels
+  labs( x = "Max Soil Moisture per day - Log",
+        y = "amplitude variations (um) - Log")
+```
+Exploring correlations:
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+```{r}
+ccf (amplitude.P_ND$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+sort_CCF_values(amplitude.P_ND$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
+```
+
+## With P_D
+
+```{r}
+cor.test(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_D$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_D$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+```{r}
+ccf (amplitude.P_D$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+sort_CCF_values(amplitude.P_D$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
+```
+
+
+# Seasonality ~ climate
+
+Now, let's see if we can see a relation within Seasonality and climate.
+
+## All trees
+Let's add up all trees seasonality to a matrix with env data and explore the correlations:
+```{r}
+matrix <- inner_join(seasonalities.P_D.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
+matrix
+```
+
+```{r}
+library("correlation")
+
+results <- correlation(matrix)
+results
+```
+
+```{r}
+library(see)
+
+results %>%
+  summary(redundant = TRUE) %>%
+  plot()
+```
+Now using spearman method:
+```{r}
+results <- correlation(matrix, method = "spearman")
+
+results %>%
+  summary(redundant = TRUE) %>%
+  plot()
+```
+Doing cross-correlation:
+```{r}
+ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
+
+find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
+```
+
+## By class
+
+Let's test correlations within temp and seasonality for each different class:
+
+### Quercus Ilex
+```{r}
+matrix <- inner_join(seasonalities.qi.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
+matrix
+
+results <- correlation(matrix, method = "pearson")
+
+results %>%
+  summary(redundant = TRUE) %>%
+  plot()
+```
+
+Doing cross-correlation:
+```{r}
+ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
+
+find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
+```
+
+We found that after 6 instances of 15 mins (1h and half), there is 0.70 inverse correlation within surface temperature and Quercus ilex maximum swelling.
+
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+temp.jun_jul <- db.env %>% filter( (ts >= as.Date("2023-06-01") ) & (ts < as.Date("2023-08-01")) ) %>%  mutate(timeOfDay = as_hms(ts)) %>% summarise(meanTemp = mean(surface.temp), se_temp = (sd(surface.temp) / sqrt(n()) ), .by = timeOfDay)
+temp.jun_jul
+
+plot_day_seasonality_and_temp(seasons.qi.jun_jul, temp.jun_jul, "Quercus Ilex", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-Qi.png'), width = 15, height = 10)
+```
+
+### Non-Declining Pines
+```{r}
+matrix <- inner_join(seasonalities.P_ND.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
+matrix
+
+results <- correlation(matrix, method = "spearman")
+
+results %>%
+  summary(redundant = TRUE) %>%
+  plot()
+```
+
+Doing cross-correlation:
+```{r}
+ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
+
+find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
+```
+
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+plot_day_seasonality_and_temp(seasons.P_ND.jun_jul, temp.jun_jul, "Non-Declining Pines", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-P_ND.png'), width = 15, height = 10)
+```
+
+### Declining Pines
+```{r}
+matrix <- inner_join(seasonalities.P_D.agg, db.env, by='ts') %>% select(soil.temp, surface.temp, air.temp, vwc, mean) %>% rename(seasonal.value = mean)
+matrix
+
+results <- correlation(matrix, method = "spearman")
+
+results %>%
+  summary(redundant = TRUE) %>%
+  plot()
+```
+
+Doing cross-correlation:
+```{r}
+ccf(matrix$seasonal.value, matrix$surface.temp, lag.max = 102)
+
+find_Max_CCF(matrix$seasonal.value, matrix$surface.temp)
+```
+
+Let's plot this to visually see it for June and July Months (Daily mean seasonality + Daily temperature fluctuations)
+```{r}
+plot_day_seasonality_and_temp(seasons.P_D.jun_jul, temp.jun_jul, "Declining Pines", PLACE, "June to July 2023")
+# ggsave(glue('output/{PLACE}_aggoneday-june-july-seasonalities&Temp-P_D.png'), width = 15, height = 10)
+```
+
+# Exploring wavelets
+
+Here we test if there's another correlation with a longer frequency than the daily frequency between temperature and daily seasonality. We could think that, in warm periods (days, weeks, months,...) like the summer season we have a correlation with an specific seasonality.
+I would expect to have a year correlation too (every summer we have similar tree), but unfortunately we don't have enough data to test this yet.
+
+Next steps take a long while so,
+```{r}
+stop('Wavelet analysis below')
+```
+
+## For all trees: surface.temp ~ seasonality
+
+```{r}
+surface.temp = db.env %>% 
+           # select data at hourly intervals by
+           # create a new variable named "minutes"
+           mutate (minutes = minute (ts)) %>% # Add variable minutes
+           # filter "oclock data"
+           filter (minutes == "0") %>% # Filter hourly data
+           # convert datetime to a numeric variable
+           # to make it more intuitive, we will express time as days,
+           # and make time 0 = the first instance (corresponds with ts_start)
+           mutate (time.days = (as.numeric(ts)- as.numeric(db.env[1,"ts"]))/(60*60*24)) %>%
+           # select the variables of interest (time and air.temp)
+           select (time.days, surface.temp)
+           
+any(is.na(surface.temp))
+summary(surface.temp)
+
+seasonality = seasonalities.agg %>% 
+           # select data at hourly intervals by
+           # create a new variable named "minutes"
+           mutate (minutes = minute (ts), value = mean) %>% # Add variable minutes
+           # filter "oclock data"
+           filter (minutes == "0") %>% # Filter hourly data
+           # convert datetime to a numeric variable
+           # to make it more intuitive, we will express time as days,
+           # and make time 0 = the first instance (corresponds with ts_start)
+           mutate (time.days = (as.numeric(ts)- as.numeric(seasonalities.agg[1,"ts"]))/(60*60*24)) %>%
+           # select the variables of interest (time and air.temp)
+           select (time.days, value)
+seasonality <- data.frame(seasonality)
+
+any(is.na(seasonality))
+summary(seasonality)
+
+# wavelet analysis (this will take a while)
+wavelet = wtc(surface.temp, seasonality,
+              max.scale = 32,
+              #display the progress bar
+              quiet = F)
+
+# wavelet plot
+par(oma = c(0, 0, 0, 1), mar = c(5, 4, 4, 5) + 0.1)
+plot(wavelet,
+     #legend colors
+     plot.cb = TRUE,
+     #lag phase (lines)
+     plot.phase = TRUE, 
+     ylab = "Frequency (days)",
+     xlab = "Time (days)") 
+```
+
+## By class: surface.temp ~ seasonality
+
+For Quercus:
+```{r}
+seasonality = seasonalities.qi.agg %>% 
+           # select data at hourly intervals by
+           # create a new variable named "minutes"
+           mutate (minutes = minute (ts), value = mean) %>% # Add variable minutes
+           # filter "oclock data"
+           filter (minutes == "0") %>% # Filter hourly data
+           # convert datetime to a numeric variable
+           # to make it more intuitive, we will express time as days,
+           # and make time 0 = the first instance (corresponds with ts_start)
+           mutate (time.days = (as.numeric(ts)- as.numeric(seasonalities.agg[1,"ts"]))/(60*60*24)) %>%
+           # select the variables of interest (time and air.temp)
+           select (time.days, value)
+seasonality <- data.frame(seasonality)
+
+any(is.na(seasonality))
+summary(seasonality)
+
+# wavelet analysis (this will take a while)
+wavelet = wtc(surface.temp, seasonality,
+              max.scale = 32,
+              #display the progress bar
+              quiet = F)
+
+# wavelet plot
+par(oma = c(0, 0, 0, 1), mar = c(5, 4, 4, 5) + 0.1)
+plot(wavelet,
+     #legend colors
+     plot.cb = TRUE,
+     #lag phase (lines)
+     plot.phase = TRUE, 
+     ylab = "Frequency (days)",
+     xlab = "Time (days)") 
+```
+
+For Non-Declining pines:
+```{r}
+seasonality = seasonalities.P_ND.agg %>% 
+           # select data at hourly intervals by
+           # create a new variable named "minutes"
+           mutate (minutes = minute (ts), value = mean) %>% # Add variable minutes
+           # filter "oclock data"
+           filter (minutes == "0") %>% # Filter hourly data
+           # convert datetime to a numeric variable
+           # to make it more intuitive, we will express time as days,
+           # and make time 0 = the first instance (corresponds with ts_start)
+           mutate (time.days = (as.numeric(ts)- as.numeric(seasonalities.agg[1,"ts"]))/(60*60*24)) %>%
+           # select the variables of interest (time and air.temp)
+           select (time.days, value)
+seasonality <- data.frame(seasonality)
+
+any(is.na(seasonality))
+summary(seasonality)
+
+# wavelet analysis (this will take a while)
+wavelet = wtc(surface.temp, seasonality,
+              max.scale = 32,
+              #display the progress bar
+              quiet = F)
+
+# wavelet plot
+par(oma = c(0, 0, 0, 1), mar = c(5, 4, 4, 5) + 0.1)
+plot(wavelet,
+     #legend colors
+     plot.cb = TRUE,
+     #lag phase (lines)
+     plot.phase = TRUE, 
+     ylab = "Frequency (days)",
+     xlab = "Time (days)") 
+```
+
+For Declining pines:
+```{r}
+seasonality = seasonalities.P_D.agg %>% 
+           # select data at hourly intervals by
+           # create a new variable named "minutes"
+           mutate (minutes = minute (ts), value = mean) %>% # Add variable minutes
+           # filter "oclock data"
+           filter (minutes == "0") %>% # Filter hourly data
+           # convert datetime to a numeric variable
+           # to make it more intuitive, we will express time as days,
+           # and make time 0 = the first instance (corresponds with ts_start)
+           mutate (time.days = (as.numeric(ts)- as.numeric(seasonalities.agg[1,"ts"]))/(60*60*24)) %>%
+           # select the variables of interest (time and air.temp)
+           select (time.days, value)
+seasonality <- data.frame(seasonality)
+
+any(is.na(seasonality))
+summary(seasonality)
+
+# wavelet analysis (this will take a while)
+wavelet = wtc(surface.temp, seasonality,
+              max.scale = 32,
+              #display the progress bar
+              quiet = F)
+
+# wavelet plot
+par(oma = c(0, 0, 0, 1), mar = c(5, 4, 4, 5) + 0.1)
+plot(wavelet,
+     #legend colors
+     plot.cb = TRUE,
+     #lag phase (lines)
+     plot.phase = TRUE, 
+     ylab = "Frequency (days)",
+     xlab = "Time (days)") 
+```
+
