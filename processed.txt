@@ -319,10 +319,11 @@ DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 === DATOS MIEDES HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
-Dendros Qi: 92222155, 92222161, 92222164, 92222163, 92222171
+Dendros Qi: 92222155, 92222161, 92222163, 92222164, 92222171
 Dendros P ND: 92222154, 92222157, 92222170, 92222173, 92222180
-Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (missing), 92222175 (largo periodo sin datos)
+Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (missing), *92222175 (largo periodo sin datos)
 
+SELECTED_DENDROS <- c("92222154", "92222155", "92222156", "92222157", "92222161", "92222163", "92222164", "92222169", "92222170", "92222171", "92222173", "92222175", "92222180")
 
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
