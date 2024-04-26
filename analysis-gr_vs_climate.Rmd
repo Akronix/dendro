@@ -39,7 +39,7 @@ ENV_DIR = glue('processed/{PLACE}-env-processed')
 
 # Select TMS serial no for this analysis
 SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
-  PLACE == 'Miedes' ~ c("94231940", "94231935"),
+  PLACE == 'Miedes' ~ c("94231940"),
   PLACE == 'Corbalan' ~ c("94231943"),
   PLACE == 'Penaflor' ~ c("94231934"), # 94231950 is delayed? and throws wrong results? double check
   .default = NA

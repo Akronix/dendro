@@ -24,9 +24,11 @@ ENV_DIR = glue('processed/{PLACE}-env-processed')
 SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
   PLACE == 'Miedes' ~ "94231940",
   PLACE == 'Corbalan' ~ "94231943",
-  PLACE == 'Penaflor' ~ "94231934",
+  PLACE == 'Penaflor' ~ "94231950",
   .default = NA
 )
+
+SAVE <- F
 ```
 
 Load dataset:
@@ -111,8 +113,6 @@ boxplot(mean_twd ~ class, data = db.twd.agg.2022, title = '2022')
 boxplot(mean_twd ~ class, data = db.twd.agg.2023)
 ```
 
-
-
 ```{r}
 aov.model <- aov(mean_twd ~ class + year, data = db.twd.agg.yearly)
 summary(aov.model)
@@ -144,6 +144,7 @@ plot.twd2023 <- db.twd2023 %>%
 combined <- (plot.twd2022 | plot.twd2023) + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Boxplot of TWD dispersion - {PLACE}')) & theme(legend.position = "bottom")
 combined
 ```
+
 ```{r}
 aov.model <- aov(mean_twd ~ class, data = db.twd2022)
 summary(aov.model)
@@ -167,7 +168,7 @@ summary(aov.model)
 
 
 ```{r}
-# ggsave(glue('output/boxplot-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/boxplot-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 Continuous TWD evolution along with VWC:
@@ -210,7 +211,7 @@ combined <- plot.twd2022 / plot.twd2023 +
 combined
 ```
 ```{r}
-ggsave(glue('output/evolution-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/evolution-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 Same but now along with temp min and temp max:
@@ -253,7 +254,7 @@ combined
 ```
 
 ```{r}
-# ggsave(glue('output/evolution-Temp-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/evolution-Temp-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 
@@ -290,7 +291,7 @@ combined
 ```
 
 ```{r}
-ggsave(glue('output/GRO-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/GRO-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 # Growth rate
@@ -370,7 +371,7 @@ combined
 ```
 
 ```{r}
-ggsave(glue('output/GrowthRate-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/GrowthRate-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
 And smoothed to get better the higher level trend with a smooth line:

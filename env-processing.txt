@@ -2,7 +2,7 @@
 
 ## Miedes ##
 
-SELECTED_TMS  <- c(94231935, 94231940) # 94231940 has a bit of missing data from 6 to 26 mar
+SELECTED_TMS  <- c(94231935, 94231940) # 94231940 has a bit of missing data from 6 to 26 mar24W
 
 ts_start = "2022-03-10 13:00:00"
 

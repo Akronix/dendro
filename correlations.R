@@ -1,7 +1,3 @@
-library(correlation)
-
-# Correlations
-
 ## Find best fit of cross-correlation
 find_Max_CCF = function(x, y, lag.max = NULL) {
   # run cross-correlation function
