@@ -1,0 +1,146 @@
+---
+title: "analysis-models-amplitude"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# INITIALIZATION
+SET GLOBAL VARS
+```{r}
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+
+```
+
+Load common libraries and data set for eachsite
+```{r}
+db.all <- data.frame()
+PLACE = 'Penaflor'
+source('init-analysis.R')
+db$site <- "Penaflor"
+db.all <- rbind.data.frame(db.all, db)
+
+db.env.Penaflor <- db.env
+
+PLACE = 'Miedes'
+source('init-analysis.R')
+db$site <- "Miedes"
+db.all <- rbind.data.frame(db.all, db)
+db.env.Miedes <- db.env
+
+PLACE = 'Corbalan'
+source('init-analysis.R')
+db$site <- "Corbalan"
+db.all <- rbind.data.frame(db.all, db)
+db.env.Corbalan <- db.env
+```
+
+Import other libraries
+```{r}
+library(ggnewscale)
+```
+
+# Calculate amplitude for all trees by class
+
+```{r}
+# First, let's create an amplitude.df to store the output.
+column_names <- c("date", "min", "max", "ampl", "class", "series", "site")
+amplitude.indiv = data.frame(matrix(nrow = 0, ncol = length(column_names)))
+colnames(amplitude.indiv) <- column_names
+for (dendro.no in unique(db.all$series)) {
+
+  # skip if we don't have the dendro registered in TreeList
+  if (! (dendro.no %in% TreeList$series)) next;
+
+  # Filter data by that no
+  dat = db.all[db.all$series == dendro.no,]
+  class = first(dat$class)
+  site = first(dat$site)
+  dat = dat %>% select(ts, value)
+
+  # Max - min daily amplitude
+  dat.ampl <- calculate_amplitude(dat)
+  aux <- cbind(ampl = dat.ampl, series = as.factor(dendro.no), class = class, site = site) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+  amplitude.indiv = rbind.data.frame(amplitude.indiv, aux)
+}
+```
+
+Create one different dataframe for every class
+```{r}
+amplitude.Qi <- amplitude.indiv[amplitude.indiv$class == "Quercus",]
+amplitude.P_ND <- amplitude.indiv[amplitude.indiv$class == "ND",]
+amplitude.P_D <- amplitude.indiv[amplitude.indiv$class == "D",]
+```
+
+
+## VISUALIZATION
+
+Plot amplitudes:
+```{r}
+# library(ggnewscale)
+# # Define color scales for each class
+# green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
+# blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue")
+# orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
+
+ggplot() +
+  ggtitle("Amplitudes painted by color scale according to its group") +
+  geom_line(data = amplitude.P_D, aes(x = date, y = ampl, col = series)) +
+  # scale_color_manual(values = orange_colors, name = "Declining trees") +
+  # new_scale_color() +
+  geom_line(data = amplitude.P_ND, aes(x = date, y = ampl, col = series), ) +
+  # scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
+  # new_scale_color() +
+  geom_line(data = amplitude.Qi, aes(x = date, y = ampl, col = series)) +
+  # scale_color_manual(values = green_colors, name = "Quercus Ilex") +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)")) +
+  scale_x_date(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+```
+
+```{r}
+boxplot(ampl ~ class, data = amplitude.indiv)
+```
+
+
+```{r}
+data <- amplitude.indiv %>% filter(series == first(unique(amplitude.P_D$series)) | series == first(unique(amplitude.Qi$series)) | series == first(unique(amplitude.P_ND$series)))
+ggplot() +
+  ggtitle("Amplitudes painted by color scale according to its group") +
+  geom_line(data = data, aes(x = date, y = ampl, col = series)) +
+  scale_x_date(date_breaks = "1 month", date_labels="%b %Y")
+```
+
+Plot histograms:
+```{r}
+for (dendro.no in unique(db.all$series)) {
+  dat = amplitude.indiv %>% filter(series == dendro.no)
+  hist(log(dat$ampl))
+}
+```
+
+# Analysis
+
+## ANOVA to explore significant difference between means by class
+Analysis ANOVA to see if there's significant difference between the average amplitude of each class
+
+```{r}
+aov.model <- aov(ampl ~ class + series, data = amplitude.indiv)
+summary(aov.model)
+```
+
+```{r}
+plot(aov.model$residuals)
+```
+
+
+```{r}
+TukeyHSD(aov.model)
+```
+
+```{r}
+plot(TukeyHSD(aov.model))
+```

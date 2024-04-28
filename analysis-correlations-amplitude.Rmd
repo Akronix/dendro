@@ -1,0 +1,385 @@
+---
+title: "analysis-correlations-amplitude"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# INITIALIZATION
+SET GLOBAL VARS
+```{r}
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+
+PLACE = 'Corbalan'
+```
+
+
+Load common libraries and data set
+```{r}
+source('init-analysis.R')
+```
+
+Import other libraries
+```{r}
+library(ggnewscale)
+```
+
+# Calculate amplitude for all trees by class
+
+```{r}
+# First, let's create an amplitude.df to store the output.
+column_names <- c("date", "min", "max", "ampl", "class", "series")
+amplitude.indiv = data.frame(matrix(nrow = 0, ncol = length(column_names)))
+colnames(amplitude.indiv) <- column_names
+for (dendro.no in unique(db$series)) {
+
+  # Filter data by that no
+  dat = db[db$series == dendro.no,]
+  class = first(dat$class)
+  dat = dat %>% select(ts, value)
+  
+  # Max - min daily amplitude
+  dat.ampl <- calculate_amplitude(dat)
+  aux <- cbind(ampl = dat.ampl, series = as.factor(dendro.no), class = class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+  amplitude.indiv = rbind.data.frame(amplitude.indiv, aux)
+}
+```
+
+Create one different dataframe for every class
+```{r}
+amplitude.Qi <- amplitude.indiv[amplitude.indiv$class == "Quercus",]
+amplitude.P_ND <- amplitude.indiv[amplitude.indiv$class == "ND",]
+amplitude.P_D <- amplitude.indiv[amplitude.indiv$class == "D",]
+```
+
+
+## VISUALIZATION
+
+Plot amplitudes:
+```{r}
+# Define color scales for each class
+green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
+blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue")
+orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
+
+ggplot() +
+  ggtitle("Amplitudes painted by color scale according to its group") +
+  geom_line(data = amplitude.P_D, aes(x = date, y = ampl, col = series)) +
+  scale_color_manual(values = orange_colors, name = "Declining trees") +
+  new_scale_color() +
+  geom_line(data = amplitude.P_ND, aes(x = date, y = ampl, col = series), ) +
+  scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
+  new_scale_color() +
+  geom_line(data = amplitude.Qi, aes(x = date, y = ampl, col = series)) +
+  scale_color_manual(values = green_colors, name = "Quercus Ilex") +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)")) +
+  scale_x_date(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+```
+
+```{r}
+boxplot(ampl ~ class, data = amplitude.indiv)
+```
+
+
+```{r}
+data <- amplitude.indiv %>% filter(series == first(unique(amplitude.P_D$series)) | series == first(unique(amplitude.Qi$series)) | series == first(unique(amplitude.P_ND$series)))
+ggplot() +
+  ggtitle("Amplitudes painted by color scale according to its group") +
+  geom_line(data = data, aes(x = date, y = ampl, col = series)) +
+  scale_x_date(date_breaks = "1 month", date_labels="%b %Y")
+```
+
+Plot histograms:
+```{r}
+for (dendro.no in unique(amplitude.indiv$series)) {
+  dat = amplitude.indiv %>% filter(series == dendro.no)
+  hist(log(dat$ampl))
+}
+```
+
+# Analysis
+
+## ANOVA to explore significant difference between means by class
+Analysis ANOVA to see if there's significant difference between the average amplitude of each class
+
+```{r}
+aov.model <- aov(ampl ~ class + series, data = amplitude.indiv)
+summary(aov.model)
+```
+
+```{r}
+plot(aov.model$residuals)
+```
+
+
+```{r}
+TukeyHSD(aov.model)
+```
+```{r}
+plot(TukeyHSD(aov.model))
+```
+
+
+## Correlations
+
+### Aggregate data
+
+With all daily amplitudes, calculate mean of each one by class
+
+```{r}
+amplitude.all = amplitude.indiv %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
+amplitude.all
+amplitude.df = amplitude.indiv %>% group_by(date, class) %>% summarise(mean = mean(ampl))
+amplitude.df
+amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
+amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]
+amplitude.P_D <- amplitude.df[amplitude.df$class == "D",]
+```
+
+### Amplitude ~ climate
+
+Here we show a plot with VWC vs amplitude per class
+
+```{r}
+ggplot(data = amplitude.df, mapping = aes(x = date, y = mean, col = class)) +
+  ggtitle(glue('Soil moisture vs daily stem amplitude difference for {PLACE}')) +
+  geom_line() +
+  scale_y_continuous("Amplitude (um)", breaks=seq(0,100,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)" ))+
+  geom_line(data = clim.daily, mapping = aes(x = date, y = range.vwc * 100, linetype = "Max - Min Volumetric Water Content (%)"), col="blue")
+```
+
+Following, we will explore correlation within microclimate variables (Soil Moisture and temperature) and daily seasonal amplitude.
+
+## Amplitude ~ Temperature
+Explore correlation within temperature and daily stem amplitude difference (Not significant)
+
+```{r}
+cor.test(
+  #specify the two variables to correlate
+  amplitude.P_D$mean, clim.daily$interquartil.temp,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+find_Max_CCF(amplitude.P_D$mean, clim.daily$interquartil.temp)
+```
+
+## Amplitude ~ Soil Moisture
+Explore cross-correlation within Soil Moisture and daily seasonal amplitude
+
+### for all trees and classes:
+
+```{r}
+ccf (amplitude.all$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+sort_CCF_values(amplitude.all$mean, clim.daily$max.vwc)
+```
+
+### for Quercus Ilex:
+
+Plot VWC and daily amplitude for Qi:
+
+```{r}
+plot(clim.daily$max.vwc, amplitude.Qi$mean)
+```
+
+```{r}
+plot(log10(clim.daily$max.vwc), log10(amplitude.Qi$mean))
+```
+
+Test correlation:
+```{r}
+cor.test(
+  #specify the two variables to correlate
+  clim.daily$max.vwc, amplitude.Qi$mean,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+hist(log10(amplitude.Qi$mean+1))
+```
+```{r}
+hist(log10(clim.daily$max.vwc+1))
+```
+
+Standard correlations using different methods:
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.Qi$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+Cross-correlations:
+```{r}
+ccf (amplitude.Qi$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.Qi$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+find_Max_CCF(amplitude.Qi$mean, clim.daily$max.vwc)
+sort_CCF_values(amplitude.Qi$mean, clim.daily$max.vwc)
+```
+
+### For P_ND: amplitude ~ VWC 
+
+Exploring plots VWC ~ daily amplitude:
+
+```{r}
+plot(clim.daily$max.vwc, amplitude.P_ND$mean)
+# plot(lm(log10(clim.daily$mean.vwc) ~ log10(amplitude.P_ND$mean)))
+```
+
+
+```{r}
+plot(log10(clim.daily$max.vwc), log10(amplitude.P_ND$mean))
+# plot(lm(clim.daily$mean.vwc ~ amplitude.P_ND$mean))
+```
+
+
+```{r}
+join.df <- full_join(clim.daily, amplitude.P_ND, by="date")
+  ggplot(data = join.df, aes(log10(max.vwc), log10(mean))) +
+  # black points graph
+  geom_point() +
+  # add correlation with errors and blue color
+  stat_smooth(method = 'lm',
+              method.args = list(start= c(a = 1,b=1)),
+              se=T, color = "blue") +
+   # theme
+  theme_classic() +
+  # add labels
+  labs( x = "Max Soil Moisture per day - Log",
+        y = "amplitude variations (um) - Log")
+```
+Exploring correlations:
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_ND$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+```{r}
+ccf (amplitude.P_ND$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+sort_CCF_values(amplitude.P_ND$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_ND$mean), log10(clim.daily$max.vwc))
+```
+
+## With P_D
+
+```{r}
+cor.test(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
+  # correlation methods (pearson, spearman, kendall)
+  method = c("pearson"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_D$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("spearman"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+```{r}
+cor.test(amplitude.P_D$mean, clim.daily$max.vwc,
+  # correlation methods (pearson, spearman, kendall)
+  method = c("kendall"),
+  # set confidence interval
+  conf.level = 0.95)
+```
+
+
+```{r}
+ccf (amplitude.P_D$mean, clim.daily$max.vwc,
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+
+ccf (log10(amplitude.P_D$mean), log10(clim.daily$max.vwc),
+     #indicate what to do with "NA".
+     na.action = na.pass,
+     #indicate if you want the plot
+     plot = "TRUE")
+```
+
+```{r}
+sort_CCF_values(amplitude.P_D$mean, clim.daily$max.vwc)
+sort_CCF_values(log10(amplitude.P_D$mean), log10(clim.daily$max.vwc))
+```
+

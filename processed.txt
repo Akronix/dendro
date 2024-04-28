@@ -877,7 +877,7 @@ ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
 === DATOS CORBALAN DENDROMETROS NUEVOS (INSTALADOS DESPUÉS) HASTA OCT-23 ===
 
-!!! -> Excluir de análisis de clases hasta que sepamos cuáles corresponden a los 2 decaídos o y cual al no decaído.
+!!! -> Excluir de análisis de clases hasta que sepamos cuáles corresponden a los 2 decaídos o y cual al no decaído: 92223481, 92223482, y 92223483
 
 
 DATA_DIR = 'raw/Corbalan-dataD'
