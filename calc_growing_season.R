@@ -21,7 +21,7 @@ SELECTED_DENDROS <- c("92222151", "92222152", "92222153", "92222158", "92222159"
 
 ## Load & calculate grow season of selected datasets ##
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
-db<-read.all.processed(list_files)
+db <- read.all.processed(list_files)
 
 db <- db %>% filter(series %in% SELECTED_DENDROS)
 

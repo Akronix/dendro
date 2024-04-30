@@ -86,10 +86,32 @@ save_plot_seasonality_stl <- function(stl.out, name) {
   dev.off()
 }
 
-
 ## Define amplitude-related functions
 calculate_amplitude <- function(dat) {
   dat %>% mutate(date = date(ts)) %>% group_by(date) %>% summarize(max = max(value), min = min(value)) %>% mutate(ampl = max-min)
+}
+
+calculate_amplitudes_df <- function(df, selected_dendros = NULL) {
+  # First, let's create an amplitude.df to store the output.
+  amplitude.indiv = data.frame()
+  if (is.null (selected_dendros) | length(selected_dendros) == 0) {selected_dendros <- unique(df$series)}
+  
+  for (dendro.no in selected_dendros) {
+    
+    # Filter data by that no
+    dat = df[df$series == dendro.no,]
+    class = first(dat$class)
+    site = first(dat$site)
+    dat = dat %>% select(ts, value)
+    
+    # Max - min daily amplitude
+    dat.ampl <- calculate_amplitude(dat)
+    aux <- cbind(ampl = dat.ampl, series = as.factor(dendro.no), class = class, site = site) %>% 
+      rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
+    amplitude.indiv = rbind.data.frame(amplitude.indiv, aux)
+  }
+  
+  return (amplitude.indiv)
 }
 
 save_plot_amplitude <- function(dat.ampl, name) {

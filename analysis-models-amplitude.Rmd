@@ -11,67 +11,33 @@ SET GLOBAL VARS
 PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 print(PATH)
 setwd(PATH)
-
 ```
 
-Load common libraries and data set for eachsite
+Import libraries
 ```{r}
-db.all <- data.frame()
-PLACE = 'Penaflor'
-source('init-analysis.R')
-db$site <- "Penaflor"
-db.all <- rbind.data.frame(db.all, db)
-
-db.env.Penaflor <- db.env
-
-PLACE = 'Miedes'
-source('init-analysis.R')
-db$site <- "Miedes"
-db.all <- rbind.data.frame(db.all, db)
-db.env.Miedes <- db.env
-
-PLACE = 'Corbalan'
-source('init-analysis.R')
-db$site <- "Corbalan"
-db.all <- rbind.data.frame(db.all, db)
-db.env.Corbalan <- db.env
-```
-
-Import other libraries
-```{r}
+require(visreg)
 library(ggnewscale)
+```
+
+Load amplitude data set for each site
+```{r}
+ampl.df <- read.csv(file.path('cooked-data', 'amplitudeAndClimate-allsites.csv'))
+summary(ampl.df)
+```
+
+Convert categorical variables to R "factor"
+```{r}
+ampl.df <- ampl.df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date)) %>% dplyr::rename(id = series)
+str(ampl.df)
 ```
 
 # Calculate amplitude for all trees by class
 
-```{r}
-# First, let's create an amplitude.df to store the output.
-column_names <- c("date", "min", "max", "ampl", "class", "series", "site")
-amplitude.indiv = data.frame(matrix(nrow = 0, ncol = length(column_names)))
-colnames(amplitude.indiv) <- column_names
-for (dendro.no in unique(db.all$series)) {
-
-  # skip if we don't have the dendro registered in TreeList
-  if (! (dendro.no %in% TreeList$series)) next;
-
-  # Filter data by that no
-  dat = db.all[db.all$series == dendro.no,]
-  class = first(dat$class)
-  site = first(dat$site)
-  dat = dat %>% select(ts, value)
-
-  # Max - min daily amplitude
-  dat.ampl <- calculate_amplitude(dat)
-  aux <- cbind(ampl = dat.ampl, series = as.factor(dendro.no), class = class, site = site) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
-  amplitude.indiv = rbind.data.frame(amplitude.indiv, aux)
-}
-```
-
 Create one different dataframe for every class
 ```{r}
-amplitude.Qi <- amplitude.indiv[amplitude.indiv$class == "Quercus",]
-amplitude.P_ND <- amplitude.indiv[amplitude.indiv$class == "ND",]
-amplitude.P_D <- amplitude.indiv[amplitude.indiv$class == "D",]
+amplitude.Qi <- ampl.df[ampl.df$class == "Quercus",]
+amplitude.P_ND <- ampl.df[ampl.df$class == "ND",]
+amplitude.P_D <- ampl.df[ampl.df$class == "D",]
 ```
 
 
@@ -87,13 +53,13 @@ Plot amplitudes:
 
 ggplot() +
   ggtitle("Amplitudes painted by color scale according to its group") +
-  geom_line(data = amplitude.P_D, aes(x = date, y = ampl, col = series)) +
+  geom_line(data = amplitude.P_D, aes(x = date, y = ampl, col = id)) +
   # scale_color_manual(values = orange_colors, name = "Declining trees") +
   # new_scale_color() +
-  geom_line(data = amplitude.P_ND, aes(x = date, y = ampl, col = series), ) +
+  geom_line(data = amplitude.P_ND, aes(x = date, y = ampl, col = id), ) +
   # scale_color_manual(values = blue_colors, name = "Non-Declining trees") +
   # new_scale_color() +
-  geom_line(data = amplitude.Qi, aes(x = date, y = ampl, col = series)) +
+  geom_line(data = amplitude.Qi, aes(x = date, y = ampl, col = id)) +
   # scale_color_manual(values = green_colors, name = "Quercus Ilex") +
   labs(x=expression(''),
        y=expression(Delta*" D (um)")) +
@@ -102,22 +68,22 @@ ggplot() +
 ```
 
 ```{r}
-boxplot(ampl ~ class, data = amplitude.indiv)
+boxplot(ampl ~ class, data = ampl.df)
 ```
 
 
 ```{r}
-data <- amplitude.indiv %>% filter(series == first(unique(amplitude.P_D$series)) | series == first(unique(amplitude.Qi$series)) | series == first(unique(amplitude.P_ND$series)))
+data <- ampl.df %>% filter(id == first(unique(amplitude.P_D$id)) | id == first(unique(amplitude.Qi$id)) | id == first(unique(amplitude.P_ND$id)))
 ggplot() +
   ggtitle("Amplitudes painted by color scale according to its group") +
-  geom_line(data = data, aes(x = date, y = ampl, col = series)) +
+  geom_line(data = data, aes(x = date, y = ampl, col = id)) +
   scale_x_date(date_breaks = "1 month", date_labels="%b %Y")
 ```
 
 Plot histograms:
 ```{r}
-for (dendro.no in unique(db.all$series)) {
-  dat = amplitude.indiv %>% filter(series == dendro.no)
+for (dendro.no in unique(ampl.df$id)) {
+  dat = ampl.df %>% filter(id == dendro.no)
   hist(log(dat$ampl))
 }
 ```
@@ -128,14 +94,13 @@ for (dendro.no in unique(db.all$series)) {
 Analysis ANOVA to see if there's significant difference between the average amplitude of each class
 
 ```{r}
-aov.model <- aov(ampl ~ class + series, data = amplitude.indiv)
+aov.model <- aov(ampl ~ class + id, data = ampl.df)
 summary(aov.model)
 ```
 
 ```{r}
 plot(aov.model$residuals)
 ```
-
 
 ```{r}
 TukeyHSD(aov.model)
@@ -144,3 +109,85 @@ TukeyHSD(aov.model)
 ```{r}
 plot(TukeyHSD(aov.model))
 ```
+
+## LMM
+```{r}
+library(lme4)
+library("bbmle") ## for AICtab
+```
+Plot climate variables distribution
+(cambiar por db.all)
+```{r}
+par(mfrow=c(3,2),mar=c(2,2,3,2),oma=c(2,3,1,1),xpd=F)
+hist(amp_miedes2$mean.temp)
+hist(amp_miedes2$max.temp)
+hist(amp_miedes2$range.temp)
+hist(amp_miedes2$mean.vwc)
+hist(amp_miedes2$max.vwc)
+hist(amp_miedes2$range.vwc)
+```
+
+```{r}
+#range.vwc tiene una distribución muy, muy asimetrica. Sería mejor cambiarla por
+#factor
+#ver la variable respuesta
+par(mfrow=c(2,1),mar=c(2,2,3,2),oma=c(2,3,1,1),xpd=F)
+hist(amp_miedes2$ampl)
+hist(log(amp_miedes2$ampl+0.1))
+```
+
+```{r}
+model.glm <- glm(log(ampl+0.1) ~ 1 + id + doy, data = ampl.df, family = "gaussian")
+```
+
+
+```{r}
+library(lme4)
+model.lme4 <- lmer(log(ampl+0.1) ~ 1 + (1|id), data = ampl.df)
+#model <- lmer(log(ampl+0.1) ~ 1 + (1|class) + (1|id) + (1|doy) + (1|site), data = ampl.df)
+#model <- lmer(log(ampl+0.1) ~ 1, random = ~ 1 + class + id + doy + site, data = ampl.df)
+#model.clim <- lmer(log(ampl) ~ max.vwc * range.temp + (1|class) + (1|id) + (1|doy) + (1|site) , data = ampl.df)
+```
+
+Now using nlme
+```{r}
+library(nlme)
+model.lme <- lme(log(ampl+0.1) ~ 1, random = ~ 1|id, data = ampl.df)
+model.lme.autocor <- update(model.lme, correlation=corAR1())
+plot(ACF(model.lme, alpha=0.05))
+plot(ACF(model.lme.autocor), resType="normalized", alpha=0.05)
+```
+
+
+
+subset to only Miedes data to have smaller amount of data:
+```{r}
+a1 <- subset(ampl.df, id == '92222151' | id == '92222152' | id == '92222153')
+```
+
+glmmTMB
+```{r}
+library(glmmTMB)
+model.glmmTMB <- glmmTMB(log(ampl+0.1) ~ 1 + (1|id) + (1|doy), data=ampl.df, family=gaussian) # add up 
+model.glmmTMB.cor <- glmmTMB(log(ampl+0.1) ~ 1 + (1|id)  + (1|doy) + ar1(as.factor(doy)-1|id), data=ampl.df, family=gaussian) # add up temporal autocorrelation
+model.glmmTMB2 <- glmmTMB(log(ampl+0.1) ~ class + site + (1|id) + (1|doy), data=ampl.df, family=gaussian)
+model.glmmTMB2.cor <- update(model.glmmTMB2, . ~ . + ar1(as.factor(doy)-1|id))
+model.glmmTMB2.climate <- update(model.glmmTMB2.cor,  . ~ . + degree.hours.temp + max.vwc)
+```
+
+```{r}
+AICtab(model.glmmTMB, model.glmmTMB.cor, model.glmmTMB2, model.glmmTMB2.cor, model.lme4, model.glm, model.lme, model.lme.autocor, model.glmmTMB2.climate, weights=TRUE, delta = T, base = T)
+```
+
+```{r}
+waic
+
+```
+
+
+
+# GAMM
+```{r}
+
+```
+
