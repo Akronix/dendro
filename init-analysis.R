@@ -13,8 +13,11 @@ library(imputeTS)
 
 ### DEFINE GLOBAL VARS ###
 
-ts_start <- "2023-05-01 09:00:00" # from first of May
-ts_end <-"2023-11-01 07:00:00" # to 1st of november
+ts_start2022 <- "2022-05-01 09:00:00" # from first of May
+ts_end2022 <-"2022-10-30 23:45:00" # to 30 October
+
+ts_start2023 <- "2023-05-01 09:00:00" # from first of May
+ts_end2023 <-"2023-10-30 23:45:00" # to 30 October
 
 DATA_DIR = glue('processed/{PLACE}-processed')
 ENV_DIR = glue('processed/{PLACE}-env-processed')
@@ -52,9 +55,13 @@ db<-read.all.processed(list_files)
 if (length(SELECTED_DENDROS) > 0) {db = db %>% filter(db$series %in% SELECTED_DENDROS)}
 str(db)
 
-# filter data to study period
+# filter data to study period for two years of the analysis
 # Set initial and final date for analysis
-db <- reset.initial.values(db, ts_start, ts_end)
+db2022 <- reset.initial.values(db, ts_start2022, ts_end2022)
+db2023 <- reset.initial.values(db, ts_start2023, ts_end2023)
+
+# append the two previous dbs in one
+db <- rbind.data.frame(db2022, db2023)
 
 Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
 P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
@@ -67,7 +74,7 @@ db <- db %>% mutate (
     series %in% P_ND ~ factor("ND"),
     .default = NA
   )
-) %>% mutate(date = date(ts), doy = yday(date))
+) %>% mutate(date = date(ts), doy = yday(date), year = year(date))
 
 ### Data imputation ###
 # Is there missing data?
@@ -103,7 +110,10 @@ db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
 db.env <- db.env[db.env$series == SELECTED_TMS,]
 
 # Filter env data to period of study
-db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),]
+db.env2022 <- db.env[which(db.env$ts>=ts_start2022 & db.env$ts<=ts_end2022),]
+db.env2023 <- db.env[which(db.env$ts>=ts_start2023 & db.env$ts<=ts_end2023),]
+db.env <- rbind.data.frame(db.env2022, db.env2023)
+
 summary(db.env)
 
 print('Is there any TMS missing data?')

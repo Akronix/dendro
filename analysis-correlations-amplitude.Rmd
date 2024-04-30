@@ -11,49 +11,34 @@ SET GLOBAL VARS
 PATH = dirname(rstudioapi::getSourceEditorContext()$path)
 print(PATH)
 setwd(PATH)
-
-PLACE = 'Corbalan'
 ```
 
-
-Load common libraries and data set
+Import libraries
 ```{r}
-source('init-analysis.R')
-```
-
-Import other libraries
-```{r}
+require(visreg)
 library(ggnewscale)
+library(tidyverse)
+library(glue)
 ```
 
-# Calculate amplitude for all trees by class
-
+Load amplitude data set for each site
 ```{r}
-# First, let's create an amplitude.df to store the output.
-column_names <- c("date", "min", "max", "ampl", "class", "series")
-amplitude.indiv = data.frame(matrix(nrow = 0, ncol = length(column_names)))
-colnames(amplitude.indiv) <- column_names
-for (dendro.no in unique(db$series)) {
+ampl.df <- read.csv(file.path('cooked-data', 'amplitudeAndClimate-Miedes.csv'))
+summary(ampl.df)
+```
 
-  # Filter data by that no
-  dat = db[db$series == dendro.no,]
-  class = first(dat$class)
-  dat = dat %>% select(ts, value)
-  
-  # Max - min daily amplitude
-  dat.ampl <- calculate_amplitude(dat)
-  aux <- cbind(ampl = dat.ampl, series = as.factor(dendro.no), class = class) %>% rename (date = ampl.date, min = ampl.min, max = ampl.max, ampl = ampl.ampl)
-  amplitude.indiv = rbind.data.frame(amplitude.indiv, aux)
-}
+Convert categorical variables to R "factor"
+```{r}
+ampl.df <- ampl.df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date))
+str(ampl.df)
 ```
 
 Create one different dataframe for every class
 ```{r}
-amplitude.Qi <- amplitude.indiv[amplitude.indiv$class == "Quercus",]
-amplitude.P_ND <- amplitude.indiv[amplitude.indiv$class == "ND",]
-amplitude.P_D <- amplitude.indiv[amplitude.indiv$class == "D",]
+amplitude.Qi <- ampl.df[ampl.df$class == "Quercus",]
+amplitude.P_ND <- ampl.df[ampl.df$class == "ND",]
+amplitude.P_D <- ampl.df[ampl.df$class == "D",]
 ```
-
 
 ## VISUALIZATION
 
@@ -81,12 +66,11 @@ ggplot() +
 ```
 
 ```{r}
-boxplot(ampl ~ class, data = amplitude.indiv)
+boxplot(ampl ~ class, data = ampl.df)
 ```
 
-
 ```{r}
-data <- amplitude.indiv %>% filter(series == first(unique(amplitude.P_D$series)) | series == first(unique(amplitude.Qi$series)) | series == first(unique(amplitude.P_ND$series)))
+data <- ampl.df %>% filter(series == first(unique(amplitude.P_D$series)) | series == first(unique(amplitude.Qi$series)) | series == first(unique(amplitude.P_ND$series)))
 ggplot() +
   ggtitle("Amplitudes painted by color scale according to its group") +
   geom_line(data = data, aes(x = date, y = ampl, col = series)) +
@@ -95,8 +79,8 @@ ggplot() +
 
 Plot histograms:
 ```{r}
-for (dendro.no in unique(amplitude.indiv$series)) {
-  dat = amplitude.indiv %>% filter(series == dendro.no)
+for (dendro.no in unique(ampl.df$series)) {
+  dat = ampl.df %>% filter(series == dendro.no)
   hist(log(dat$ampl))
 }
 ```
@@ -107,7 +91,7 @@ for (dendro.no in unique(amplitude.indiv$series)) {
 Analysis ANOVA to see if there's significant difference between the average amplitude of each class
 
 ```{r}
-aov.model <- aov(ampl ~ class + series, data = amplitude.indiv)
+aov.model <- aov(ampl ~ class + series, data = ampl.df)
 summary(aov.model)
 ```
 
@@ -131,9 +115,9 @@ plot(TukeyHSD(aov.model))
 With all daily amplitudes, calculate mean of each one by class
 
 ```{r}
-amplitude.all = amplitude.indiv %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
+amplitude.all = ampl.df %>% group_by(date) %>% summarise(mean = mean(ampl), .groups = "drop")
 amplitude.all
-amplitude.df = amplitude.indiv %>% group_by(date, class) %>% summarise(mean = mean(ampl))
+amplitude.df = ampl.df %>% group_by(date, class) %>% summarise(mean = mean(ampl))
 amplitude.df
 amplitude.Qi <- amplitude.df[amplitude.df$class == "Quercus",]
 amplitude.P_ND <- amplitude.df[amplitude.df$class == "ND",]

@@ -31,8 +31,6 @@ ampl.df <- ampl.df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}
 str(ampl.df)
 ```
 
-# Calculate amplitude for all trees by class
-
 Create one different dataframe for every class
 ```{r}
 amplitude.Qi <- ampl.df[ampl.df$class == "Quercus",]
