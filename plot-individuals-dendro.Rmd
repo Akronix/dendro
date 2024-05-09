@@ -9,17 +9,17 @@ library(dplyr)
 PATH = '/home/akronix/workspace/dendro';
 setwd(PATH)
 
-DATA_DIR = 'Valcuerna-processed'
-FILENAME_EXCESS = "_2023_10_25_0.csv"
+DATA_DIR = 'processed/Penaflor-processed'
 
-# Set initial and final date and sampling dates
-ts_start<-"2023-03-23 09:00:00" # 2 days after installation
-ts_end<-"2023-10-25 14:45:00" # last timestamp of downloaded data
+# lentiscos = c(92223485, 92232435, 92232429, 92232425, 92232432) 
+# sabinas = c(92232422, 92232436, 92232430, 92232434, 92232433, 92232427, 92232428, 92232431, 92232426)
 
-lentiscos = c(92223485, 92232435, 92232429, 92232425, 92232432) 
-sabinas = c(92232422, 92232436, 92232430, 92232434, 92232433, 92232427, 92232428, 92232431, 92232426)
+TreeList <- read.table("TreeList.txt",header=T)
+
+Qi = TreeList %>% filter(class == "Quercus") %>% pull(series)
+P_D = TreeList %>% filter(class == "D") %>% pull(series)
+P_ND = TreeList %>% filter(class == "ND") %>% pull(series)
 ```
-
 
 Define plot functions
 ```{r}
@@ -37,17 +37,19 @@ plot_line<- function(data, title, y = data$value) {
   theme(axis.text.x = element_text(angle = 30, hjust=1))
 }
 ```
-
-
-
-PLotting one by one and save it to pdf file
+  
+Read data and plot it one by one and save it to a pdf file
 ```{r}
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
 
-pdf("dendrometers_Valcuerna_plots.pdf", onefile = TRUE)
+pdf("dendrometers_Penaflor_plots.pdf", onefile = TRUE)
 for (dendro.fn in list_files) {
   dendro.db <- read.one.processed(dendro.fn)
-  specie <- ifelse(dendro.db$series %in% lentiscos, "Pistacia Lentiscus", "Juniperus Phoenicea")
+  if (first(dendro.db$series) %in% Qi) specie = "Quercus"
+  else if(first(dendro.db$series) %in% P_D) specie = "Declining Pine"
+  else if(first(dendro.db$series) %in% P_ND) specie = "Non-Declining Pine"
+     # ifelse(dendro.db$series %in% lentiscos, "Pistacia Lentiscus", "Juniperus Phoenicea")
+   
   print(plot_line(dendro.db, paste(dendro.db$series, '-', specie)))
 }
 dev.off()
