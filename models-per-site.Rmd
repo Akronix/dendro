@@ -1,0 +1,73 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+df <- read.csv('cooked-data/amplitudeAndClimate-Miedes.csv')
+df <- df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date)) %>% dplyr::rename(id = series)
+str(df)
+summary(df)
+```
+
+```{r}
+library(plotly)
+plot_ly(data = df, y = ~ampl, x = ~ date, color = ~id)
+# plot_ly(data = df, mapping = aes(x = date, y = ampl, col = id)) + geom_line()
+```
+
+```{r}
+date_start2022 <- "2022-04-01" # from first of May
+date_end2022 <-"2022-10-16" # to 30 October
+
+date_start2023 <- "2023-04-01" # from first of May
+date_end2023 <-"2023-10-16" # to 30 October
+
+df2022 <- df[which(df$date>=date_start2022 & df$date<=date_end2022),]
+df2023 <- df[which(df$date>=date_start2023 & df$date<=date_end2023),]
+df <- rbind.data.frame(df2022, df2023)
+summary(df)
+```
+
+
+```{r}
+library(nlme)
+library(MuMIn)
+```
+
+```{r}
+boxplot(log10(ampl+1) ~ class, data = df)
+```
+
+
+```{r}
+# nrow(df)
+# df2 <- df %>% filter(max.vwc > 0.15)
+# nrow(df2)
+```
+
+```{r}
+pines <- df %>% filter(class == "D" | class == "ND") %>% mutate(class= factor(class), id = factor(id))
+```
+
+
+```{r}
+str(pines)
+model.lme.clim.ar <- lme(log10(ampl+1) ~ class, random = ~ 1|id, correlation=corAR1(), data = df,  method = "ML")
+model.lme.clim.pines <- lme(log10(ampl+1) ~ class * max.vwc + class * mean.temp, random = ~ 1|id, correlation=corAR1(), data = pines,  method = "ML")
+```
+
+```{r}
+sel <- dredge(model.lme.clim.ar)
+View(sel)
+sel2 <- dredge(model.lme.clim.pines)
+View(sel2)
+```
+
+
+

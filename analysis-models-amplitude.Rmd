@@ -17,6 +17,7 @@ Import libraries
 ```{r}
 require(visreg)
 library(ggnewscale)
+library(tidyverse)
 ```
 
 Load amplitude data set for each site
@@ -66,9 +67,11 @@ ggplot() +
 ```
 
 ```{r}
-boxplot(ampl ~ class, data = ampl.df)
+boxplot(log10(ampl+1) ~ class, data = ampl.df %>% filter(site == "Miedes"))
+boxplot(log10(ampl+1) ~ class, data = ampl.df %>% filter(site == "Penaflor"))
+boxplot(log10(ampl+1) ~ class, data = ampl.df %>% filter(site == "Corbalan"))
 ```
-
+^ Threre's homogeinity
 
 ```{r}
 data <- ampl.df %>% filter(id == first(unique(amplitude.P_D$id)) | id == first(unique(amplitude.Qi$id)) | id == first(unique(amplitude.P_ND$id)))
@@ -82,7 +85,7 @@ Plot histograms:
 ```{r}
 for (dendro.no in unique(ampl.df$id)) {
   dat = ampl.df %>% filter(id == dendro.no)
-  hist(log(dat$ampl))
+  hist(log10(dat$ampl))
 }
 ```
 
@@ -113,16 +116,17 @@ plot(TukeyHSD(aov.model))
 library(lme4)
 library("bbmle") ## for AICtab
 ```
+
 Plot climate variables distribution
 (cambiar por db.all)
 ```{r}
 par(mfrow=c(3,2),mar=c(2,2,3,2),oma=c(2,3,1,1),xpd=F)
-hist(amp_miedes2$mean.temp)
-hist(amp_miedes2$max.temp)
-hist(amp_miedes2$range.temp)
-hist(amp_miedes2$mean.vwc)
-hist(amp_miedes2$max.vwc)
-hist(amp_miedes2$range.vwc)
+hist(ampl.df$mean.temp)
+hist(ampl.df$max.temp)
+hist(ampl.df$range.temp)
+hist(ampl.df$mean.vwc)
+hist(ampl.df$max.vwc)
+hist(ampl.df$range.vwc)
 ```
 
 ```{r}
@@ -130,32 +134,56 @@ hist(amp_miedes2$range.vwc)
 #factor
 #ver la variable respuesta
 par(mfrow=c(2,1),mar=c(2,2,3,2),oma=c(2,3,1,1),xpd=F)
-hist(amp_miedes2$ampl)
-hist(log(amp_miedes2$ampl+0.1))
+hist(ampl.df$ampl)
+hist(log10(ampl.df$ampl+0.1))
 ```
 
 ```{r}
-model.glm <- glm(log(ampl+0.1) ~ 1 + id + doy, data = ampl.df, family = "gaussian")
+model.glm <- glm(log10(ampl+0.1) ~ 1 + id + doy, data = ampl.df, family = "gaussian")
+model.glm2 <- glm(ampl ~ 1 + id + doy, data = ampl.df, family = "gamma")
 ```
 
 
 ```{r}
 library(lme4)
-model.lme4 <- lmer(log(ampl+0.1) ~ 1 + (1|id), data = ampl.df)
-#model <- lmer(log(ampl+0.1) ~ 1 + (1|class) + (1|id) + (1|doy) + (1|site), data = ampl.df)
-#model <- lmer(log(ampl+0.1) ~ 1, random = ~ 1 + class + id + doy + site, data = ampl.df)
-#model.clim <- lmer(log(ampl) ~ max.vwc * range.temp + (1|class) + (1|id) + (1|doy) + (1|site) , data = ampl.df)
+model.lme4 <- lmer(log10(ampl+0.1) ~ 1 + (1|id), data = ampl.df)
+#model <- lmer(log10(ampl+0.1) ~ 1 + (1|class) + (1|id) + (1|doy) + (1|site), data = ampl.df)
+#model <- lmer(log10(ampl+0.1) ~ 1, random = ~ 1 + class + id + doy + site, data = ampl.df)
+#model.clim <- lmer(log10(ampl) ~ max.vwc * range.temp + (1|class) + (1|id) + (1|doy) + (1|site) , data = ampl.df)
 ```
 
 Now using nlme
 ```{r}
 library(nlme)
-model.lme <- lme(log(ampl+0.1) ~ 1, random = ~ 1|id, data = ampl.df)
+model.lme <- lme(log10(ampl+1) ~ 1, random = ~ 1|id, data = ampl.df)
+model.lme.clim <- lme(log10(ampl+1) ~ mean.temp + max.vwc, random = ~ 1|id, data = ampl.df)
 model.lme.autocor <- update(model.lme, correlation=corAR1())
-plot(ACF(model.lme, alpha=0.05))
-plot(ACF(model.lme.autocor), resType="normalized", alpha=0.05)
+model.lme.clim.ar <- lme(log10(ampl+1) ~ mean.temp + max.vwc, random = ~ 1|id, correlation=corAR1(), data = ampl.df)
+model.lme.clim.arI <- lme(log10(ampl+1) ~ mean.temp * max.vwc, random = ~ 1|id, correlation=corAR1(), data = ampl.df)
 ```
 
+```{r}
+plot(ACF(model.lme, resType="normalized", alpha=0.05))
+plot(ACF(model.lme.clim,  resType="normalized", alpha=0.05))
+plot(ACF(model.lme.clim.ar,  resType="normalized", alpha=0.05))
+plot(ACF(model.lme.clim.arI,  resType="normalized", alpha=0.05))
+plot(ACF(model.lme.autocor, resType="normalized", alpha=0.05))
+```
+
+relations between response variable and explanatory variables
+```{r}
+plot(log10(ampl+0.1) ~ degree.hours.temp ,ampl.df)
+plot(log10(ampl+0.1) ~ max.vwc ,ampl.df)
+plot(log10(ampl+0.1) ~ mean.temp ,ampl.df)
+cor(ampl.df$degree.hours.temp, ampl.df$mean.temp)
+```
+
+```{r}
+summary(model.lme.clim.arI)
+```
+```{r}
+plot(model.lme.clim.arI)
+```
 
 
 subset to only Miedes data to have smaller amount of data:
@@ -166,15 +194,16 @@ a1 <- subset(ampl.df, id == '92222151' | id == '92222152' | id == '92222153')
 glmmTMB
 ```{r}
 library(glmmTMB)
-model.glmmTMB <- glmmTMB(log(ampl+0.1) ~ 1 + (1|id) + (1|doy), data=ampl.df, family=gaussian) # add up 
-model.glmmTMB.cor <- glmmTMB(log(ampl+0.1) ~ 1 + (1|id)  + (1|doy) + ar1(as.factor(doy)-1|id), data=ampl.df, family=gaussian) # add up temporal autocorrelation
-model.glmmTMB2 <- glmmTMB(log(ampl+0.1) ~ class + site + (1|id) + (1|doy), data=ampl.df, family=gaussian)
+model.glmmTMB <- glmmTMB(log10(ampl+0.1) ~ 1 + (1|id) + (1|doy), data=ampl.df, family=gaussian) # add up 
+model.glmmTMB.cor <- glmmTMB(log10(ampl+0.1) ~ 1 + (1|id)  + (1|doy) + ar1(as.factor(doy)-1|id), data=ampl.df, family=gaussian) # add up temporal autocorrelation
+model.glmmTMB2 <- glmmTMB(log10(ampl+0.1) ~ class + site + (1|id) + (1|doy), data=ampl.df, family=gaussian)
 model.glmmTMB2.cor <- update(model.glmmTMB2, . ~ . + ar1(as.factor(doy)-1|id))
 model.glmmTMB2.climate <- update(model.glmmTMB2.cor,  . ~ . + degree.hours.temp + max.vwc)
 ```
 
 ```{r}
-AICtab(model.glmmTMB, model.glmmTMB.cor, model.glmmTMB2, model.glmmTMB2.cor, model.lme4, model.glm, model.lme, model.lme.autocor, model.glmmTMB2.climate, weights=TRUE, delta = T, base = T)
+# AICtab(model.glmmTMB, model.glmmTMB.cor, model.glmmTMB2, model.glmmTMB2.cor, model.lme4, model.glm, model.lme, model.lme.autocor, model.lme.clim, model.lme.clim.ar, model.glmmTMB2.climate, weights=TRUE, delta = T, base = T)
+AICtab(model.lme, model.lme.autocor, model.lme.clim, model.lme.clim.ar, model.lme.clim.arI, weights=TRUE, delta = T, base = T)
 ```
 
 ```{r}

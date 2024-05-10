@@ -10,7 +10,6 @@ if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 
 for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
   source('init-analysis.R') # load dendrometers data from 'PLACE' into db variable and climate data in clim.daily and db.env
-  db$site <- PLACE
   
   seasonalities <- calculate_stl_seasonalities(db, unique(db$series))
   ampl.db <- calculate_amplitudes_df(seasonalities)
@@ -19,6 +18,8 @@ for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
   
   ampl.db <- ampl.db %>% mutate(doy = yday(date))
   ampl.db <- left_join(ampl.db, clim.daily, by=c("doy", "date"))
+  
+  ampl.db$site <- PLACE
   
   write_csv(ampl.db, file.path(OUTPUT_PATH, glue('amplitudeAndClimate-daily-{PLACE}.csv')), append = F, col_names = T)
   

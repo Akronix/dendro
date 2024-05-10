@@ -1,4 +1,5 @@
 library(lubridate)
+library(tidyverse)
 
 # import one csv data
 # Examples of date_format: "%Y.%m.%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"
@@ -89,9 +90,13 @@ read.env.agg <- function(filename) {
 }
 
 
-reset.initial.values <- function (dendros, ts_start, ts_end) {
+reset.initial.values <- function (dendros, ts_start, ts_end = NULL) {
   
-  dendros <- dendros[which(dendros$ts>=ts_start & dendros$ts<=ts_end),]
+  if(is.null(ts_end)) {
+      dendros <- dendros[which(dendros$ts>=ts_start),]
+    } else {
+      dendros <- dendros[which(dendros$ts>=ts_start & dendros$ts<=ts_end),]
+    }
   
   sub_first_element <- function (dendro, group_key){
     # equivalent to one-liner: return (df$value = sapply(df$value, \(val, first_val) val - first_val, df$value[1]))

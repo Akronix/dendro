@@ -138,6 +138,8 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
   for (dendro.no in dendro.series) {
     # Filter data by that no
     dat = db[db$series == dendro.no,]
+    if ('class' %in% colnames(dat)) {class = first(dat$class)}
+    
     dat = dat %>% select(ts, value)
     dat.ts <- ts(data = dat$value, frequency = 96)
     
@@ -150,6 +152,8 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
       series = as.factor(dendro.no),
       ts = dat$ts
     )
+    
+    if (exists('class')) aux$class <- class
 
     seasonalities <- rbind.data.frame(seasonalities, aux)
   }
