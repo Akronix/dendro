@@ -13,11 +13,11 @@ library(imputeTS)
 
 ### DEFINE GLOBAL VARS ###
 
-ts_start2022 <- "2022-05-01 09:00:00" # from first of May
-ts_end2022 <-"2022-10-30 23:45:00" # to 30 October
-
-ts_start2023 <- "2023-05-01 09:00:00" # from first of May
-ts_end2023 <-"2023-10-30 23:45:00" # to 30 October
+# ts_start2022 <- "2022-04-01 09:00:00" # from first of May
+# ts_end2022 <-"2022-10-30 23:45:00" # to 30 October
+# 
+# ts_start2023 <- "2023-04-01 09:00:00" # from first of May
+# ts_end2023 <-"2023-10-30 23:45:00" # to 30 October
 
 DATA_DIR = glue('processed/{PLACE}-processed')
 ENV_DIR = glue('processed/{PLACE}-env-processed')
@@ -47,21 +47,13 @@ SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all 
 
 # Load dataset:
 list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
-db<-read.all.processed(list_files)
+db <- read.all.processed(list_files)
 
 ## CLEAN & PREPARE DATA ###
 
 # keep data of selected dendros only
 if (length(SELECTED_DENDROS) > 0) {db = db %>% filter(db$series %in% SELECTED_DENDROS)}
 str(db)
-
-# filter data to study period for two years of the analysis
-# Set initial and final date for analysis
-db2022 <- reset.initial.values(db, ts_start2022, ts_end2022)
-db2023 <- reset.initial.values(db, ts_start2023, ts_end2023)
-
-# append the two previous dbs in one
-db <- rbind.data.frame(db2022, db2023)
 
 Qi = TreeList %>% filter(class == "Quercus", series %in% unique(db$series)) %>% pull(series)
 P_D = TreeList %>% filter(class == "D", series %in% unique(db$series)) %>% pull(series)
@@ -103,18 +95,27 @@ n.per.class <- db %>% group_by(class) %>% summarise (n = n_distinct(series)) %>%
 c_labels = c(Quercus = glue("{labels[1]} ({n.per.class$Quercus})"), D = glue("{labels[2]} ({n.per.class$D})"), ND = glue("{labels[3]} ({n.per.class$ND})"))
 c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
 
-### Climate data ###
+# # filter data to study period for two years of the analysis
+# # Set initial and final date for analysis
+# db2022 <- reset.initial.values(db, ts_start2022, ts_end2022)
+# db2023 <- reset.initial.values(db, ts_start2023, ts_end2023)
+# 
+# # append the two previous dbs in one
+# db <- rbind.data.frame(db2022, db2023)
+# 
+# ### Climate data ###
 
 # Importing environmental data and keeping the one sensor with all valid data
-db.env <- read.env.proc(file.path(PATH,ENV_DIR,'proc-env.csv'))
+if (exists('db.env')) {remove('db.env')}
+db.env <- read.env.proc(file.path('.',ENV_DIR,'proc-env.csv'))
 db.env <- db.env[db.env$series == SELECTED_TMS,]
 
-# Filter env data to period of study
-db.env2022 <- db.env[which(db.env$ts>=ts_start2022 & db.env$ts<=ts_end2022),]
-db.env2023 <- db.env[which(db.env$ts>=ts_start2023 & db.env$ts<=ts_end2023),]
-db.env <- rbind.data.frame(db.env2022, db.env2023)
+# # Filter env data to period of study
+# db.env2022 <- db.env[which(db.env$ts>=ts_start2022 & db.env$ts<=ts_end2022),]
+# db.env2023 <- db.env[which(db.env$ts>=ts_start2023 & db.env$ts<=ts_end2023),]
+# db.env <- rbind.data.frame(db.env2022, db.env2023)
 
-summary(db.env)
+print(summary(db.env))
 
 print('Is there any TMS missing data?')
 statsNA(db.env$vwc)
