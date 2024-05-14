@@ -1,4 +1,8 @@
 cooked-data/
+output/
+raw/
+
+*.html
 
 .Rproj.user
 .Rhistory
