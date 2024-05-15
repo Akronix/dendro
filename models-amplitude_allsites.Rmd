@@ -1,0 +1,61 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(nlme)
+library(MuMIn)
+```
+
+
+```{r}
+df <- read.csv('cooked-data/amplitudeAndClimate-allsites.csv')
+df <- df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date)) %>% dplyr::rename(id = series)
+df <- df %>% mutate( year = year(date), doy_yearoffset = (year - 2022) * 365 + doy)
+str(df)
+summary(df)
+```
+
+
+```{r}
+date_start2022 <- "2022-04-01" # from first of April
+date_end2022 <-"2022-10-30" # to 30 October
+
+date_start2023 <- "2023-04-01" # from first of April
+date_end2023 <-"2023-10-30" # to 30 October
+
+df2022 <- df[which(df$date>=date_start2022 & df$date<=date_end2022),]
+df2023 <- df[which(df$date>=date_start2023 & df$date<=date_end2023),]
+df <- rbind.data.frame(df2022, df2023)
+summary(df)
+str(df)
+```
+
+
+```{r}
+ggplot() + geom_line( aes (x = date, y = ampl, col = id), data = df)
+# library(plotly)
+# plot_ly(data = df, y = ~ampl, x = ~ date, color = ~id)
+# plot_ly(data = df, mapping = aes(x = date, y = ampl, col = id)) + geom_line()
+```
+
+
+```{r}
+boxplot(log10(ampl+1) ~ class, data = df, varwidth  = T)
+```
+
+
+```{r}
+# pines <- df %>% filter(class == "D" | class == "ND") %>% mutate(class= factor(class), id = factor(id))
+# str(pines)
+```
+
+```{r}
+model.lme.clim.ar <- lme(log10(ampl+1) ~ max.vwc + mean.temp, random = ~ 1|(site/id), correlation=corAR1(form = ~doy_yearoffset|id), data = df,  method = "ML")
+model.lme.clim.ar <- lme(log10(ampl+1) ~ max.vwc + mean.temp, random = ~ 1|(site/id), correlation=corAR1(), data = df,  method = "ML")
+sel.clim <- dredge(model.lme.clim.ar)
+View(sel.clim)
+print(sel.clim)
+```

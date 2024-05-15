@@ -1,0 +1,104 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(nlme)
+library(MuMIn)
+```
+
+
+```{r}
+df <- read.csv('cooked-data/amplitudeAndClimate-Corbalan.csv')
+df <- df %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date)) %>% dplyr::rename(id = series)
+df <- df %>% mutate( year = year(date), doy_yearoffset = (year - 2022) * 365 + doy)
+str(df)
+summary(df)
+```
+
+
+```{r}
+date_start2022 <- "2022-04-01" # from first of April
+date_end2022 <-"2022-10-30" # to 30 October
+
+date_start2023 <- "2023-04-01" # from first of April
+date_end2023 <-"2023-10-30" # to 30 October
+
+df2022 <- df[which(df$date>=date_start2022 & df$date<=date_end2022),]
+df2023 <- df[which(df$date>=date_start2023 & df$date<=date_end2023),]
+df <- rbind.data.frame(df2022, df2023)
+summary(df)
+str(df)
+```
+
+
+```{r}
+ggplot() + geom_line( aes (x = date, y = ampl, col = id), data = df)
+# library(plotly)
+# plot_ly(data = df, y = ~ampl, x = ~ date, color = ~id)
+# plot_ly(data = df, mapping = aes(x = date, y = ampl, col = id)) + geom_line()
+```
+
+
+```{r}
+boxplot(log10(ampl+1) ~ class, data = df)
+```
+
+
+```{r}
+pines <- df %>% filter(class == "D" | class == "ND") %>% mutate(class= factor(class), id = factor(id))
+str(pines)
+```
+
+```{r}
+# The following would be the proper autocorrelation correction but it takes too long, so I simplify it to form = ~1|id, which gives similar results in less time.
+# model.lme.pines <- lme(log10(ampl+1) ~ class, random = ~ 1|id, correlation=corAR1(form = ~doy_yearoffset|id), data = pines,  method = "ML")
+model.lme.pines <- lme(log10(ampl+1) ~ class, random = ~ 1|id, correlation=corAR1(form = ~1|id), data = pines,  method = "ML")
+sel.pines <- dredge(model.lme.pines)
+View(sel.pines)
+print(sel.pines)
+# model.lme.clim.pines <- lme(log10(ampl+1) ~ class * max.vwc + class * mean.temp, random = ~ 1|id, correlation=corAR1(), data = pines,  method = "ML")
+# sel.pines.clim <- dredge(model.lme.clim.pines)
+# View(sel.pines.clim)
+```
+
+Adding specie column to see if there's difference between species:
+```{r}
+df <- df %>% mutate(sp = case_when(class == 'D' | class == 'ND' ~ factor('Pine'),
+                                   class == 'Quercus' ~ factor('Quercus')
+                                   ))
+```
+
+
+```{r}
+# model.lme.ar <- lme(log10(ampl+1) ~ sp, random = ~ 1|id, correlation=corAR1(form = ~doy_yearoffset|id), data = df,  method = "ML")
+model.lme.ar <- lme(log10(ampl+1) ~ sp, random = ~ 1|id, correlation=corAR1(form = ~1|id), data = df,  method = "ML")
+sel.sp <- dredge(model.lme.ar)
+View(sel.sp)
+print(sel.sp)
+```
+
+
+Now, see if climate vars are relevant
+```{r}
+# model.lme.clim.ar <- lme(log10(ampl+1) ~ max.vwc + mean.temp, random = ~ 1|id, correlation=corAR1(form = ~doy_yearoffset|id), data = df,  method = "ML")
+model.lme.clim.ar <- lme(log10(ampl+1) ~ max.vwc + mean.temp, random = ~ 1|id, correlation=corAR1(form = ~1|id), data = df,  method = "ML")
+sel.clim <- dredge(model.lme.clim.ar)
+View(sel.clim)
+print(sel.clim)
+```
+
+Extra, try again using lme4:
+# ```{r}
+# library('lme4')
+# options(na.action = "na.fail")
+# mod_pines <- lmer(log10(ampl+1) ~ class+(1|id)+(1|doy),data=pines)
+# sel.pines2 <- dredge(mod_pines)
+# View(sel.pines2)
+# mod_all <- lmer(log10(ampl+1) ~ class+max.vwc*mean.temp+(1|id)+(1|doy), data=df, REML="FALSE")
+# sel.all <- dredge(mod_all)
+# View(sel.all)
+```
+
