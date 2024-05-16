@@ -1,6 +1,8 @@
 library(lubridate)
 library(tidyverse)
 
+library(treenetproc)
+
 # import one csv data
 # Examples of date_format: "%Y.%m.%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"
 read.one.dendro <- function(nameFile, ts_start, ts_end, date_format){
@@ -104,7 +106,10 @@ reset.initial.values <- function (dendros, ts_start, ts_end = NULL) {
     return (dendro)
   }
   
-  return (dendros %>% group_by(series) %>% group_modify( sub_first_element ) %>% ungroup() %>% as.data.frame() )
+  return (dendros %>% group_by(series) %>% group_modify( sub_first_element ) %>% 
+            recalc_growth_variables(tz = 'Europe/Madrid') %>% select(-version) %>%
+            ungroup() %>% as.data.frame()
+          )
 
 }
 

@@ -75,7 +75,9 @@ statsNA(db$value)
 
 # Let's fill it through interpolation
 db$value <- db$value %>% 
-            na_interpolation(option = "spline")
+            na_interpolation(option = "spline") %>% 
+            round()
+
 
 ### GGPLOT THEME CUSTOMIZATION ###S
 # Set ggplot label options, themes & vars:
