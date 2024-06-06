@@ -76,6 +76,11 @@
   * plot graphs of Growing rate, accumualted growth and TWD along with climate.
   * input <- processed dendro and TMS data.
   * output -> plots: TWD boxplot, TWD evolution, accumulated growth evolution, gr per day
+  
+- `plot-Seasonality-aggregated.Rmd`
+  * plot seasonalities for every class / group of different periods plus temperature.
+  * input <- processed seasonalities and TMS data
+  * output -> plots: seasonalities of the different classes + temperature for the different seasons / periods in one plot.
 
 ## ANALYSIS
 

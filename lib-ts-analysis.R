@@ -7,10 +7,20 @@ library(tidyverse)
 source('correlations.R')
 
 # DEFINE COMMON COLORS
-temperature.color <- "darkorange"
+temperature.color <- "firebrick3"
 season.color <- "darkgreen"
 
 c_class_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+
+### GGPLOT THEME CUSTOMIZATION ###S
+# Set ggplot label options, themes & vars:
+theme_set( theme_bw() +
+             theme(
+               axis.text=element_text(size=12),
+               legend.text=element_text(size=10),
+               axis.title=element_text(size=14),
+               plot.title = element_text(hjust = 0.5, face = "bold")
+             ))
 
 # Decompose functions
 ##  Define plot_decompose function which uses basic time series decomposition
@@ -280,6 +290,31 @@ plot_day_seasonality_byclass <- function (seasons, sp, site, period){
     labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)")))
 }
 
+plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
+  ggplot( data = seasons, mapping = aes(x = timeOfDay, y = meanSeasonalityTime, col = class)) + 
+    geom_line() + 
+    geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), alpha = 0.5, linetype = "dashed", show.legend = F) +
+    geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime)), alpha = 0.5, linetype = "dashed", show.legend = F) +
+    scale_color_manual(name="Tree class", labels = c_labels, values = c_class_values, 
+                       guide = guide_legend(order = 1)) +
+    ggtitle(glue("{period}")) +
+    scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+    labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) + 
+    scale_y_continuous(breaks = seq(-5,5,1), sec.axis = sec_axis(transform = ~ ((. * 5) + 12), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
+    geom_line(data = temp, aes(x = timeOfDay, y = (temp - 12) / 5, linetype = "temp"),
+              alpha = 0.7, linewidth = 0.8, col = temperature.color) +
+    scale_linetype_manual(NULL, labels = c(temp = "Temperature (ºC)"), values = c(temp = "dotdash"), guide = guide_legend(order = 2)) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text.y.right = element_text(color = temperature.color),
+      axis.title.y.right = element_text(color = temperature.color),
+    )
+    
+     # geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5 + se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +
+    # geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5 - se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +
+    
+}
+
 plot_day_seasonalities_periods <- function (seasons.periods.joined, sp, site){
 ggplot(seasons.periods.joined) +
   ggtitle(glue("Aggregated mean in one day for periods: All period of study and June-July for {sp} in {site}")) +
@@ -288,7 +323,9 @@ ggplot(seasons.periods.joined) +
   geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime - SE_SeasonalityTime), col = period), alpha = 0.5, linetype = "dashed", show.legend = F) +
   scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)")))
+  labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) +
+    scale_y_continuous(breaks = seq(-5,5,1), sec.axis = sec_axis(trans = ~ ((. * 5) + 23), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
+    geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5, col = "Temperature"), alpha = 0.6, show.legend = T)
 }
 
 plot_day_seasonality_and_temp <- function (seasons, temp, sp, site, period) {
