@@ -1,3 +1,28 @@
+This is a repo for processsing and analysis data from dendrometers.
+
+# DATA MINING WORKFLOW
+
+We can define two main stages for the data mining process involved to analyse this data. The first one is mainly related to the processing and cleanind of the data, and the second one corresponds to the data transformation, visualization in plots and analysis of the data.
+
+## First Stage: Data cleaning
+
+The first stage is illustrated in the image below:
+<img alt="data mining schema part1" src="https://github.com/Akronix/dendro/blob/main/assets/processing%20data%20schema%20-%20part1.png?raw=true" width=700px />
+
+In this stage we load the raw data from the sensors: dendrometers (`dataD`) and TMS microclimate loggers (`envData`).
+
+We use the R script `process-dendro.R` to load the raw data of a dendrometer from a csv file, using for that the utilities of the local library `lib-dendro.R`, and then we use the `treenetproc` library to correct the artifacts. Note that sometimes we won't be sure if there's an actual artifact in the recorded data, to inspect the data more carefully, we can use the external library `datacleanr`, which interactively provides ways to visualize the data. The final processed data should be saved in a csv file inside the `processsed` folder. As a good practice, a short summary and manual notes should be written in the `processed.txt` log file, in particular, the chosen params to the `treenetproc` function calls, in order to keep record of the changes made and be able to reproduce the processing.
+
+We use the R script `process-env.R` to load the raw data of a TMS from a csv file,
+
+## Second Stage: Data analysis
+
+<img alt="data mining schema part2" src="https://github.com/Akronix/dendro/blob/main/assets/processing%20data%20schema%20-%20part2.png?raw=true" width=700px />
+
+
+
+
+
 # PROJECT FILES
 
 ## INTERNAL LIBRARIES
