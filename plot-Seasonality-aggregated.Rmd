@@ -1,0 +1,134 @@
+---
+title: "Seasonality-analysis"
+author: "Abel Serrano Juste"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import packages:
+```{r}
+source('lib-ts-analysis.R')
+library('hms')
+library('glue')
+```
+
+Set global vars
+```{r}
+### DEFINE GLOBAL VARS ###
+PATH = dirname(rstudioapi::getSourceEditorContext()$path)
+print(PATH)
+setwd(PATH)
+```
+
+Define periods
+```{r}
+## STUDY PERIOD ##
+ts_start2022 <- "2022-04-01 09:00:00" # from first of April
+ts_end2022 <-"2022-10-30 23:45:00" # to 30 October
+
+ts_start2023 <- "2023-04-01 09:00:00" # from first of April
+ts_end2023 <-"2023-10-30 23:45:00" # to 30 October
+
+## DRY SEASON PERIOD ##
+start_dry2022 <- "2022-06-01 09:00:00"
+end_dry2022 <- "2022-08-31 23:45:00"
+start_dry2023 <- "2023-06-01 09:00:00"
+end_dry2023 <- "2023-08-31 23:45:00"
+```
+
+# Load data 
+Load seasonality and microclimate data
+```{r}
+db <- read.csv("cooked-data/seasonality-clim-proc-allsites.csv")
+db.season <- db %>% mutate_at (vars(site, class, series), \(x) {as.factor(x)}) %>% mutate(date = as.Date(date), ts = as_datetime(ts, tz = 'Europe/Madrid')) %>% select(series, ts, seasonality, class, site)
+View(db.season)
+
+db.temp <- read.csv("output-data/clim-allsites.csv")
+db.temp <- db.temp %>% select(ts, site, surface.temp) %>% mutate(ts = as_datetime(ts, tz = 'Europe/Madrid'), timeOfDay = as_hms(ts))
+dim(db.temp)
+remove(db)
+```
+
+# Filter data by study period
+
+```{r}
+data2022 <- db.season[which(db.season$ts>=ts_start2022 & db.season$ts<=ts_end2022),]
+data2023 <- db.season[which(db.season$ts>=ts_start2023 & db.season$ts<=ts_end2023),]
+temp.data2022 <- db.temp[which(db.temp$ts>=ts_start2022 & db.temp$ts<=ts_end2022),]
+temp.data2023 <- db.temp[which(db.temp$ts>=ts_start2023 & db.temp$ts<=ts_end2023),]
+```
+
+# Final plots - 2022
+For each site, plots of all classes aggregated in one day plus temperature for four periods: full study period 2022, dry season 2022, full study period 2023 and dry season 2023.
+
+All study period (from Spring (April) to Autumn (October))
+```{r}
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+  season.data <- data2022 %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.data2022 %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  set_legend_labels( data2022 %>% filter(site == PLACE) )
+  
+  print(plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("All study period - 2022 - {PLACE}")))
+  ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-byclass-2022.png'), width = 15, height = 10)
+}
+```
+
+June to August (dry season) - 2022:
+```{r}
+data.dry <- data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022)
+temp.dry <- temp.data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022)
+
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+season.data <- data.dry %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.dry %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  set_legend_labels(data.dry %>% filter(site == PLACE))
+  
+  print(plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("Dry period - 2022 - {PLACE}")))
+  ggsave(glue('output/{PLACE}_aggoneday-dryperiod-seasonalities-byclass-2022.png'), width = 15, height = 10)
+}
+```
+
+# Final plots - 2023
+
+All study period (from Spring (April) to Autumn (October)) - 2023
+```{r}
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+  season.data <- data2023 %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.data2023 %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  set_legend_labels(data2023 %>% filter(site == PLACE))
+  
+  print(plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("All study period - 2023 - {PLACE}")))
+  ggsave(glue('output/{PLACE}_aggoneday-allperiod-seasonalities-byclass-2023.png'), width = 15, height = 10)
+}
+```
+
+June to August (dry season) - 2023:
+```{r}
+data.dry <- data2023 %>% filter(ts >= start_dry2023 & ts <= end_dry2023)
+temp.dry <- temp.data2023 %>% filter(ts >= start_dry2023 & ts <= end_dry2023)
+
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+  season.data <- data.dry %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.dry %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  set_legend_labels(data.dry %>% filter(site == PLACE))
+  
+  print(plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("Dry period - 2023 - {PLACE}")))
+  ggsave(glue('output/{PLACE}_aggoneday-dryperiod-seasonalities-byclass-2023.png'), width = 15, height = 10)
+}
+```

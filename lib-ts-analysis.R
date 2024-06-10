@@ -22,6 +22,16 @@ theme_set( theme_bw() +
                plot.title = element_text(hjust = 0.5, face = "bold")
              ))
 
+set_legend_labels <- function(df) {
+  every_hour_labels <<- format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+  labels <<- c("Quercus", "Declining Pines", "Non-Declining Pines")
+  
+  n.per.class <- df %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
+  
+  c_labels <<- c(Quercus = glue("{labels[1]} ({n.per.class$Quercus})"), D = glue("{labels[2]} ({n.per.class$D})"), ND = glue("{labels[3]} ({n.per.class$ND})"))
+  c_values <<- c(Quercus = "purple", D = "darkred", ND = "darkorange")
+}
+
 # Decompose functions
 ##  Define plot_decompose function which uses basic time series decomposition
 plot_decompose <- function (db, name) {
@@ -291,6 +301,9 @@ plot_day_seasonality_byclass <- function (seasons, sp, site, period){
 }
 
 plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
+  temp.min = min(temp$temp)
+  pos.temp.max = which.max(temp$temp)
+  pos.temp.min = which.min(temp$temp)
   ggplot( data = seasons, mapping = aes(x = timeOfDay, y = meanSeasonalityTime, col = class)) + 
     geom_line() + 
     geom_line(aes (x = timeOfDay, y = (meanSeasonalityTime + SE_SeasonalityTime)), alpha = 0.5, linetype = "dashed", show.legend = F) +
@@ -300,10 +313,12 @@ plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
     ggtitle(glue("{period}")) +
     scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
     labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) + 
-    scale_y_continuous(breaks = seq(-5,5,1), sec.axis = sec_axis(transform = ~ ((. * 5) + 12), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
-    geom_line(data = temp, aes(x = timeOfDay, y = (temp - 12) / 5, linetype = "temp"),
+    scale_y_continuous(breaks = seq(-8,8,1), sec.axis = sec_axis(transform = ~ ((. * 5) + temp.min), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
+    geom_line(data = temp, aes(x = timeOfDay, y = (temp - temp.min) / 5, linetype = "temp"),
               alpha = 0.7, linewidth = 0.8, col = temperature.color) +
     scale_linetype_manual(NULL, labels = c(temp = "Temperature (ºC)"), values = c(temp = "dotdash"), guide = guide_legend(order = 2)) +
+    geom_vline( aes(xintercept = temp$timeOfDay[pos.temp.max]), linetype = 5, col = "goldenrod4", alpha = 0.9 ) +
+    geom_vline( aes(xintercept = temp$timeOfDay[pos.temp.min]), linetype = 5, col = "lightgoldenrod4", alpha = 0.9 ) +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1),
       axis.text.y.right = element_text(color = temperature.color),
