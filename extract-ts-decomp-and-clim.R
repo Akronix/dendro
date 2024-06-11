@@ -12,7 +12,7 @@ DATA_DIR = glue('processed/{PLACE}-processed/old')
 RAW_DIR = glue('raw/Miedes-dataD.old')
 ENV_DIR = glue('processed/{PLACE}-env-processed')
 
-OUTPUT_PATH = './output-data'
+OUTPUT_PATH = './cooked-data'
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
 
 SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid

@@ -12,6 +12,11 @@ season.color <- "darkgreen"
 
 c_class_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
 
+every_hour_labels <- format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+labels <- c("Quercus", "Declining Pines", "Non-Declining Pines")
+c_labels <- c(Quercus = labels[1], D = labels[2], ND = labels[3])
+c_values <- c(Quercus = "purple", D = "darkred", ND = "darkorange")
+
 ### GGPLOT THEME CUSTOMIZATION ###S
 # Set ggplot label options, themes & vars:
 theme_set( theme_bw() +
@@ -22,14 +27,10 @@ theme_set( theme_bw() +
                plot.title = element_text(hjust = 0.5, face = "bold")
              ))
 
-set_legend_labels <- function(df) {
-  every_hour_labels <<- format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
-  labels <<- c("Quercus", "Declining Pines", "Non-Declining Pines")
-  
+
+set_legend_sample_number <- function(df) {
   n.per.class <- df %>% group_by(class) %>% summarise (n = n_distinct(series)) %>% pivot_wider(names_from = class, values_from = n)
-  
   c_labels <<- c(Quercus = glue("{labels[1]} ({n.per.class$Quercus})"), D = glue("{labels[2]} ({n.per.class$D})"), ND = glue("{labels[3]} ({n.per.class$ND})"))
-  c_values <<- c(Quercus = "purple", D = "darkred", ND = "darkorange")
 }
 
 # Decompose functions
@@ -323,6 +324,7 @@ plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
       axis.text.x = element_text(angle = 45, hjust = 1),
       axis.text.y.right = element_text(color = temperature.color),
       axis.title.y.right = element_text(color = temperature.color),
+      legend.position="bottom"
     )
     
      # geom_line(data = temp, aes(x = timeOfDay, y = (meanTemp - 23) / 5 + se_temp), col = temperature.color, alpha = 0.4, linetype = "dashed") +
