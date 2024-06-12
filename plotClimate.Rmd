@@ -26,8 +26,8 @@ setwd(PATH)
 PLACE = 'Corbalan'
 ENV_DIR = glue('processed/{PLACE}-env-processed')
 
-ts_start <- "2022-05-01"
-ts_end   <- "2023-02-28"
+ts_start <- as.POSIXct("2022-04-01 09:00:00", tz = 'Europe/Madrid') # # from March 16 (1 day after installation) (salvo excepciones)
+ts_end <- as.POSIXct("2024-02-29 23:45:00", tz = 'Europe/Madrid') # last complete month of data
 
 # Select TMS serial no for this analysis
 SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all its data valid
@@ -55,51 +55,53 @@ summary(db.env)
 #             as.POSIXct('2022-11-24 00:00:00', tz = 'Europe/Madrid'),
 #             as.POSIXct('2023-02-16 00:00:00', tz = 'Europe/Madrid'))
 # ) # sampling dates Miedes and Peñaflor
-sampling.dates <- data.frame(xdate = c(as.POSIXct('2022-05-19 00:00:00', tz = 'Europe/Madrid'),
-            as.POSIXct('2022-08-22 00:00:00', tz = 'Europe/Madrid'),
-            as.POSIXct('2022-11-16 00:00:00', tz = 'Europe/Madrid'),
-            as.POSIXct('2023-02-20 00:00:00', tz = 'Europe/Madrid'))
-) # sampling dates Corbalan
+# sampling.dates <- data.frame(xdate = c(as.POSIXct('2022-05-19 00:00:00', tz = 'Europe/Madrid'),
+#             as.POSIXct('2022-08-22 00:00:00', tz = 'Europe/Madrid'),
+#             as.POSIXct('2022-11-16 00:00:00', tz = 'Europe/Madrid'),
+#             as.POSIXct('2023-02-20 00:00:00', tz = 'Europe/Madrid'))
+# ) # sampling dates Corbalan
 ```
 
+Soil temp:
+```{r}
+# plot_temp_and_humidity <-
+#   ggplot(data = db.env, aes(x=ts, y=soil.temp)) +
+#     ggtitle(glue("Soil temperature and humidity for {PLACE}")) +
+#     geom_line(aes(colour = soil.temp)) +
+#     scale_colour_gradient(low = "light blue", high = "red") +
+#     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+#     theme(axis.text.x = element_text(angle = 30, hjust=1)) +
+#     scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)\n" ))+
+#     geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
+#     scale_linetype_manual(NULL, values = 1) +
+#     labs(x=expression(''), colour = "Soil Temperature (ºC)") +
+#     geom_vline(data=sampling.dates, xintercept=xdate, lty=2)
+# plot_temp_and_humidity
+```
 
 ```{r}
-plot_temp_and_humidity <-
-  ggplot(data = db.env, aes(x=ts, y=soil.temp)) +
-    ggtitle(glue("Soil temperature and humidity for {PLACE}")) +
-    geom_line(aes(colour = soil.temp)) +
-    scale_colour_gradient(low = "light blue", high = "red") +
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-    theme(axis.text.x = element_text(angle = 30, hjust=1)) +
-    scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)\n" ))+
-    geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
-    scale_linetype_manual(NULL, values = 1) +
-    labs(x=expression(''), colour = "Soil Temperature (ºC)") +
-    geom_vline(data=sampling.dates, xintercept=xdate, lty=2)
-plot_temp_and_humidity
+# ggsave(glue('output/request-Antonio-soil-sampling/soiltemp-{PLACE}-VWCytempAgg-alldata.png'), width = 15, height = 10)
 ```
 
-```{r}
-ggsave(glue('output/request-Antonio-soil-sampling/soiltemp-{PLACE}-VWCytempAgg-alldata.png'), width = 15, height = 10)
-```
-
+Surface temp:
 ```{r}
 plot_temp_and_humidity <-
   ggplot(data = db.env, aes(x=ts, y=surface.temp)) +
     ggtitle(glue("Surface temperature and humidity for {PLACE}")) +
     geom_line(aes(colour = surface.temp)) +
-    scale_colour_gradient(low = "light blue", high = "red") +
-    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    scale_colour_gradient(low = "lightblue", high = "red") +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y", expand = expansion( mult = 0.01) ) +
     theme(axis.text.x = element_text(angle = 30, hjust=1)) +
     scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)\n" ))+
     geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric Water Content (%)"), col="blue", show.legend	= TRUE) +
     scale_linetype_manual(NULL, values = 1) +
-    labs(x=expression(''), colour = "Surface Temperature (ºC)") +
-    geom_vline(data=sampling.dates, xintercept=xdate, lty=2)
+    # geom_vline(data=sampling.dates, xintercept=xdate, lty=2) +
+    labs(x=expression(''), colour = "Surface Temperature (ºC)")
+    
 plot_temp_and_humidity
 ```
 
 ```{r}
-ggsave(glue('output/request-Antonio-soil-sampling/surfacetemp-{PLACE}-VWCytempAgg-alldata.png'), width = 15, height = 10)
+ggsave(glue('output/{PLACE}-VWCytempAgg-alldata.png'), width = 15, height = 10)
 ```
 
