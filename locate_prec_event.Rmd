@@ -4,7 +4,7 @@ library('glue')
 library(plotly)
 
 ## Global variables ##
-PLACE <- 'Miedes'
+PLACE <- 'Corbalan'
 VWC_THRESHOLD <- 0.03
 THRESHOLD_CHANGE <- 0.0075
 COMPARISON_WINDOW <- 4 * 4 # four hours
@@ -21,28 +21,6 @@ head(db.env)
 ```{r}
 db.env <- db.env %>% filter(site == PLACE)
 ```
-
-
-```{r}
-orig <- c("no prec", "prec", "no prec", "no prec", "no prec", "prec", "no prec", "prec", "no prec")
-prec_changes <- c(">thr1", ">thr2", ">thr3", ">thr4", ">thr5")
-prec_changes_bools <- c(F,T,T,T,F,T,F,T,F)
-
-prec_events <- list()
-prec_events_pos <- list()
-i = 1;
-l_idx = 1;
-while( i <= length(prec_changes_bools)) {
-  if (prec_changes_bools[i]) {
-    prec_events[[l_idx]] <- orig[i]
-    prec_events_pos[[l_idx]] <- i
-    l_idx = l_idx + 1;
-    while(prec_changes_bools[i+1]) { i = i + 1 }
-  }
-  i = i + 1;
-}
-```
-
 
 
 ```{r}
@@ -98,7 +76,8 @@ print(changing_point.df)
 ^ fill the rest of the missing prec events start (NAs) by hand:
 
 ```{r}
-missing.prec_events <- c("2024-01-05 00:45:00", "2024-01-19 08:15:00", "2024-03-09 06:45:00") %>% map(as.POSIXct)
+missing.prec_events <- c() %>%
+                        map(\(dt) as.POSIXct(dt, tz = 'Europe/Madrid'))
 missing.prec_events.df <- subset(db.env, ts %in% missing.prec_events)
 changing_point.df <- rbind.data.frame(changing_point.df, missing.prec_events.df)
 ```

@@ -1,2 +1,10 @@
 ** MIEDES **
 missing.prec_events <- c("2024-01-05 00:45:00", "2024-01-19 08:15:00", "2024-03-09 06:45:00") %>% map(as.POSIXct)
+
+** PEÑAFLOR **
+missing.prec_events <- c("2022-04-23 19:00:00") %>%
+                        map(\(dt) as.POSIXct(dt, tz = 'Europe/Madrid'))
+
+** CORBALAN **
+missing.prec_events <- c() %>%
+                        map(\(dt) as.POSIXct(dt, tz = 'Europe/Madrid'))
