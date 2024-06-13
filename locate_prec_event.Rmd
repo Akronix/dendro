@@ -1,0 +1,125 @@
+```{r}
+library('tidyverse')
+library('glue')
+library(plotly)
+
+## Global variables ##
+PLACE <- 'Miedes'
+VWC_THRESHOLD <- 0.03
+THRESHOLD_CHANGE <- 0.0075
+COMPARISON_WINDOW <- 4 * 4 # four hours
+
+OUTPUT_PATH <- 'output-data'
+```
+
+```{r}
+db.env <- read.csv("output-data/clim-allsites.csv")
+db.env <- db.env %>% select(ts, site, vwc) %>% mutate(ts = as_datetime(ts, tz = 'Europe/Madrid'))
+head(db.env)
+```
+
+```{r}
+db.env <- db.env %>% filter(site == PLACE)
+```
+
+
+```{r}
+orig <- c("no prec", "prec", "no prec", "no prec", "no prec", "prec", "no prec", "prec", "no prec")
+prec_changes <- c(">thr1", ">thr2", ">thr3", ">thr4", ">thr5")
+prec_changes_bools <- c(F,T,T,T,F,T,F,T,F)
+
+prec_events <- list()
+prec_events_pos <- list()
+i = 1;
+l_idx = 1;
+while( i <= length(prec_changes_bools)) {
+  if (prec_changes_bools[i]) {
+    prec_events[[l_idx]] <- orig[i]
+    prec_events_pos[[l_idx]] <- i
+    l_idx = l_idx + 1;
+    while(prec_changes_bools[i+1]) { i = i + 1 }
+  }
+  i = i + 1;
+}
+```
+
+
+
+```{r}
+# 1) locate intervals where there has been a significant rain episode (after 4 hours, there was a significant increase of VWC)
+prec_changes_bools <- diff(db.env$vwc, lag=COMPARISON_WINDOW) >= VWC_THRESHOLD
+# prec_changes <- db.env[prec_changes_bools,]
+
+# 2) Set each interval of a prec event (consecutive timestamps) in a different item of a list of events
+prec_events <- list()
+prec_events_pos <- list()
+i = 1;
+l_idx = 1;
+while( i <= length(prec_changes_bools)) {
+  if (prec_changes_bools[i]) {
+    prec_events[[l_idx]] <- db.env[i,]
+    prec_events_pos[[l_idx]] <- i
+    l_idx = l_idx + 1;
+    while(prec_changes_bools[i+1]) { i = i + 1 }
+  }
+  i = i + 1;
+}
+
+  #       while ( consecutive(inst, inst + 1) ) {
+  #   prev_events [[i]].append( inst ++ )
+  # }
+```
+
+
+```{r}
+# 3) locale the changing point in each precipitation event (first change from current trend to new trend of precipitation)
+diff.next <- diff(db.env$vwc, lag=1)
+i = 1
+changing_point.df <- data.frame()
+for (pos in prec_events_pos) {
+  interval <- diff.next[pos:(pos+COMPARISON_WINDOW)] # interval of comparison window
+  change <- interval > THRESHOLD_CHANGE 
+  changing_point_pos <- pos + first (which ( change ) ) - 1 # we have to substract one to get the moment where the change starts
+  if(is.na(changing_point_pos)) {
+    r <- data.frame(ts = db.env[pos,]$ts, site = db.env[pos,]$site, vwc = NA)
+    changing_point.df <- rbind(changing_point.df,r)
+  } else {
+    changing_point.df <- rbind(changing_point.df,db.env[changing_point_pos,])
+  }
+  i = i + 1;
+}
+```
+
+
+```{r}
+print(changing_point.df)
+```
+
+^ fill the rest of the missing prec events start (NAs) by hand:
+
+```{r}
+missing.prec_events <- c("2024-01-05 00:45:00", "2024-01-19 08:15:00", "2024-03-09 06:45:00") %>% map(as.POSIXct)
+missing.prec_events.df <- subset(db.env, ts %in% missing.prec_events)
+changing_point.df <- rbind.data.frame(changing_point.df, missing.prec_events.df)
+```
+
+Clean NAs (missing starting prec events, introduced by hand), duplicated (long raining episodes), and sort by ts.
+```{r}
+changing_point.df <- drop_na(changing_point.df, vwc)
+changing_point.df <-  changing_point.df[!duplicated(changing_point.df), ]
+changing_point.df <- changing_point.df %>% arrange(ts)
+print(changing_point.df)
+```
+
+Visually, double check
+```{r}
+fig <- plot_ly() %>% 
+add_trace(data = db.env, x = ~ts, y = ~vwc, type = 'scatter', mode = 'lines', name = 'TMS') %>% 
+add_trace(data = changing_point.df, x = ~ts, y = ~vwc, type = 'scatter', mode = 'markers', name = 'Prec events')
+fig
+```
+
+```{r}
+write_csv(changing_point.df, file.path(OUTPUT_PATH, glue('prec_events-{PLACE}.csv')), append = F, col_names = T)
+```
+
