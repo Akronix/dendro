@@ -9,7 +9,7 @@ setwd(PATH)
 
 source("lib-dendro.R")
 
-SAVE <- F # to save output csv processed file at the end of the script
+SAVE <- T # to save output csv processed file at the end of the script
 
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
@@ -96,7 +96,7 @@ plotTemp <- ggplot(data = db, mapping = aes(x=ts, y=temp, col=temp)) +
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   geom_hline(yintercept=0,lty=2,linewidth=0.2) +
   theme_bw()
-# plotTemp
+plotTemp
 
 ## DENDRO DATA ##
 
@@ -112,7 +112,7 @@ dendro_raw_plot <-
   scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
   theme_bw()
   
-# dendro_raw_plot
+dendro_raw_plot
 
 raw.output.fn <- file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png'))
 
@@ -193,9 +193,9 @@ final_processed_data <- dendro_data_L2;
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
                                        # reverse = c(2,3,11),
-                                       force = c("2022-08-17"),
+                                       # force = c("2022-08-17"),
                                        force.now = c( "2023-09-27 10:00:00"),
-                                       delete = c( "2023-09-27 10:15:00",  "2023-09-27 10:30:00"),
+                                       delete = c( "2022-08-17 07:45:00", "2022-08-17 18:00:00", "2023-09-27 10:15:00",  "2023-09-27 10:30:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

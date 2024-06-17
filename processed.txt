@@ -5,7 +5,7 @@ Dendros Qc: 92222153, 92222159, 92222166, !92222176 (missing), 92222178 (ruidoso
 Dendros P ND: 92222152, 92222168, 92222177, 92222179
 Dendros P D: *92222151 (Faltan muchos datos de 2022 por tener valores ctes), 92222158, 92222160, 92222165, !92222167 (muy ruidoso y solo datos hasta jul23), 92222172
 
-ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
+ts_start<-"2022-03-16 11:00:00" # from March 16 (1 day after installation) (salvo excepciones)
 ts_end<-"2024-03-26 23:45:00" # default. day before last data.
 DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
@@ -15,15 +15,14 @@ DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
   TOL_JUMP = 15
   TOL_OUT = 10
   
-  force = c("2022-08-17"),
   force.now = c( "2023-09-27 10:00:00"),
-  delete = c( "2023-09-27 10:15:00",  "2023-09-27 10:30:00"),
+  delete = c( "2022-08-17 07:45:00", "2022-08-17 18:00:00", "2023-09-27 10:15:00",  "2023-09-27 10:30:00"),
 
 - subidón pcpios mayo22 -> corregido
 - salto abajo pcpios jun22 -> OK
 - piquillos abajo 1ª mitad jun22 y 2ª mitad jun22 -> OK
 - campanitas jul22 y finales ago22 y pcpios sept22 -> OK. revisar causas ambientales de campanas.
-- piquillo arriba segunda mitad ago22 -> missing data corregido con force. podría parecer que se pierde el patrón seasonality anterior con este arreglo pero en realidad viene a marcar un deshinchamiento de un hinchamiento del árbol que se había dado unos días antes.
+- piquillo arriba segunda mitad ago22 -> missing data corregido con force. podría parecer que se pierde el patrón seasonality anterior con este arreglo pero en realidad viene a marcar un deshinchamiento de un hinchamiento del árbol que se había dado unos días antes. -> No, el deshinchamiento se hace de forma paulatina después. Mejor borrara esos datos que no son claros: delete = c( "2022-08-17 07:45:00", "2022-08-17 18:00:00"),
 - piquillo arriba 1ª mitad sept22 -> OK
 - saltito corregido finales nov22
 - piquillos abajo finales dic-22 -> OK
