@@ -3,6 +3,7 @@ library(stats) # stl Decomposition
 library(ggpubr) # ggarange
 library(zoo) # print dates in x-axis for ts objects
 library(tidyverse)
+library('hms')
 
 source('correlations.R')
 
@@ -21,10 +22,12 @@ c_values <- c(Quercus = "purple", D = "darkred", ND = "darkorange")
 # Set ggplot label options, themes & vars:
 theme_set( theme_bw() +
              theme(
-               axis.text=element_text(size=12),
-               legend.text=element_text(size=10),
-               axis.title=element_text(size=14),
-               plot.title = element_text(hjust = 0.5, face = "bold")
+                 text=element_text(size=14),
+                 legend.title=element_text(size=14),
+                 legend.text=element_text(size=14),
+                 axis.title=element_text(size=16),
+                 axis.text=element_text(size=16),
+                 plot.title = element_text(size = 16, hjust = 0.5, face = "bold")
              ))
 
 
@@ -159,7 +162,7 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
   for (dendro.no in dendro.series) {
     # Filter data by that no
     dat = db[db$series == dendro.no,]
-    if ('class' %in% colnames(dat)) {class = first(dat$class)}
+    if ('class' %in% colnames(dat)) {tree_class = first(dat$class)}
     
     dat = dat %>% select(ts, value)
     dat.ts <- ts(data = dat$value, frequency = 96)
@@ -174,7 +177,7 @@ calculate_stl_seasonalities <- function (db, dendro.series) {
       ts = dat$ts
     )
     
-    if (exists('class')) aux$class <- class
+    if (exists('class')) aux$class <- tree_class
 
     seasonalities <- rbind.data.frame(seasonalities, aux)
   }
@@ -191,8 +194,10 @@ decompose_ts_stl <- function(db, dendro.series) {
   
   for (dendro.no in dendro.series) {
     # Filter data by that no
-    dat = db[db$series == dendro.no,] %>% select(ts, value)
+    dat = db[db$series == dendro.no,]
+    if ('class' %in% colnames(dat)) {tree_class = first(dat$class)}
     
+    dat = dat %>% select(ts, value)
     dat.ts <- ts(data = dat$value, frequency = 96) # natural time period <- day, data sampled every quarter <- 4*24 = 96 samples per day
     
     stl.out = stl(dat.ts, s.window = 97, t.window = 673)
@@ -209,6 +214,8 @@ decompose_ts_stl <- function(db, dendro.series) {
       ts = dat$ts,
       stl.out$time.series
     )
+    
+    if (exists('tree_class')) aux$class <- tree_class
     
     all.ts.decomposed <- rbind.data.frame(all.ts.decomposed, aux)
   }
@@ -312,7 +319,7 @@ plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
     scale_color_manual(name="Tree class", labels = c_labels, values = c_class_values, 
                        guide = guide_legend(order = 1)) +
     ggtitle(glue("{period}")) +
-    scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels) +
+    scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels, expand = expansion( mult = 0.01)) +
     labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) + 
     scale_y_continuous(breaks = seq(-8,8,1), sec.axis = sec_axis(transform = ~ ((. * 5) + temp.min), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
     geom_line(data = temp, aes(x = timeOfDay, y = (temp - temp.min) / 5, linetype = "temp"),

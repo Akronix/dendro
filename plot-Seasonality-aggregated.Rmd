@@ -11,10 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Import packages:
 ```{r}
-source('lib-ts-analysis.R')
-library('hms')
 library('glue')
 library('patchwork')
+
+source('lib-ts-analysis.R')
 ```
 
 Set global vars
@@ -79,9 +79,9 @@ for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
   # set_legend_sample_number( data2022 %>% filter(site == PLACE) )
   
   plots[[i]] = plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("{PLACE}"))
-  # ggsave(filename = glue('output/{PLACE}_aggoneday-allperiod-seasonalities-byclass-2022.png'), 
-         # plot = plots[[i]],
-         # width = 15, height = 10)
+  ggsave(filename = glue('output/{PLACE}_aggoneday-allperiod-seasonalities-byclass-2022.png'),
+  plot = plots[[i]],
+  width = 15, height = 10)
   i = i + 1;
 }
 
@@ -89,12 +89,15 @@ plots_study2022 <- wrap_plots(plots) +
   plot_annotation(title = "All study period - 2022", tag_levels = 'A') +
   plot_layout(nrow = 1, guides = "collect") &
   theme(legend.position='bottom')
+plots_study2022
+ggsave(filename = glue('output/allplaces_aggoneday-allperiod-seasonalities-byclass-2022.png'), width = 18, height = 14)
 ```
 
 June to August (dry season) - 2022:
 ```{r}
 data.dry <- data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022)
 temp.dry <- temp.data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022)
+
 
 i = 1
 plots = list()
@@ -107,9 +110,9 @@ season.data <- data.dry %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(
   # set_legend_labels(data.dry %>% filter(site == PLACE))
   
   plots[[i]] = plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("{PLACE}"))
-  # ggsave(filename = glue('output/{PLACE}_aggoneday-dryperiod-seasonalities-byclass-2022.png'), 
-  #        plot = plots[[i]],
-  #        width = 15, height = 10)
+  ggsave(filename = glue('output/{PLACE}_aggoneday-dryperiod-seasonalities-byclass-2022.png'),
+         plot = plots[[i]],
+         width = 15, height = 10)
   i = i + 1;
 }
 
@@ -122,7 +125,8 @@ plots_dry2022 <- wrap_plots(plots) +
 ```
 
 ```{r}
-wrap_elements(plots_study2022) / wrap_elements(plots_dry2022)
+plots_study2022 <- plots_study2022 & theme(legend.position="none")
+(wrap_elements(plots_study2022) / wrap_elements(plots_dry2022))
 ggsave(glue('output/allplaces_aggoneday-seasonalities-byclass-2022.png'), width = 45, height = 30)
 ```
 
@@ -152,7 +156,9 @@ for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
 plots_study2023 <- wrap_plots(plots) +
   plot_annotation(title = "All study period - 2023", tag_levels = 'A') +
   plot_layout(nrow = 1, guides = "collect") &
-  theme(legend.position='bottom')
+  theme(legend.position='none')
+plots_study2023
+ggsave(filename = glue('output/allplaces_aggoneday-allperiod-seasonalities-byclass-2023.png'), width = 45, height = 10)
 ```
 
 June to August (dry season) - 2023:
@@ -186,8 +192,60 @@ plots_dry2023 <- wrap_plots(plots) +
 
 ```{r}
 wrap_elements(plots_study2023) / wrap_elements(plots_dry2023)
-ggsave(glue('output/allplaces_aggoneday-seasonalities-byclass-2023.png'), width = 45, height = 30)
+ggsave(glue('output/allplaces_aggoneday-seasonalities-byclass-2023.png'), width = 18, height = 14)
 ```
 
 
+# Plots average 2022 & 2023
 
+Study period:
+```{r}
+i = 1
+
+data.2022_2023 <- rbind.data.frame(data2022, data2023)
+temp.data2022_2023 <- rbind.data.frame(temp.data2022, temp.data2023)
+
+plots = list()
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+  season.data <- data.2022_2023 %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.data2022 %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  plots[[i]] = plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("{PLACE}"))
+  i = i + 1;
+}
+
+plots_study_2022_2023 <- wrap_plots(plots) +
+  plot_annotation(title = "All study period - 2022 & 2023", tag_levels = 'A') +
+  plot_layout(nrow = 3, ncol = 1, byrow = T, guides = "collect", axes = "collect_x") &
+  theme(legend.position='bottom', legend.direction = "vertical")
+plots_study_2022_2023
+ggsave(glue('output/allplaces_aggoneday-studyperiod-seasonalities-byclass-2022&2023.png'), width = 7, height = 15)
+```
+
+Dry period:
+```{r}
+i = 1
+
+data.2022_2023 <- rbind.data.frame(data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022), data2023 %>% filter(ts >= start_dry2023 & ts <= end_dry2023))
+temp.data2022_2023 <- rbind.data.frame(temp.data2022 %>% filter(ts >= start_dry2022 & ts <= end_dry2022), temp.data2023 %>% filter(ts >= start_dry2023 & ts <= end_dry2023))
+
+plots = list()
+for (PLACE in c('Penaflor', 'Miedes', 'Corbalan')) {
+  
+  season.data <- data.2022_2023 %>% filter(site == PLACE) %>% mutate(timeOfDay = as_hms(ts)) %>% summarise(meanSeasonalityTime = mean(seasonality), SE_SeasonalityTime = sd(seasonality)/sqrt(n()), .by = c(class, timeOfDay))
+  
+  temp.data <- temp.data2022 %>% filter(site == PLACE) %>% summarise(temp = mean(surface.temp, na.rm = T), .by = timeOfDay)
+  
+  plots[[i]] = plot_day_seasonality_byclass_and_temp(season.data, temp.data, glue("{PLACE}"))
+  i = i + 1;
+}
+
+plots_study_2022_2023 <- wrap_plots(plots) +
+  plot_annotation(title = "Dry periods - 2022 & 2023", tag_levels = 'A') +
+  plot_layout(nrow = 1, ncol = 3, byrow = F, guides = "collect") &
+  theme(legend.position='bottom', legend.direction = "horizontal")
+plots_study_2022_2023
+ggsave(glue('output/allplaces_aggoneday-dryperiod-seasonalities-byclass-2022&2023.png'), width = 15, height = 7)
+```
