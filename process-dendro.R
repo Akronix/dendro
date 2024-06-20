@@ -19,7 +19,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232415"
+  SELECTED_DENDROMETER = "92232411"
 }
 
 TOL_JUMP = 15
@@ -199,16 +199,16 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                       dendro_L2 = dendro_data_L2,
-                                       reverse = c(2),
-                                       force = c("2023-07-06"),
-                                       force.now = c( "2023-07-05 21:45:00"),
-                                       delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
-                                       plot = T,
-                                       plot_export = T,
-                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-                                       tz="Europe/Madrid")
+# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+#                                        dendro_L2 = dendro_data_L2,
+#                                        # reverse = c(2),
+#                                        # force = c("2023-07-06"),
+#                                        force.now = c( "2023-07-05 21:45:00", "2023-07-06 19:00:00"),
+#                                        delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
+#                                        plot = T,
+#                                        plot_export = T,
+#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+#                                        tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
