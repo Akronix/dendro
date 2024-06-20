@@ -1,5 +1,33 @@
 # Valid data periods for TMS sensors #
 
+## PacoEzpela ##
+
+SELECTED_TMS <- 94252896
+
+ts_start = "2023-03-23 14:00:00"
+
+SOIL_TYPE = list(a=-2.7822E-08,	b = 0.000380321,	c = -0.282628151) # otherwise, "sandy loam B" would be the closest
+
+PLACE = 'PacoEzpela'
+
+Código R para filtrar datos inválidos:
+
+```{r}
+# We clear the invalid data for each series:
+series1 = (db.env$series == "94252898")
+
+# first interval:
+interval1.1 = (db.env$ts >= "2023-06-18 04:15:00")
+
+db.env[series1 & interval1.1, c("vwc", "soil.temp", "surface.temp", "air.temp")] <- NA
+
+series2 = (db.env$series == "94252899")
+
+interval2.1 = (db.env$ts >= "2023-08-27 20:45:00")
+
+db.env[series2 & interval2.1, c("vwc", "soil.temp", "surface.temp", "air.temp")]  <- NA
+```
+
 ## Miedes ##
 
 SELECTED_TMS  <- c(94231935, 94231940) # 94231940 has a bit of missing data from 6 to 26 mar24W
