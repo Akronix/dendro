@@ -114,6 +114,24 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - nov23 una larga meseta sin apenas cambios -> Es muy muy estancado pero lo he visto en otros dendrómetros de abies alba en estas fechas, así que lo dejo.
   - deshacer salto 2 de treenetproc en ago23
 
+
+== 92232417 ==
+- Abies Alba - params:
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  
+  force.now = c( "2023-11-02 06:30:00")
+  
+  - raw: sierra hacia abajo en agosto23, como el anterior
+  - otra sierra hacia abajo en oct23
+  - saltito arriba pcpios jun23 -> no
+  - bajonazo y recuperación pcpios sept23 -> es atípico pero de cerca parece OK los datos.
+  - bajoncillo finales ene24
+  - saltito hacia arriba de 11um 2023-10-20T14:30:00Z -> es pequeño así que lo dejo.
+  - saltito sin corregir el 2023-11-02T06:30:00Z -> lo corrijo a mano.
+  - muchas mesetillas en nov y dic23
+  - sierra hacia abajo rara en enero24. En general enero24 de este dendrómetro es muy raro. Pero no intervengo más.
+
 === DATOS PEÑAFLOR HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
 
