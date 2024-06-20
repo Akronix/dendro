@@ -100,6 +100,19 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - saltito 20 ene24 -> Lo pilla con TOL_JUMP a 10.
 
 
+== 92232414 ==
+- Abies Alba - params:
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  
+  reverse = c(2),
+
+  - en raw veo un saltito a pcpios de mayo23 -> no.
+  - tb en raw unas sierras hacia abajo raras en la segunda quincena de ago23 -> raro pero correcto.
+  - varias mesetas a pcios de mar23
+  - podría haber un saltito hacia abajo el 2023-10-12T14:00:00Z, pero es solamente una diferencia de 12um así que no lo considero.
+  - nov23 una larga meseta sin apenas cambios -> Es muy muy estancado pero lo he visto en otros dendrómetros de abies alba en estas fechas, así que lo dejo.
+  - deshacer salto 2 de treenetproc en ago23
 
 === DATOS PEÑAFLOR HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **

@@ -19,7 +19,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232418"
+  SELECTED_DENDROMETER = "92232414"
 }
 
 TOL_JUMP = 10
@@ -201,9 +201,9 @@ final_processed_data <- dendro_data_L2;
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       # reverse = c(2),
+                                       reverse = c(2),
                                        # force = c("2023-07-06"),
-                                       force.now = c( "2023-10-23 13:15:00"),
+                                       # force.now = c( "2023-10-23 13:15:00"),
                                        # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
                                        plot = T,
                                        plot_export = T,
