@@ -14,11 +14,12 @@ setwd(PATH)
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 # ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-PLACE = 'Penaflor'
+PLACE = 'PacoEzpela'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
-SOIL_TYPE = "sandy loam B"
+# SOIL_TYPE = "sandy loam B" # according to your clay, silt and sand concentrations, select the best fit from here: https://github.com/ibot-geoecology/myClim/blob/a06730359da80cd962f3709097f619236fcd5d29/data-raw/mc_data_vwc_parameters.R
+SOIL_TYPE = list(a=-2.7822E-08,	b = 0.000380321,	c = -0.282628151)
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
@@ -38,7 +39,7 @@ list_files <- list.files(file.path(".",ENVIRONMENT_DIR), pattern="*.csv$", full.
 
 print(list_files)
 
-dfs.all <- data.frame()
+# dfs.all <- data.frame()
 
 for (filename in list_files) {
   
@@ -87,7 +88,7 @@ for (filename in list_files) {
   print(paste0("Is there any duplicates for dendro ", sernum, " ?"))
   print(tms.df[duplicated(tms.df$ts),])
   
-  if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
+  # if (empty(dfs.all)) {dfs.all = tms.df} else {dfs.all = rbind.data.frame(dfs.all, tms.df)}
   
   # write processed environmental data, one per sensor
   serial_no = (mc_info(tms.vwc)$serial_number)[1]
@@ -95,5 +96,5 @@ for (filename in list_files) {
   write_csv(tms.df, file.path(OUTPUT_PATH, paste0("proc-", serial_no , "-tms.csv")), append = F, col_names = T)
 }
 
-str(dfs.all)
+# str(dfs.all)
 
