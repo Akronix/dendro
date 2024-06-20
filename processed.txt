@@ -73,6 +73,7 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - Mirando el raw parece bastante ok. Quizás un saltito a finales de jul23 pero nada más. -> viendo el output de proc parece OK.
   - con estos parámetros de treenetproc, solo encuentra 2 outliers. resto OK 
 
+
 == 92232423 ==
 - Abies Alba - params:
   TOL_JUMP = 15
@@ -81,6 +82,24 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - la gráf en raw parece muy correcta.
   - salto en dos pasos el 2023-11-02T14:30:00Z (revertir y forzar)
   - resto OK.
+
+
+== 92232418 ==
+- Abies Alba - params:
+  TOL_JUMP = 10
+  TOL_OUT = 15
+  
+  force.now = c( "2023-10-23 13:15:00"),
+
+  - en raw llama la atención bajón en ene-24 -> de cerca parece congelación
+  - en proc veo sube-baja pcpios sept23 -> de cerca es OK.
+  - meseta a mediados sept23 -> sí, muy parado el dendrómetro...pero lo dejo
+  - saltito de 18um no detectado por treenetproc el 2023-10-07T07:00:00Z -> tol_jump a 10 lo pilla
+  - otro saltito el 2023-10-23T13:15:00Z -> corrijo a mano
+  - mesetas finales de oct23 y pcpios nov23 -> Lo dejo así.
+  - saltito 20 ene24 -> Lo pilla con TOL_JUMP a 10.
+
+
 
 === DATOS PEÑAFLOR HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
