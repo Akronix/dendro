@@ -2,7 +2,7 @@
 ** Datos desde 23.02.2023 o 14 marzo 2023 hasta 01.02.2024 **
 ** Datos válidos desde 23-marzo-2023
 
-Dendros Abies Alba: 92222339 (missing), 92232424, 92232421, 92232416, 92232423, 92232412, 92232418, 92232414, 92232431 (missing), 92232417
+Dendros Abies Alba: 92222339 (missing), 92232412, 92232421, 92232424, 92232416, 92232423, 92232418, 92232414, 92232431 (missing), 92232417
 Dendros Fagus Sylvatica: 92223484, 92232411, 92232420 (missing), 92232415, 92232419
 
 PLACE = 'PacoEzpela'
@@ -38,18 +38,40 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Mirando el raw, quizás pondría salto a el 7jul23. -> treenetproc no lo pilla porque es un salto en dos pasos (hay un valor intermedio el 2023-07-06T19:00:00Z). Borro valor intermedio y lo provoco.
 - Mirando de cerca, también veo un saltito a las 2023-07-05T21:45:00Z, pero es de solo 12 por lo que treenetproc no lo pilla. -> lo fuerzo a mano con force.now.
 
-== 92232412 ==
+
+== !92232419 ==
+- Fagus Sylvatica - params:
+  TOL_JUMP = 15
+  TOL_OUT = 15
+
+- treenetproc encuentra demasiados cambios -> arreglar.
+
+
+== !92232412 ==
 - Abies Alba - params:
   TOL_JUMP = 10
   TOL_OUT = 10
 
 
-
-
-== 92232424 ==
+== !92232421 ==
 - Abies Alba - params:
   TOL_JUMP = 10
   TOL_OUT = 10
+
+
+== !92232424 ==
+- Abies Alba - params:
+  TOL_JUMP = 10
+  TOL_OUT = 10
+
+
+== 92232416 ==
+- Abies Alba - params:
+  TOL_JUMP = 15
+  TOL_OUT = 15
+  
+  - Mirando el raw parece bastante ok. Quizás un saltito a finales de jul23 pero nada más. -> viendo el output de proc parece OK.
+  - con estos parámetros de treenetproc, solo encuentra 2 outliers. resto OK 
 
 
 === DATOS PEÑAFLOR HASTA MAR-24 ===
