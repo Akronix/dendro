@@ -19,20 +19,28 @@ if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222179"
+  SELECTED_DENDROMETER = "92232415"
 }
 
 TOL_JUMP = 15
-TOL_OUT = 10
+TOL_OUT = 15
 
-DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
+# VARIABLES TO SET FOR EVERY SITE #
+PLACE = 'PacoEzpela'
 
-# GENERAL GLOBAL VARIABLES #
-PLACE = 'Penaflor'
+FILENAME_EXCESS = "_2024_02_01_0.csv"
+
+# DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
+DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
+
+ts_start<-"2023-03-26 09:00:00" # from March 26 (2 days after installation)
+ts_end<-"2024-01-30 23:45:00" # day before last data.
+
+# OTHER DERIVED GLOBAL VARIABLES #
+
 DATA_DIR = glue('raw/{PLACE}-dataD')
 OUTPUT_DATA_DIR = glue('processed/{PLACE}-processed')
 OUTPUT_ASSETS_DIR = 'output'
-FILENAME_EXCESS = "_2024_03_27_0.csv"
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
@@ -40,12 +48,12 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # ts_start<-"2022-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
 
-
-ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation) (salvo excepciones)
-ts_end<-"2024-03-26 23:45:00" # default. day before last data.
-
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
+cat(paste0("\t TOL_OUT: ", TOL_OUT, "\n"))
+cat(paste0("\t TOL_JUMP: ", TOL_JUMP, "\n"))
+cat(paste0("\t TS_START: ", ts_start, "\n"))
+cat(paste0("\t TS_END: ", ts_end, "\n"))
 
 #-----------------------------------------------#
 
@@ -116,7 +124,8 @@ dendro_raw_plot
 
 raw.output.fn <- file.path( OUTPUT_ASSETS_DIR, paste( db$series[1] ,"-",'raw data plot.png'))
 
-if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, width = 15, height = 10)}
+if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot, 
+                                          width = 15, height = 10)}
 
 ### PROCESS WITH TREENETPROC ###
 
@@ -189,13 +198,13 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 
 final_processed_data <- dendro_data_L2;
 
-# DANGER! MANUAL CORRECTIONS #
+# DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       # reverse = c(2,3,11),
-                                       # force = c("2022-08-17"),
-                                       force.now = c( "2023-09-27 10:00:00"),
-                                       delete = c( "2022-08-17 07:45:00", "2022-08-17 18:00:00", "2023-09-27 10:15:00",  "2023-09-27 10:30:00"),
+                                       reverse = c(2),
+                                       force = c("2023-07-06"),
+                                       force.now = c( "2023-07-05 21:45:00"),
+                                       delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
