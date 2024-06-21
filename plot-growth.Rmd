@@ -28,7 +28,15 @@ SELECTED_TMS <- case_when(  # select one TMS sensor for this site which has all 
   .default = NA
 )
 
-SAVE <- F
+SAVE <- T
+
+## STUDY PERIOD ##
+ts_start2022 <- "2022-04-01 09:00:00" # from first of April
+ts_end2022 <-"2022-11-30 23:45:00" # to 30 November
+
+ts_start2023 <- "2023-04-01 09:00:00" # from first of April
+ts_end2023 <-"2023-11-30 23:45:00" # to 30 November
+
 ```
 
 Load dataset:
@@ -74,16 +82,8 @@ db = db %>% mutate(
 db
 ```
 
-Set ggplot label options, themes & vars:
+Set ggplot label options, themes & vars (Note that some of the below overrides lib-ts-analysis.R)
 ```{r}
-theme_set( theme_bw() +
-          theme(
-            axis.text=element_text(size=12),
-            legend.text=element_text(size=10),
-            axis.title=element_text(size=14),
-            plot.title = element_text(hjust = 0.5, face = "bold")
-          ))
-
 every_hour_labels = format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
 labels = c("Quercus", "Declining Pines", "Non-Declining Pines")
 
@@ -92,6 +92,19 @@ n.per.class <- db %>% group_by(class, year) %>% summarise (n = n_distinct(series
 c_labels_2022 = c(glue("{labels[1]} ({n.per.class[1,'Quercus']})"), glue("{labels[2]} ({n.per.class[1,'D']})"), glue("{labels[3]} ({n.per.class[1,'ND']})"))
 c_labels_2023 = c(glue("{labels[1]} ({n.per.class[2,'Quercus']})"), glue("{labels[2]} ({n.per.class[2,'D']})"), glue("{labels[3]} ({n.per.class[2,'ND']})"))
 c_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
+```
+
+Making bigger text:
+```{r}
+theme_set( theme_bw() +
+          theme(
+            plot.title = element_text(size = 20, hjust = 0.5, face = "bold"),
+            text=element_text(size=20, color = "gray9"),
+            legend.title=element_text(size=16, color = "gray9"),
+            legend.text=element_text(size=16, color = "gray9"),
+            axis.title=element_text(size=20),
+            axis.text=element_text(size=20, color = "gray9")
+          ))
 ```
 
 # TWD
@@ -158,15 +171,12 @@ summary(aov.model)
 TukeyHSD(aov.model)
 ```
 
-
 ```{r}
 db.twd <- db.twd %>% mutate( year = year(date))
 str(db.twd)
 aov.model <- aov(mean_twd ~ class + year, data = db.twd)
 summary(aov.model)
 ```
-
-
 
 ```{r}
 if (SAVE) ggsave(glue('output/boxplot-TWD-byClass-{PLACE}.png'), combined, width = 14, height = 6)
@@ -295,8 +305,8 @@ combined
 if (SAVE) ggsave(glue('output/GRO-byClass-{PLACE}.png'), combined, width = 14, height = 6)
 ```
 
-# Growth rate
-Using Growth rate instead of GRO from treenetproc.
+# Growing rate
+Using Growing rate instead of GRO from treenetproc.
 
 First, we will use the trend only to get more accurate values.
 
@@ -323,29 +333,42 @@ db.trends <- db.trends %>% select(ts, trend, series) %>% rename(value = trend) %
 str(db.trends)
 ```
 
-Now we calculate the growth rate for every dendrometer and we compute the aggregated mean per classes:
+Now we calculate the Growing rate for every dendrometer and we compute the aggregated mean per classes:
 ```{r}
 db.gr <- data.frame()
 for (dendro.no in SELECTED_DENDROS) {
-  # Filter data by that no
+  # from database of trends, filter data of the time series of this dendro:
   dat = db.trends[db.trends$series == dendro.no,] %>% select(ts, value, class)
   aux <- data.frame(
      series = as.factor(dendro.no),
      class = dat$class[1],
-     calc.growth.rate(dat)
+     calc.growth.rate(dat) # calculates Growing rate for the given data
   ) 
-  db.gr <- rbind.data.frame(db.gr, aux)
+  db.gr <- rbind.data.frame(db.gr, aux) # append in a output / result dataframe.
 }
 
 db.gr
-
-db.grm <- db.gr %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
-db.gr2022 <- db.grm %>% filter(year(date) == 2022)
-db.gr2023 <- db.grm %>% filter(year(date) == 2023)
-db.grm
 ```
 
+Let's restrict the output to the study period:
+```{r}
+db.gr2022 <- db.gr %>% filter(date >= ts_start2022 & date <= ts_end2022)
+db.gr2023 <- db.gr %>% filter(date >= ts_start2023 & date <= ts_end2023)
+```
+
+Now we calculate means for each class:
+```{r}
+db.gr2022 <- db.gr2022 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
+db.gr2023 <- db.gr2023 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
+```
+
+```{r}
+unique(db.gr2022$doy)
+```
+
+
 Finally, we plot it:
+
 ```{r}
 plotgr2022 <- db.gr2022 %>% 
   ggplot() +
@@ -353,9 +376,10 @@ plotgr2022 <- db.gr2022 %>%
   geom_line(aes (x = doy, y = mean_gr, color = class)) +
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
-  labs(x = "Day of the year", y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels_2022, values=c_values) +
-  scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
+  labs(x = "Day of the year", y = bquote("Growing rate (" ~ mu * "m" ~ "·" ~ day ^-1 ~ ")" ) ) +
+  scale_color_manual(name="Tree class", labels = c_labels, values = c_class_values, 
+                   guide = guide_legend(order = 1)) +
+  scale_x_continuous(breaks = seq(90, 360, by = 30), limits = c(91, 334), expand = expansion( mult = 0.01))
 
 plotgr2023 <- db.gr2023 %>%
   ggplot () +
@@ -363,16 +387,17 @@ plotgr2023 <- db.gr2023 %>%
   geom_line(aes (x = doy, y = mean_gr, color = class)) +
   geom_line(aes (x = doy, y = (mean_gr + gr_se), color = class), alpha = 0.5, linetype = "dashed") +
   geom_line(aes (x = doy, y = (mean_gr - gr_se), color = class), alpha = 0.5, linetype = "dashed") +
-  labs(x = "Day of the year",  y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
-  scale_color_manual(labels = c_labels_2023, values=c_values) +
-  scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
+  labs(x = "Day of the year",  y = bquote("Growing rate (" ~ mu * "m" ~ "·" ~ day ^-1 ~ ")" ) ) +
+   scale_color_manual(name="Tree class", labels = c_labels, values = c_class_values, 
+                   guide = guide_legend(order = 1)) +
+  scale_x_continuous(breaks = seq(90, 360, by = 30), limits = c(91, 334), expand = expansion( mult = 0.01))
 
-combined <- plotgr2022 / plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Growth rate per day - {PLACE}')) & theme(legend.position = "bottom")
+combined <- plotgr2022 * plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") & theme(legend.position = "bottom")
 combined
 ```
 
 ```{r}
-if (SAVE) ggsave(glue('output/GrowthRate-byClass-{PLACE}.png'), combined, width = 14, height = 6)
+if (SAVE) ggsave(glue('output/GrowthRate-byClass-{PLACE}.svg'), combined, width = 4200, height = 3000, units = "px")
 ```
 
 And smoothed to get better the higher level trend with a smooth line:
@@ -381,7 +406,7 @@ And smoothed to get better the higher level trend with a smooth line:
 #   ggplot() +
 #   ggtitle('2022') +
 #   geom_smooth(span = 0.1, aes (x = doy, y = mean_gr, color = class), se=T) +
-#   labs(x = "Day of the year", y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
+#   labs(x = "Day of the year", y = bquote("Growing rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
 #   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
 #   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 # 
@@ -389,10 +414,10 @@ And smoothed to get better the higher level trend with a smooth line:
 #   ggplot () +
 #   ggtitle('2023') +
 #   geom_smooth(span = 0.1, aes (x = doy, y = mean_gr, color = class), se=T) +
-#   labs(x = "Day of the year",  y = bquote("Growth rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
+#   labs(x = "Day of the year",  y = bquote("Growing rate (" ~ um ~ "·" ~ day ^-1 ~ ")" ) ) +
 #   scale_color_manual(labels = c_labels, values=c(Quercus = "green", D = "darkred", ND = "darkorange")) +
 #   scale_x_continuous(breaks = seq(0, 360, by = 30), limits = c(0, 366))
 # 
-# combined <- plotgr2022 / plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Growth rate per day - {PLACE}')) & theme(legend.position = "bottom")
+# combined <- plotgr2022 / plotgr2023 + plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(title = glue('Growing rate per day - {PLACE}')) & theme(legend.position = "bottom")
 # combined
 ```

@@ -13,11 +13,12 @@ library(imputeTS)
 
 ### DEFINE GLOBAL VARS ###
 
-# ts_start2022 <- "2022-04-01 09:00:00" # from first of May
-# ts_end2022 <-"2022-10-30 23:45:00" # to 30 October
+## STUDY PERIOD ##
+# ts_start2022 <- "2022-04-01 09:00:00" # from first of April
+# ts_end2022 <-"2022-11-30 23:45:00" # to 30 November
 # 
-# ts_start2023 <- "2023-04-01 09:00:00" # from first of May
-# ts_end2023 <-"2023-10-30 23:45:00" # to 30 October
+# ts_start2023 <- "2023-04-01 09:00:00" # from first of April
+# ts_end2023 <-"2023-11-30 23:45:00" # to 30 November
 
 DATA_DIR = glue('processed/{PLACE}-processed')
 ENV_DIR = glue('processed/{PLACE}-env-processed')

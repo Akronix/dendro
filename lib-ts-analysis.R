@@ -14,6 +14,7 @@ season.color <- "darkgreen"
 c_class_values = c(Quercus = "purple", D = "darkred", ND = "darkorange")
 
 every_hour_labels <- format(lubridate::parse_date_time(hms(hours = 0:23), c('HMS', 'HM')), '%H:%M')
+every_two_hours_labels <- format(lubridate::parse_date_time(hms(hours = seq(0,22,2)), c('HMS', 'HM')), '%H:%M')
 labels <- c("Quercus", "Declining Pines", "Non-Declining Pines")
 c_labels <- c(Quercus = labels[1], D = labels[2], ND = labels[3])
 c_values <- c(Quercus = "purple", D = "darkred", ND = "darkorange")
@@ -319,8 +320,8 @@ plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
     scale_color_manual(name="Tree class", labels = c_labels, values = c_class_values, 
                        guide = guide_legend(order = 1)) +
     ggtitle(glue("{period}")) +
-    scale_x_time(breaks = seq(0, 85500, by = 3600), labels = every_hour_labels, expand = expansion( mult = 0.01)) +
-    labs(x = "Hour of the day", y = expression(paste("Micrometers of Daily seasonality (", mu, "m)"))) + 
+    scale_x_time(breaks = seq(0, 85500, by = 7200), labels = every_two_hours_labels, expand = expansion( mult = 0.01)) +
+    labs(x = "Hour of the day", y = expression(paste("Seasonality (", mu, "m)"))) + 
     scale_y_continuous(breaks = seq(-8,8,1), sec.axis = sec_axis(transform = ~ ((. * 5) + temp.min), name = "Temperature (ºC)", breaks = seq(0,40,5)) ) +
     geom_line(data = temp, aes(x = timeOfDay, y = (temp - temp.min) / 5, linetype = "temp"),
               alpha = 0.7, linewidth = 0.8, col = temperature.color) +
@@ -331,6 +332,7 @@ plot_day_seasonality_byclass_and_temp <- function (seasons, temp, period){
       axis.text.x = element_text(angle = 45, hjust = 1),
       axis.text.y.right = element_text(color = temperature.color),
       axis.title.y.right = element_text(color = temperature.color),
+      panel.grid = element_blank(),
       legend.position="bottom"
     )
     
