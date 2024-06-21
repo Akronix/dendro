@@ -21,9 +21,9 @@ ENV_DIR = glue('processed/{PLACE}-env-processed')
 
 SELECTED_TMS <- 94252896
 
-Abies <- c(92222339, 92232412, 92232421, 92232424, 92232416, 92232423, 92232418, 92232414, 92232431, 92232417)
 Fagus <- c(92223484, 92232411, 92232420, 92232415, 92232419)
-
+Non_Declining_Abies <- c(92222339, 92232424, 92232421, 92232416, 92232423)
+Declining_Abies <- c(92232412, 92232418, 92232414, 92232431, 92232417)
 
 ### IMPORT DATA ###
 
@@ -43,8 +43,9 @@ head(db.env)
 db = db %>% mutate(
                   date = date(db$ts),
                   year = year(date),
-                  sp = case_when(
-                    series %in% Abies ~ factor("Abies Alba"),
+                  class = case_when(
+                    series %in% Declining_Abies ~ factor("D"),
+                    series %in% Non_Declining_Abies ~ factor("ND"),
                     series %in% Fagus ~ factor("Fagus Sylvatica"),
                     .default = NA
                     )
@@ -102,57 +103,65 @@ ggsave(glue('output/normalized-all-dendrometers-{PLACE}.png'), width = 15, heigh
 # By species
 
 ```{r}
-db.Abi <- db %>% filter (sp == "Abies Alba")
-db.Fag <- db %>% filter (sp == "Fagus Sylvatica")
+db.D <- db %>% filter (class == "D")
+db.ND <- db %>% filter (class == "ND")
+db.Fag <- db %>% filter (class == "Fagus Sylvatica")
 ```
 
 
 ```{r}
-plot_multiple_dendro(db.Abi, "Dendrómetros Abies Alba")
+# plot_multiple_dendro(db.Abi, "Silver fir dendrometers")
 ```
 
 
 ```{r}
-plot_multiple_dendro(db.Fag, "Dendrómetros Fagus Sylvatica")
+# plot_multiple_dendro(db.Fag, "Dendrómetros Fagus Sylvatica")
 ```
 
 Plot both in one graph:
 ```{r}
 # Define color scales for each class
 blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue", "turquoise4", "royalblue2")
+green_colors <- c("lightgreen", "green", "darkgreen", "darkolivegreen", "olivedrab", "springgreen")
 orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
 
-ggplot() +
-   ggtitle("Dendrometers painted by color scale according to its specie") +
-  geom_line(data = db.Fag, aes(x = ts, y = value, col = series)) +
-  scale_color_manual(values = orange_colors, name = "Fagus Sylvatica") +
-  new_scale_color() +
-  geom_line(data = db.Abi, aes(x = ts, y = value, col = series), ) +
-  scale_color_manual(values = blue_colors, name = "Abies Alba") +
-  new_scale_color() +
-  geom_hline(yintercept=0,lty=2,linewidth=0.2) +
-  labs(x=expression(''),
-       y=expression(Delta*" D (um)"))+
-  theme_bw() +
-  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
-  theme(axis.text.x = element_text(angle = 30, hjust=1))
+plotByClass <- 
+  ggplot() +
+     ggtitle("Dendrometers painted by color scale according to its specie") +
+    geom_line(data = db.Fag, aes(x = ts, y = value, col = series)) +
+    scale_color_manual(values = green_colors, name = "Fagus Sylvatica") +
+    new_scale_color() +
+    geom_line(data = db.ND, aes(x = ts, y = value, col = series), ) +
+    scale_color_manual(values = blue_colors, name = "Non-Declining Abies Alba") +
+    new_scale_color() +
+    geom_line(data = db.D, aes(x = ts, y = value, col = series), ) +
+    scale_color_manual(values = orange_colors, name = "Declining Abies Alba") +
+    new_scale_color() +
+    geom_hline(yintercept=0,lty=2,linewidth=0.2) +
+    labs(x=expression(''),
+         y=expression(Delta*" D (um)"))+
+    theme_bw() +
+    scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+    theme(axis.text.x = element_text(angle = 30, hjust=1))
 
-ggsave(glue('output/all-dendrometers-by-class-{PLACE}.png'), width = 15, height = 10)
+ggsave(glue('output/all-dendrometers-by-class-{PLACE}.png'),  plot = plotByClass, width = 15, height = 10)
 ```
 
 Plot means for each specie in one graph:
 ```{r}
-db.mean.Fag <- db.Fag %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(sp = "Fagus Sylvatica")
-db.mean.Abi <- db.Abi %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(sp = "Abies Alba")
-db.means <- rbind.data.frame(db.mean.Abi, db.mean.Fag)
+db.mean.Fag <- db.Fag %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(class = "Fagus Sylvatica")
+db.mean.D <- db.D %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(class = "Declining Silver fir")
+db.mean.ND <- db.ND %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(class = "Non-Declining Silver fir")
+
+db.means <- rbind.data.frame(db.mean.Fag, db.mean.D, db.mean.ND)
 
 plotMeans <- 
-  ggplot(data = db.means, mapping = aes(x=ts, y=mean, col = sp))+
-  ggtitle("Mean for Abies Alba and Fagus Sylvatica with ± standard error strips") +
-  scale_color_manual(values=c("blue", "orange")) +
-  scale_fill_manual(values=c("blue", "orange")) +
+  ggplot(data = db.means, mapping = aes(x=ts, y=mean, col = class))+
+  ggtitle("Mean for Fagus Sylvatica and for declining and non-declining Silver fir, with ± standard error strips") +
+  scale_color_manual(values=c("Fagus Sylvatica" = "green","Non-Declining Silver fir" = "blue", "Declining Silver fir" = "orange"),) +
+  scale_fill_manual(values=c("Fagus Sylvatica" = "green","Non-Declining Silver fir" = "blue", "Declining Silver fir" = "orange"),) +
   geom_line( ) +
-  geom_ribbon(aes(ymin=mean-se, ymax=mean+se, fill=sp), alpha=0.2, show.legend	= FALSE, linetype = 0) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se, fill=class), alpha=0.2, show.legend	= FALSE, linetype = 0) +
   labs(x=expression('Date'),
        y=expression( Delta*"D (um)") ) +
   geom_hline(yintercept=0,lty=2,linewidth=0.2)+
@@ -168,7 +177,7 @@ ggsave(glue('output/means-by-class-{PLACE}.png'), plot = plotMeans, width = 15, 
 
 Calculate means for TWD by sp:
 ```{r}
-db.twd <- db %>% summarise(mean_twd = mean(twd, na.rm = T), n = n(), twd_se = sd(twd, na.rm = T) / sqrt(n), .by = c(date, sp), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
+db.twd <- db %>% summarise(mean_twd = mean(twd, na.rm = T), n = n(), twd_se = sd(twd, na.rm = T) / sqrt(n), .by = c(date, class), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
 ```
 
 
@@ -183,19 +192,21 @@ vwc <- db.env %>% mutate(date = date(db.env$ts)) %>% summarise(max = max(vwc), .
 ```{r warning=FALSE}
 plot.twd <- db.twd %>%
   ggplot () +
-  geom_line(aes (x = date, y = mean_twd, color = sp), show.legend = T) +
+  geom_line(aes (x = date, y = mean_twd, color = class), show.legend = T) +
   # geom_line(aes (x = date, y = (mean_twd + twd_se), color = sp), alpha = 0.5, linetype = "dashed", show.legend = F) +
   # geom_line(aes (x = date, y = (mean_twd - twd_se), color = sp), alpha = 0.5, linetype = "dashed", show.legend = F) +
-  scale_color_manual(values=c("blue", "orange")) +
-  labs(title = "Tree Water Deficit means, separated by species", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")))+
+  scale_color_manual(values=c("Fagus Sylvatica" = "green","ND" = "blue", "D" = "orange"), labels = c("Fagus Sylvatica" = "Fagus Sylvatica","ND" = "Non-Declining Silver fir", "D" = "Declining Silver fir")) +
+  labs(title = "Tree Water Deficit means, separated by group", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")))+
   scale_x_date(date_breaks = "1 month", date_labels="%b %Y")+
   scale_y_continuous(sec.axis = sec_axis(trans = ~ . * 1, name = "Volumetric Water Content (%)")) +
    geom_line(data = vwc, aes(x = date, y = max*100, linetype = "Volumetric Water Content (%)"), col = "gray28", alpha = 0.9, show.legend	= c(colour = FALSE, linetype = T)) +
   scale_linetype_manual(NULL, values = 4)
 plot.twd
+ggsave(glue('output/twd-evolution-by-class-{PLACE}.png'), plot = plot.twd, width = 15, height = 10)
 ```
 
 ```{r}
-boxplot(mean_twd ~ sp, data = db.twd)
+boxplot(mean_twd ~ class, data = db.twd)
+
 ```
 

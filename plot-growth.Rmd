@@ -109,14 +109,14 @@ theme_set( theme_bw() +
 
 # TWD
 ```{r}
-db.twd <- db %>% summarise( mean_twd = mean(twd, na.rm = T), twd_se = sd(twd / sqrt(n()), na.rm = T), .by = c(date, class), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
+db.twd <- db %>% summarise( mean_twd = mean(twd, na.rm = T), twd_se = sd(twd, na.rm = T) / sqrt(n()), .by = c(date, class), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
 db.twd2022 <- db.twd %>% filter(year(date) == 2022)
 db.twd2023 <- db.twd %>% filter(year(date) == 2023)
 db.twd
 ```
 
 ```{r}
-db.twd.agg.yearly <- db %>% mutate(year = year(date)) %>% summarise( mean_twd = mean(twd, na.rm = T), twd_se = sd(twd / sqrt(n()), na.rm = T), n = n_distinct(series), .by = c(series, class, year))
+db.twd.agg.yearly <- db %>% mutate(year = year(date)) %>% summarise( mean_twd = mean(twd, na.rm = T), n = n_distinct(series), twd_se = sd(twd, na.rm = T) / sqrt(n), .by = c(series, class, year))
 boxplot(mean_twd ~ class + year, data = db.twd.agg.yearly)
 ```
 
@@ -271,7 +271,7 @@ if (SAVE) ggsave(glue('output/evolution-Temp-byClass-{PLACE}.png'), combined, wi
 
 # GRO
 ```{r}
-db.gro <- db %>% summarise( gro = mean(gro_yr, na.rm = T), gro_se = sd(gro_yr / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
+db.gro <- db %>% summarise( gro = mean(gro_yr, na.rm = T), gro_se = sd(gro_yr, na.rm = T) / sqrt(n()), .by = c(date, class)) %>% mutate(doy = yday(date))
 db.gro2022 <- db.gro %>% filter(year(date) == 2022)
 db.gro2023 <- db.gro %>% filter(year(date) == 2023)
 db.gro
@@ -358,8 +358,8 @@ db.gr2023 <- db.gr %>% filter(date >= ts_start2023 & date <= ts_end2023)
 
 Now we calculate means for each class:
 ```{r}
-db.gr2022 <- db.gr2022 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
-db.gr2023 <- db.gr2023 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate / sqrt(n()), na.rm = T), .by = c(date, class)) %>% mutate(doy = yday(date))
+db.gr2022 <- db.gr2022 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate, na.rm = T) / sqrt(n()), .by = c(date, class)) %>% mutate(doy = yday(date))
+db.gr2023 <- db.gr2023 %>% summarise( mean_gr = mean(rate, na.rm = T), gr_se = sd(rate, na.rm = T) / sqrt(n()), .by = c(date, class)) %>% mutate(doy = yday(date))
 ```
 
 ```{r}
@@ -397,7 +397,7 @@ combined
 ```
 
 ```{r}
-if (SAVE) ggsave(glue('output/GrowthRate-byClass-{PLACE}.svg'), combined, width = 4200, height = 3000, units = "px")
+if (SAVE) ggsave(glue('output/GrowthRate-byClass-{PLACE}.png'), combined, width = 4200, height = 3000, units = "px")
 ```
 
 And smoothed to get better the higher level trend with a smooth line:

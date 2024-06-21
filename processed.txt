@@ -11,6 +11,7 @@ DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
 ts_start<-"2023-03-26 09:00:00" # from March 26 (2 days after installation)
 ts_end<-"2024-01-30 23:45:00" # day before last data.
 
+
 == 92232411 ==
 - Fagus Sylvatica - params:
   TOL_JUMP = 15
@@ -39,7 +40,6 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Mirando el raw, quizás pondría salto a el 7jul23. -> treenetproc no lo pilla porque es un salto en dos pasos (hay un valor intermedio el 2023-07-06T19:00:00Z). Borro valor intermedio y lo provoco.
 - Mirando de cerca, también veo un saltito a las 2023-07-05T21:45:00Z, pero es de solo 12 por lo que treenetproc no lo pilla. -> lo fuerzo a mano con force.now.
 
-
 == 92232419 ==
 - Fagus Sylvatica - params:
   TOL_JUMP = 11
@@ -49,7 +49,7 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Con esos params de tol, para mí es OK.
 
 == 92232412 ==
-- Abies Alba - params:
+- Abies Alba - ND - params:
   TOL_JUMP = 12
   TOL_OUT = 15
   
@@ -58,7 +58,7 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - bastantes mesetas a partir de sept23
 
 == 92232421 ==
-- Abies Alba - params:
+- Abies Alba - D - params:
   TOL_JUMP = 20
   TOL_OUT = 20
 
@@ -67,7 +67,7 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - hay salto que corregir pcpios mayo 2023? -> lo fuerzo para no tener que bajar mucho TOL_JUMP y que coja demasiados saltos donde no los hay: force.now = c( "2023-05-09 10:30:00"),
 
 == 92232424 ==
-- Abies Alba - params:
+- Abies Alba - D - params:
   TOL_JUMP = 10
   TOL_OUT = 10
   
@@ -81,16 +81,15 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Para mi gusto, faltaría un salto por corregir el 19 oct (detectado solamente como outlier):  reverse = c(33), force.now = c( "2023-10-19 20:15:00"),
 
 == 92232416 ==
-- Abies Alba - params:
+- Abies Alba - D - params:
   TOL_JUMP = 15
   TOL_OUT = 15
   
   - Mirando el raw parece bastante ok. Quizás un saltito a finales de jul23 pero nada más. -> viendo el output de proc parece OK.
   - con estos parámetros de treenetproc, solo encuentra 2 outliers. resto OK 
 
-
 == 92232423 ==
-- Abies Alba - params:
+- Abies Alba - D - params:
   TOL_JUMP = 15
   TOL_OUT = 15
   
@@ -98,9 +97,8 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - salto en dos pasos el 2023-11-02T14:30:00Z (revertir y forzar)
   - resto OK.
 
-
 == 92232418 ==
-- Abies Alba - params:
+- Abies Alba - ND - params:
   TOL_JUMP = 10
   TOL_OUT = 15
   
@@ -114,9 +112,8 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - mesetas finales de oct23 y pcpios nov23 -> Lo dejo así.
   - saltito 20 ene24 -> Lo pilla con TOL_JUMP a 10.
 
-
 == 92232414 ==
-- Abies Alba - params:
+- Abies Alba - ND - params:
   TOL_JUMP = 10
   TOL_OUT = 15
   
@@ -129,9 +126,8 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - nov23 una larga meseta sin apenas cambios -> Es muy muy estancado pero lo he visto en otros dendrómetros de abies alba en estas fechas, así que lo dejo.
   - deshacer salto 2 de treenetproc en ago23
 
-
 == 92232417 ==
-- Abies Alba - params:
+- Abies Alba - ND - params:
   TOL_JUMP = 10
   TOL_OUT = 15
   
