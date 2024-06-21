@@ -15,15 +15,15 @@ args <- commandArgs(trailingOnly = TRUE)
 # print(args)
 
 # SENSOR-SPECIFIC GLOBAL VARIABLES #
-if (length(args) > 0 & !is.na(as.numeric(args[1])) ){
+if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232417"
+  SELECTED_DENDROMETER = "92232419"
 }
 
-TOL_JUMP = 10
-TOL_OUT = 15
+TOL_JUMP = 11
+TOL_OUT = 11
 
 # VARIABLES TO SET FOR EVERY SITE #
 PLACE = 'PacoEzpela'
@@ -186,29 +186,31 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  plot_export = T,
                                  plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( db$series[1] ,"-", db$sp[1],"-proc_L2_plot")),
                                  tz="Europe/Madrid")
-# check the data
-# head(dendro_data_L2)
-# tail(dendro_data_L2)
 
 #highlight corrections made on the dendrometer data:
 # if ( length(which(is.na(dendro_data_L2$flags)==F) > 0)) {
 View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
+
+# check the data
+# head(dendro_data_L2)
+# tail(dendro_data_L2)
+
 
 # -> Open proc_L2_plot.pdf file to see results
 
 final_processed_data <- dendro_data_L2;
 
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                       dendro_L2 = dendro_data_L2,
-                                       # reverse = c(2),
-                                       # force = c("2023-07-06"),
-                                       force.now = c( "2023-11-02 06:30:00"),
-                                       # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
-                                       plot = T,
-                                       plot_export = T,
-                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-                                       tz="Europe/Madrid")
+# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+#                                        dendro_L2 = dendro_data_L2,
+#                                        # reverse = c(2),
+#                                        # force = c("2023-07-06"),
+#                                        force.now = c( "2023-11-02 06:30:00"),
+#                                        # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
+#                                        plot = T,
+#                                        plot_export = T,
+#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+#                                        tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:

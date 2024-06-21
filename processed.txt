@@ -39,13 +39,13 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Mirando de cerca, también veo un saltito a las 2023-07-05T21:45:00Z, pero es de solo 12 por lo que treenetproc no lo pilla. -> lo fuerzo a mano con force.now.
 
 
-== !92232419 ==
+== 92232419 ==
 - Fagus Sylvatica - params:
-  TOL_JUMP = 15
-  TOL_OUT = 15
+  TOL_JUMP = 11
+  TOL_OUT = 11
 
-- treenetproc encuentra demasiados cambios -> arreglar.
-
+- treenetproc encuentra demasiados cambios -> arreglado con nueva versión 0.2.1
+- Con esos params de tol, para mí es OK.
 
 == !92232412 ==
 - Abies Alba - params:
@@ -131,6 +131,7 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
   - saltito sin corregir el 2023-11-02T06:30:00Z -> lo corrijo a mano.
   - muchas mesetillas en nov y dic23
   - sierra hacia abajo rara en enero24. En general enero24 de este dendrómetro es muy raro. Pero no intervengo más.
+
 
 === DATOS PEÑAFLOR HASTA MAR-24 ===
 ** NUEVOS DATOS: desde sept-23 a mar24 **
