@@ -1,0 +1,201 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r include=FALSE}
+source("lib-dendro.R")
+
+library(ggplot2)
+theme_set(theme_bw())
+library(ggnewscale)
+library(dplyr)
+library(lubridate)
+library(glue)
+
+
+### DEFINE GLOBAL VARS ###
+PLACE = 'PacoEzpela'
+DATA_DIR = glue('processed/{PLACE}-processed')
+ENV_DIR = glue('processed/{PLACE}-env-processed')
+
+SELECTED_TMS <- 94252896
+
+Abies <- c(92222339, 92232412, 92232421, 92232424, 92232416, 92232423, 92232418, 92232414, 92232431, 92232417)
+Fagus <- c(92223484, 92232411, 92232420, 92232415, 92232419)
+
+
+### IMPORT DATA ###
+
+# importing dendro data #
+list_files <- list.files(file.path(".",DATA_DIR), pattern="*.csv$", full.names=TRUE)
+db<-read.all.processed(list_files)
+
+# importing climate data #
+db.env <- read.env.proc(file.path(".",ENV_DIR,'proc-env.csv'))
+db.env <- db.env[db.env$series == SELECTED_TMS,]
+head(db.env)
+```
+
+
+```{r include=FALSE}
+### CLEAN & PREPARE DATA ###
+db = db %>% mutate(
+                  date = date(db$ts),
+                  year = year(date),
+                  sp = case_when(
+                    series %in% Abies ~ factor("Abies Alba"),
+                    series %in% Fagus ~ factor("Fagus Sylvatica"),
+                    .default = NA
+                    )
+                  )
+```
+
+
+```{r}
+# INSPECT DATA
+str(db)
+summary(db)
+# head(db)
+# tail(db)
+```
+
+
+```{r}
+## PLOT ALL DENDROS ##
+plot_multiple_dendro <- function (data, title, y = data$value)  {
+  ggplot(data = data, mapping = aes(x=ts, y=y, col=series))+
+  geom_line( )+
+  # ggtitle(paste0("Dendro data for sensor series: ",db$series[1], " - ", db$sp[1])) +
+  labs(x=expression('Date'),
+       y=expression( Delta*"D (um)") ) +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  scale_x_datetime(date_breaks = "1 month", date_labels = "%m-%y") +
+  ggtitle(title) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+}
+```
+
+
+```{r}
+plot_multiple_dendro(db, "Plot by dendrometer")
+ggsave(glue('output/all-dendrometers-{PLACE}.png'), width = 15, height = 10)
+```
+
+# Normalization 0-1 to better compare dendros
+
+```{r}
+normalized.db <- db %>%
+  select (series, ts, value) %>%
+  group_by(series) %>%
+  mutate( normalized_value = normalize.0_1(value), .keep = 'all' )
+```
+
+
+```{r}
+plot_multiple_dendro(normalized.db, "Dendros data normalized to [0-1]", y = normalized.db$normalized_value)
+ggsave(glue('output/normalized-all-dendrometers-{PLACE}.png'), width = 15, height = 10)
+```
+
+
+# By species
+
+```{r}
+db.Abi <- db %>% filter (sp == "Abies Alba")
+db.Fag <- db %>% filter (sp == "Fagus Sylvatica")
+```
+
+
+```{r}
+plot_multiple_dendro(db.Abi, "Dendrómetros Abies Alba")
+```
+
+
+```{r}
+plot_multiple_dendro(db.Fag, "Dendrómetros Fagus Sylvatica")
+```
+
+Plot both in one graph:
+```{r}
+# Define color scales for each class
+blue_colors <- c("blue", "cyan", "aquamarine", "cadetblue", "dodgerblue", "darkblue", "turquoise4", "royalblue2")
+orange_colors <- c("orange", "orangered", "tomato", "darkorange", "coral", "tan")
+
+ggplot() +
+   ggtitle("Dendrometers painted by color scale according to its specie") +
+  geom_line(data = db.Fag, aes(x = ts, y = value, col = series)) +
+  scale_color_manual(values = orange_colors, name = "Fagus Sylvatica") +
+  new_scale_color() +
+  geom_line(data = db.Abi, aes(x = ts, y = value, col = series), ) +
+  scale_color_manual(values = blue_colors, name = "Abies Alba") +
+  new_scale_color() +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2) +
+  labs(x=expression(''),
+       y=expression(Delta*" D (um)"))+
+  theme_bw() +
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+
+ggsave(glue('output/all-dendrometers-by-class-{PLACE}.png'), width = 15, height = 10)
+```
+
+Plot means for each specie in one graph:
+```{r}
+db.mean.Fag <- db.Fag %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(sp = "Fagus Sylvatica")
+db.mean.Abi <- db.Abi %>% group_by(ts) %>% dplyr::summarise(n = n(), mean = mean(value, na.rm = T), sd = sd(value, na.rm = T), se = sd / sqrt(n) ) %>% mutate(sp = "Abies Alba")
+db.means <- rbind.data.frame(db.mean.Abi, db.mean.Fag)
+
+plotMeans <- 
+  ggplot(data = db.means, mapping = aes(x=ts, y=mean, col = sp))+
+  ggtitle("Mean for Abies Alba and Fagus Sylvatica with ± standard error strips") +
+  scale_color_manual(values=c("blue", "orange")) +
+  scale_fill_manual(values=c("blue", "orange")) +
+  geom_line( ) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se, fill=sp), alpha=0.2, show.legend	= FALSE, linetype = 0) +
+  labs(x=expression('Date'),
+       y=expression( Delta*"D (um)") ) +
+  geom_hline(yintercept=0,lty=2,linewidth=0.2)+
+  scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+  
+plotMeans
+ggsave(glue('output/means-by-class-{PLACE}.png'), plot = plotMeans, width = 15, height = 10)
+```
+
+# Tree Water Deficit (TWD)
+
+Calculate means for TWD by sp:
+```{r}
+db.twd <- db %>% summarise(mean_twd = mean(twd, na.rm = T), n = n(), twd_se = sd(twd, na.rm = T) / sqrt(n), .by = c(date, sp), n = as.integer(n() / 96)) %>% mutate(doy = yday(date))
+```
+
+
+Calculate VWC:
+
+```{r}
+vwc <- db.env %>% mutate(date = date(db.env$ts)) %>% summarise(max = max(vwc), .by = date)
+# vwc
+```
+
+
+```{r warning=FALSE}
+plot.twd <- db.twd %>%
+  ggplot () +
+  geom_line(aes (x = date, y = mean_twd, color = sp), show.legend = T) +
+  # geom_line(aes (x = date, y = (mean_twd + twd_se), color = sp), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  # geom_line(aes (x = date, y = (mean_twd - twd_se), color = sp), alpha = 0.5, linetype = "dashed", show.legend = F) +
+  scale_color_manual(values=c("blue", "orange")) +
+  labs(title = "Tree Water Deficit means, separated by species", x = "Date", y = expression(paste("Tree Water Deficit (", mu, "m)")))+
+  scale_x_date(date_breaks = "1 month", date_labels="%b %Y")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~ . * 1, name = "Volumetric Water Content (%)")) +
+   geom_line(data = vwc, aes(x = date, y = max*100, linetype = "Volumetric Water Content (%)"), col = "gray28", alpha = 0.9, show.legend	= c(colour = FALSE, linetype = T)) +
+  scale_linetype_manual(NULL, values = 4)
+plot.twd
+```
+
+```{r}
+boxplot(mean_twd ~ sp, data = db.twd)
+```
+
