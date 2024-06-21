@@ -57,11 +57,14 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - en proc veo un baja-sube el 27jul23 bte atípico, pero no puedo marcarlo como malo porque no hay ningún outlier ni jump.
 - bastantes mesetas a partir de sept23
 
-== !92232421 ==
+== 92232421 ==
 - Abies Alba - params:
-  TOL_JUMP = 10
-  TOL_OUT = 10
+  TOL_JUMP = 20
+  TOL_OUT = 20
 
+  force.now = c( "2023-05-09 10:30:00"),
+
+- hay salto que corregir pcpios mayo 2023? -> lo fuerzo para no tener que bajar mucho TOL_JUMP y que coja demasiados saltos donde no los hay: force.now = c( "2023-05-09 10:30:00"),
 
 == !92232424 ==
 - Abies Alba - params:

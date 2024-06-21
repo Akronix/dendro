@@ -19,11 +19,8 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232412"
+  SELECTED_DENDROMETER = "92232421"
 }
-
-TOL_JUMP = 12
-TOL_OUT = 15
 
 # VARIABLES TO SET FOR EVERY SITE #
 PLACE = 'PacoEzpela'
@@ -47,13 +44,6 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 # Set initial and final date and sampling dates
 # ts_start<-"2022-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
 # ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
-
-print("process-dendro script running with the next parameters:")
-cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
-cat(paste0("\t TOL_OUT: ", TOL_OUT, "\n"))
-cat(paste0("\t TOL_JUMP: ", TOL_JUMP, "\n"))
-cat(paste0("\t TS_START: ", ts_start, "\n"))
-cat(paste0("\t TS_END: ", ts_end, "\n"))
 
 #-----------------------------------------------#
 
@@ -177,6 +167,16 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
+TOL_JUMP = 20
+TOL_OUT = 20
+
+print("process-dendro script running with the next parameters:")
+cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
+cat(paste0("\t TOL_OUT: ", TOL_OUT, "\n"))
+cat(paste0("\t TOL_JUMP: ", TOL_JUMP, "\n"))
+cat(paste0("\t TS_START: ", ts_start, "\n"))
+cat(paste0("\t TS_END: ", ts_end, "\n"))
+
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
                                  tol_out = TOL_OUT,
@@ -201,16 +201,16 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
-# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                        dendro_L2 = dendro_data_L2,
-#                                        # reverse = c(2),
-#                                        # force = c("2023-07-06"),
-#                                        force.now = c( "2023-11-02 06:30:00"),
-#                                        # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
-#                                        plot = T,
-#                                        plot_export = T,
-#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-#                                        tz="Europe/Madrid")
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       # reverse = c(2),
+                                       # force = c("2023-07-06"),
+                                       force.now = c( "2023-05-09 10:30:00"),
+                                       # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
+                                       plot = T,
+                                       plot_export = T,
+                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+                                       tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
