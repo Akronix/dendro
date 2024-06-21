@@ -48,11 +48,14 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - treenetproc encuentra demasiados cambios -> arreglado con nueva versión 0.2.1
 - Con esos params de tol, para mí es OK.
 
-== !92232412 ==
+== 92232412 ==
 - Abies Alba - params:
-  TOL_JUMP = 10
-  TOL_OUT = 10
-
+  TOL_JUMP = 12
+  TOL_OUT = 15
+  
+- en raw veo con una cosa rarrilla de que sube y baja de manera a cuadrática a pcpios de sept-23 -> parece OK
+- en proc veo un baja-sube el 27jul23 bte atípico, pero no puedo marcarlo como malo porque no hay ningún outlier ni jump.
+- bastantes mesetas a partir de sept23
 
 == !92232421 ==
 - Abies Alba - params:
