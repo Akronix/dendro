@@ -66,11 +66,19 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 
 - hay salto que corregir pcpios mayo 2023? -> lo fuerzo para no tener que bajar mucho TOL_JUMP y que coja demasiados saltos donde no los hay: force.now = c( "2023-05-09 10:30:00"),
 
-== !92232424 ==
+== 92232424 ==
 - Abies Alba - params:
   TOL_JUMP = 10
   TOL_OUT = 10
+  
+  reverse = c(33),
+  force.now = c( "2023-10-19 20:15:00"),
 
+- raw: meseta larga a partir de sept23
+- proc: muchisimos escalones en jul23: en lugar de seguir la tendencia normal de crecimiento, el dendrómetro hace varios saltos que pueden ser de 10, 40, 60um. -> bastante bien corregidos por treenetproc
+- idem en sept23
+- gran meseta desde finales sept23 hasta mediados oct23
+- Para mi gusto, faltaría un salto por corregir el 19 oct (detectado solamente como outlier):  reverse = c(33), force.now = c( "2023-10-19 20:15:00"),
 
 == 92232416 ==
 - Abies Alba - params:
