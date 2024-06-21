@@ -19,13 +19,14 @@ ts_end<-"2024-01-30 23:45:00" # day before last data.
 - Con la graf raw solamente veo un posible salto a pcpios de jul (2023-07-06 19:30:00). con tol_jump a 15 treenetproc lo pilla y algún outlier más.
 - También salto gordo el 22-ago-23 y baja-sube raro a pcpios de sept23 -> Al mirarlo de cerca, están OK. Son subidas paulatinas y que parece que coinciden con días de menos calor (faltaría contrastarlo con lluvias).
 
-== !92223484 ==
+== 92223484 ==
 - Fagus Sylvatica - params:
-  TOL_JUMP = 15
-  TOL_OUT = 15
+  TOL_JUMP = 11
+  TOL_OUT = 11
 
 - Con la graf raw me llama la atención que a partir de sept-23 los datos están muy muy planos. Por lo demás, no veo nada raro en los datos.
-- treenetproc encuentra demasiados cambios -> arreglar.
+- treenetproc encuentra demasiados cambios -> arreglado con nueva versión 0.2.1
+- Con esos params de tol, para mí es OK.
 
 == 92232415 ==
 - Fagus Sylvatica - params:

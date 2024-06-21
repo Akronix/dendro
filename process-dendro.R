@@ -19,7 +19,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   SELECTED_DENDROMETER = as.character(args[1])
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232419"
+  SELECTED_DENDROMETER = "92223484"
 }
 
 TOL_JUMP = 11
