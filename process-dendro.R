@@ -6,6 +6,7 @@ library(glue)
 ### DEFINE GLOBAL VARS ###
 PATH = '/home/akronix/workspace/dendro'
 setwd(PATH)
+INTERACTIVE <- T
 
 source("lib-dendro.R")
 
@@ -17,21 +18,21 @@ args <- commandArgs(trailingOnly = TRUE)
 # SENSOR-SPECIFIC GLOBAL VARIABLES #
 if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   SELECTED_DENDROMETER = as.character(args[1])
+  INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92232424"
+  SELECTED_DENDROMETER = "92223490"
 }
 
 # VARIABLES TO SET FOR EVERY SITE #
-PLACE = 'PacoEzpela'
+PLACE = "Pineta"
 
-FILENAME_EXCESS = "_2024_02_01_0.csv"
+FILENAME_EXCESS = "_2024_06_20.csv"
 
-# DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
-DATE_FORMAT = "%d.%m.%Y %H:%M:%S"
+DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
 
-ts_start<-"2023-03-26 09:00:00" # from March 26 (2 days after installation)
-ts_end<-"2024-01-30 23:45:00" # day before last data.
+ts_start<-"2023-03-24 09:00:00" # from March 24 (2 days after installation)
+ts_end<-"2024-06-18 23:45:00" # day before last data.
 
 # OTHER DERIVED GLOBAL VARIABLES #
 
@@ -167,15 +168,13 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 20
-TOL_OUT = 20
+TOL_JUMP = 25
+TOL_OUT = 30
 
 print("process-dendro script running with the next parameters:")
-cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n"))
-cat(paste0("\t TOL_OUT: ", TOL_OUT, "\n"))
-cat(paste0("\t TOL_JUMP: ", TOL_JUMP, "\n"))
-cat(paste0("\t TS_START: ", ts_start, "\n"))
-cat(paste0("\t TS_END: ", ts_end, "\n"))
+cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n", 
+           "\t TOL_OUT: ", TOL_OUT, "\n", "\t TOL_JUMP: ", TOL_JUMP, "\n",
+           "\t TS_START: ", ts_start, "\n", "\t TS_END: ", ts_end, "\n"))
 
 dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  temp_L1 = temp_data_L1,
@@ -188,8 +187,9 @@ dendro_data_L2 <- proc_dendro_L2(dendro_L1 = dendro_data_L1,
                                  tz="Europe/Madrid")
 
 #highlight corrections made on the dendrometer data:
-# if ( length(which(is.na(dendro_data_L2$flags)==F) > 0)) {
-View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
+if ( INTERACTIVE ) {
+  View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
+}
 
 # check the data
 # head(dendro_data_L2)
@@ -201,20 +201,22 @@ View(dendro_data_L2[which(is.na(dendro_data_L2$flags)==F),])
 final_processed_data <- dendro_data_L2;
 
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
-final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-                                       dendro_L2 = dendro_data_L2,
-                                       reverse = c(33),
-                                       # force = c("2023-07-06"),
-                                       force.now = c( "2023-10-19 20:15:00"),
-                                       # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
-                                       plot = T,
-                                       plot_export = T,
-                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-                                       tz="Europe/Madrid")
+# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+#                                        dendro_L2 = dendro_data_L2,
+#                                        reverse = c(33),
+#                                        # force = c("2023-07-06"),
+#                                        force.now = c( "2023-10-19 20:15:00"),
+#                                        # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
+#                                        plot = T,
+#                                        plot_export = T,
+#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+#                                        tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
-View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
+if ( INTERACTIVE ) {
+  View(final_processed_data[which(is.na(final_processed_data$flags)==F),])
+}
 
 grow_seas(dendro_L2 = final_processed_data, agg_yearly=TRUE, tz="Europe/Madrid")
 
