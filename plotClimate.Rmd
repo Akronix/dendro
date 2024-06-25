@@ -77,7 +77,8 @@ plot_temp_and_humidity <-
     scale_colour_gradient(low = "light blue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y", expand = expansion( mult = 0.01) ) +
     theme(axis.text.x = element_text(angle = 30, hjust=1), legend.position = "bottom") +
-    scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)\n" ))+
+    scale_y_continuous("Temperature (ºC)\n", , breaks=seq(0,40,10), limits = c(0, 50),
+                       sec.axis = dup_axis(name = "Volumetric Water Content (%)\n", breaks=seq(0,50,10))) +
     geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric\nWater Content (%)"), col="blue", show.legend	= TRUE) +
     scale_linetype_manual(NULL, values = 1) +
     labs(x=expression(''), colour = "Soil Temperature (ºC)") +
@@ -99,7 +100,8 @@ plot_temp_and_humidity <-
     scale_colour_gradient(low = "lightblue", high = "red") +
     scale_x_datetime(date_breaks = "1 month", date_labels="%b %Y", expand = expansion( mult = 0.01) ) +
     theme(axis.text.x = element_text(angle = 30, hjust=1), legend.position = "bottom") +
-    scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,50,10), sec.axis = dup_axis(name = "Volumetric Water Content (%)\n" ))+
+    scale_y_continuous("Temperature (ºC)\n", breaks=seq(0,40,10), limits = c(0, 50), 
+                       sec.axis = dup_axis(name = "Volumetric Water Content (%)\n", breaks=seq(0,50,10))) +
     geom_line(aes(x = ts, y = vwc * 100,  linetype = "Volumetric\nWater Content (%)"), col="blue", show.legend	= TRUE) +
     scale_linetype_manual(NULL, values = 1) +
     geom_vline(data=sampling.dates, aes(xintercept=xdate), lty=2) +

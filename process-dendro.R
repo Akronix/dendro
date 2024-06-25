@@ -4,11 +4,8 @@ library(glue)
 
 
 ### DEFINE GLOBAL VARS ###
-PATH = '/home/akronix/workspace/dendro'
-setwd(PATH)
+getwd()
 INTERACTIVE <- T
-
-source("lib-dendro.R")
 
 SAVE <- T # to save output csv processed file at the end of the script
 
@@ -23,6 +20,10 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
 } else {
   SELECTED_DENDROMETER = "92223490"
 }
+
+if (INTERACTIVE) { setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) }
+
+source("lib-dendro.R")
 
 # VARIABLES TO SET FOR EVERY SITE #
 PLACE = "Pineta"
@@ -134,9 +135,10 @@ db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt 
 dendro_data_L0 = subset(db, select = c(series, ts, value))
 temp_data_L0 = subset(db, select = c(series, ts, temp))
 
+## The following two lines are not neccesary since treenetproc >= 0.2.2
 # If I don't to the below code some NAs get filled inside proc_L1 when it check_ts(), throwing an error and messin up the timestamp
-dendro_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
-temp_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
+# dendro_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
+# temp_data_L0$ts = strftime(db$ts, "%Y-%m-%d %H:%M:%S", tz = "Europe/Madrid" )
 
 colnames(temp_data_L0)<-colnames(dendro_data_L0)
 

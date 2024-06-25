@@ -52,6 +52,15 @@ db = db %>% mutate(
                   )
 ```
 
+Filtering by date:
+
+```{r}
+ts_start <- "2023-05-01"
+ts_end <- "2023-09-30 23:45:00"
+db <- db[which(db$ts>=ts_start & db$ts<=ts_end),] 
+db.env <- db.env[which(db.env$ts>=ts_start & db.env$ts<=ts_end),] 
+```
+
 
 ```{r}
 # INSPECT DATA
