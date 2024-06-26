@@ -501,6 +501,7 @@ Dendros Qi: 92222155, 92222161, 92222163, 92222164, 92222171
 Dendros P ND: 92222154, 92222157, 92222170, 92222173, 92222180
 Dendros P D: 92222156, !92222162 (fechas y datos mal), 92222169, !92222174 (missing), *92222175 (largo periodo sin datos desde junio22 hasta nov22))
 
+PLACE = "Miedes"
 ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable) (salvo excepciones)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default

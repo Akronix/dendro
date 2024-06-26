@@ -18,22 +18,24 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92223490"
+  SELECTED_DENDROMETER = "92222180"
 }
 
-if (INTERACTIVE) { setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) }
+if (INTERACTIVE) { 
+  PATH = dirname(rstudioapi::getActiveDocumentContext()$path)
+  setwd(PATH) 
+} else {
+    PATH = '.'
+}
 
 source("lib-dendro.R")
 
 # VARIABLES TO SET FOR EVERY SITE #
-PLACE = "Pineta"
-
-FILENAME_EXCESS = "_2024_06_20.csv"
-
-DATE_FORMAT = "%Y.%m.%d %H:%M" # Default
-
-ts_start<-"2023-03-24 09:00:00" # from March 24 (2 days after installation)
-ts_end<-"2024-06-18 23:45:00" # day before last data.
+PLACE = "Miedes"
+ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
+ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
+DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
+FILENAME_EXCESS = "_2024_03_26_0.csv"
 
 # OTHER DERIVED GLOBAL VARIABLES #
 
@@ -69,9 +71,9 @@ db$series <- gsub(FILENAME_EXCESS,"",db$series) # remove trailing filename _%dat
 db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in filename
 
 
-# Add tree information to each dendrometer (series)
-# TreeList<-read.table("TreeList.txt",header=T)
-# db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+# Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
+TreeList<-read.table("TreeList.txt",header=T)
+db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 # dim(db)
 
@@ -128,8 +130,8 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot,
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-# db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp))
+# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -170,8 +172,8 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 25
-TOL_OUT = 30
+TOL_JUMP = 20
+TOL_OUT = 10
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n", 
@@ -203,16 +205,17 @@ if ( INTERACTIVE ) {
 final_processed_data <- dendro_data_L2;
 
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
-# final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
-#                                        dendro_L2 = dendro_data_L2,
-#                                        reverse = c(33),
-#                                        # force = c("2023-07-06"),
-#                                        force.now = c( "2023-10-19 20:15:00"),
-#                                        # delete = c( "2023-07-06 19:00:00", "2023-07-06 19:00:00"),
-#                                        plot = T,
-#                                        plot_export = T,
-#                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
-#                                        tz="Europe/Madrid")
+final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
+                                       dendro_L2 = dendro_data_L2,
+                                       
+                                       reverse = c(1,2),
+                                       force.now = c("2023-09-13 11:00:00"),
+                                       delete = c("2023-09-13 11:15:00", "2023-09-13 11:30:00"),
+                                       
+                                       plot = T,
+                                       plot_export = T,
+                                       plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),
+                                       tz="Europe/Madrid")
 
 
 #highlight manual corrections made on the dendrometer data:
@@ -224,12 +227,12 @@ grow_seas(dendro_L2 = final_processed_data, agg_yearly=TRUE, tz="Europe/Madrid")
 
 ### SAVE PROCESSED DATA ###
 if (SAVE) {
+  print('Saving processed file...')
   OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
   if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
   ### SAVE IN PROCESSED FORMAT ###
   output_data <- subset(final_processed_data, select = c(series, ts, value, max, twd, gro_yr))
   write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], ".csv")), append = FALSE)
-  # write_csv(output_data, file.path(OUTPUT_PATH, paste0("proc-", db$series[1], "-", db$class[1], ".csv")), append = FALSE)
 }
 
 ### SAVE IN INPUT SENSOR FORMAT ###
