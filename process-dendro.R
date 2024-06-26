@@ -14,7 +14,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222173"
+  SELECTED_DENDROMETER = X
 }
 
 # Default values for global control vars:
@@ -33,13 +33,13 @@ getwd()
 source("lib-dendro.R")
 
 # VARIABLES TO SET FOR EVERY SITE #
-PLACE = "Miedes"
-ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
-ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
+PLACE = X
+ts_start <- X
+ts_end <- X
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
-FILENAME_EXCESS = "_2024_03_26_0.csv"
+FILENAME_EXCESS = X
 
-# OTHER DERIVED GLOBAL VARIABLES #
+# OTHER GLOBAL VARIABLES DEFINED BASED ON THE PREVIOUS ONES #
 
 DATA_DIR = glue('raw/{PLACE}-dataD')
 OUTPUT_DATA_DIR = glue('processed/{PLACE}-processed')
@@ -47,10 +47,6 @@ OUTPUT_ASSETS_DIR = 'output'
 
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
-# Set initial and final date and sampling dates
-# ts_start<-"2022-04-01 11:00:00" # After 2023 winter shrinking, so it gets more accurate values for TWD and growth.
-# ts_start<-"2023-02-16 14:00:00" # no data until 16 feb 2023
-
 #-----------------------------------------------#
 
 ### IMPORT DENDRO DATA ###
@@ -73,7 +69,7 @@ db$series <- gsub(FILENAME_EXCESS,"",db$series) # remove trailing filename _%dat
 db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in filename
 
 
-# Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
+#! Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
 TreeList<-read.table("TreeList.txt",header=T)
 db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
@@ -104,8 +100,6 @@ plotTemp
 
 ## DENDRO DATA ##
 
-#plot(value~ts,db,type="l",col="blue",axes=T)
-
 dendro_raw_plot <-
   ggplot(data = db, mapping = aes(x=ts, y=value))+
   geom_line( )+
@@ -134,7 +128,7 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot,
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+#! db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
 db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
@@ -176,8 +170,8 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 7
-TOL_OUT = 10
+TOL_JUMP = X
+TOL_OUT = X
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n", 
@@ -214,14 +208,10 @@ final_processed_data <- dendro_data_L2;
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
                                        
-                                       reverse = c(6),
-                                       force.now = c("2022-03-28 14:15:00",
-                                                     "2022-08-19 08:30:00",
-                                                     "2023-12-20 10:30:00"),
-                                       force = c("2022-06-12 00:00:00"),                                                     
-                                       delete = c("2022-03-28 14:30:00", "2022-03-28 15:00:00",
-                                                  "2022-04-11 12:15:00", "2022-04-12 02:00:00",
-                                                  "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
+                                       reverse = X,
+                                       force.now = X,
+                                       force = X,
+                                       delete = X,
                                        
                                        plot = T,
                                        plot_export = T,
