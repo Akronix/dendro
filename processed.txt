@@ -555,12 +555,15 @@ FILENAME_EXCESS = "_2024_03_26_0.csv"
   tol_jump = 7,
   
   reverse = c(6),
-  force.now = c("2022-08-19 08:30:00",
-                "2023-12-20 10:30:00"),
-  force = c("2022-06-12 00:00:00"),                                                     
-  delete = c("2022-04-11 12:15:00", "2022-04-12 02:00:00",
-          "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
-  
+  force.now = c("2022-03-28 14:15:00",
+               "2022-08-19 08:30:00",
+               "2023-12-20 10:30:00"),
+  force =     c("2022-06-12 00:00:00"),                                                     
+  delete =    c("2022-03-28 14:30:00", "2022-03-28 15:00:00",
+                "2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
+                
+- Salto sin corregir porque tiene 3 intermedios el 2022-03-28 a las 14:15. Borramos los intermedios y forzamos salto.
 - En 11Abril22 tiene una caída brusca y vuelta aunque no exactamente al mismo lugar. No hay congelación así que creo que es un fallo del muelle. Dejo el salto de treenetproc que recoloca los datos en su sitio pero borro los datos intermedios que parecen incorrectos (movida del muelle).
 - 2 saltitos en jun-22 -> Uno lo pilla treenetproc con tol_jump=7 y el otro lo fuerzo a mano.
 - subida 2ª mitad de ago-22 -> treenetproc lo detecta como out pero para mí es claramente un jump. Lo fuerzo a mano.

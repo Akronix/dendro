@@ -4,10 +4,6 @@ library(glue)
 
 
 ### DEFINE GLOBAL VARS ###
-getwd()
-INTERACTIVE <- T
-
-SAVE <- T # to save output csv processed file at the end of the script
 
 args <- commandArgs(trailingOnly = TRUE)
 # print(args)
@@ -18,21 +14,27 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = "92222180"
+  SELECTED_DENDROMETER = "92222173"
 }
+
+# Default values for global control vars:
+if (!exists("INTERACTIVE")) INTERACTIVE <- TRUE
+if (!exists("SAVE")) SAVE <- TRUE # to save output csv processed file at the end of the script
 
 if (INTERACTIVE) { 
   PATH = dirname(rstudioapi::getActiveDocumentContext()$path)
-  setwd(PATH) 
 } else {
-    PATH = '.'
+  PATH = '.'
 }
+
+setwd(PATH) 
+getwd()
 
 source("lib-dendro.R")
 
 # VARIABLES TO SET FOR EVERY SITE #
 PLACE = "Miedes"
-ts_start<-"2023-02-17 00:00:00" # Before 2023-02-16 has constant values
+ts_start<-"2022-03-12 19:00:00" # from March 12 (after some days so it's stable)
 ts_end<-"2024-03-25 23:45:00" # default. one day before last data.
 DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
 FILENAME_EXCESS = "_2024_03_26_0.csv"
@@ -127,6 +129,8 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot,
 # head(db)
 # tail(db)
 
+# library(datacleanr); dcr_app(db)
+
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
@@ -172,7 +176,7 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 20
+TOL_JUMP = 7
 TOL_OUT = 10
 
 print("process-dendro script running with the next parameters:")
@@ -199,6 +203,8 @@ if ( INTERACTIVE ) {
 # head(dendro_data_L2)
 # tail(dendro_data_L2)
 
+# library(datacleanr); dcr_app(dendro_data_L2)
+
 
 # -> Open proc_L2_plot.pdf file to see results
 
@@ -208,9 +214,14 @@ final_processed_data <- dendro_data_L2;
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
                                        
-                                       reverse = c(1,2),
-                                       force.now = c("2023-09-13 11:00:00"),
-                                       delete = c("2023-09-13 11:15:00", "2023-09-13 11:30:00"),
+                                       reverse = c(6),
+                                       force.now = c("2022-03-28 14:15:00",
+                                                     "2022-08-19 08:30:00",
+                                                     "2023-12-20 10:30:00"),
+                                       force = c("2022-06-12 00:00:00"),                                                     
+                                       delete = c("2022-03-28 14:30:00", "2022-03-28 15:00:00",
+                                                  "2022-04-11 12:15:00", "2022-04-12 02:00:00",
+                                                  "2023-12-20 10:45:00", "2023-12-20 11:30:00"),
                                        
                                        plot = T,
                                        plot_export = T,
