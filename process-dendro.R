@@ -1,6 +1,7 @@
 library(treenetproc)
 library(tidyverse)
 library(glue)
+library(lubridate)
 
 
 ### DEFINE GLOBAL VARS ###
@@ -21,10 +22,9 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
 if (!exists("INTERACTIVE")) INTERACTIVE <- TRUE
 if (!exists("SAVE")) SAVE <- TRUE # to save output csv processed file at the end of the script
 
+PATH = '.'
 if (INTERACTIVE) { 
   PATH = dirname(rstudioapi::getActiveDocumentContext()$path)
-} else {
-  PATH = '.'
 }
 
 setwd(PATH) 
@@ -32,7 +32,7 @@ getwd()
 
 source("lib-dendro.R")
 
-# VARIABLES TO SET FOR EVERY SITE #
+# VARIABLES TO SET OR EVERY SITE #
 PLACE = X
 ts_start <- X
 ts_end <- X
@@ -45,6 +45,8 @@ DATA_DIR = glue('raw/{PLACE}-dataD')
 OUTPUT_DATA_DIR = glue('processed/{PLACE}-processed')
 OUTPUT_ASSETS_DIR = 'output'
 
+TZ = 'Europe/Madrid'
+
 SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
   
 #-----------------------------------------------#
@@ -52,22 +54,12 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
-db <- read.one.dendro(file.path(".",DATA_DIR,SELECTED_FILENAME), ts_start, ts_end,
-                      date_format = DATE_FORMAT)
+db <- read.one.dendro(file.path(PATH,DATA_DIR,SELECTED_FILENAME), SELECTED_DENDROMETER, date_format = DATE_FORMAT)
 
 ### CLEAN & PREPARE DATA ###
 
-# Keep data of dates we're interested in (already done in read.one.dendro)
-# db <- db[which(db$ts>=ts_start & db$ts<=ts_end),] 
-
-# zeroing variations in diameter
-# db$value<-db$um-db$um[1]
-
-# Clean name of field series
-db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series) 
-db$series <- gsub(FILENAME_EXCESS,"",db$series) # remove trailing filename _%date%_0.csv
-db$series <- substr(db$series,6,nchar(db$series)) # remove initial "data_" in filename
-
+# Keep data of dates we're interested in:
+db <- db[which(db$ts>=as_datetime(ts_start, tz = TZ) & db$ts<=as_datetime(ts_end, tz = TZ)),]
 
 #! Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
 TreeList<-read.table("TreeList.txt",header=T)

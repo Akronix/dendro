@@ -5,29 +5,48 @@ library(treenetproc)
 
 # import one csv data
 # Examples of date_format: "%Y.%m.%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"
-read.one.dendro <- function(nameFile, ts_start, ts_end, date_format){
+read.one.dendro <- function(nameFile, series.no, date_format = "%d.%m.%Y %H:%M:%S",
+                            timezone = "Europe/Madrid"){
+  
   File <- read.csv(nameFile,  
                    sep = ";",  header=FALSE, skip=0, dec=",", stringsAsFactors=FALSE)
   
-  File$ts<-as.POSIXct(File$V2, format=date_format, tz="Europe/Madrid")
+  
+  ts<-File$V2
+  
+  if (date_format == "%d.%m.%Y %H:%M:%S")
+    ts <- gsub("^(\\d{2}\\.\\d{2}\\.\\d{4})$", "\\1 00:00:00", ts) # appends 00:00 to midnight
+  else if (date_format == "%d/%m/%Y %H:%M:%S")
+    ts <- gsub("^(\\d{2}\\/\\d{2}\\/\\d{4})$", "\\1 00:00:00", ts) # appends 00:00 to midnight
+  else if (date_format == "%Y.%m.%d %H:%M")
+    ts <- gsub("^(\\d{4}\\.\\d{2}\\.\\d{2})$", "\\1 00:00", ts) # appends 00:00 to midnight
+  
+  File$ts<-as.POSIXct(ts, format=date_format, tz="Europe/Madrid")
   
   File$date <- as.Date(File$ts)
-  File<-File[which(File$ts>=ts_start & File$ts<=ts_end),]
   File$um<-as.numeric(File$V7)
   File$value<-File$um-File$um[1] #zeroing variations in diameter
   File$temp<-as.numeric(File$V4)
-  File$series<-as.factor(nameFile)
+  File$series<-as.factor(series.no)
   File<-subset(File,select=c(ts,date,um,value,temp,series))
   return(File)
 }
 
 
 # import all csv data and put it altogether in one dataframe
-read.all.dendro <- function(nameFiles, ts_start, ts_end, date_format){
+read.all.dendro <- function(nameFiles, date_format = "%d.%m.%Y %H:%M:%S"){
   FileList <- list()
-  print(nameFiles)
+  # print(nameFiles)
   for (i in 1:length(nameFiles)){
-    File <- read.one.dendro(nameFiles[i], ts_start, ts_end, date_format)
+    # Clean name of field series
+    # db$series <- gsub(paste0("./", DATA_DIR, "/"),"",db$series) 
+    
+    series.no <- nameFiles[i]
+    # print(series.no)
+    series.no <- gsub(".*data_([^_]*).*","\\1",series.no)
+    # print(series.no)
+    
+    File <- read.one.dendro(nameFiles[i], series.no, date_format = date_format)
     # print(File)
     FileList[[i]] <- File
   }
