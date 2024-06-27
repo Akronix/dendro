@@ -54,16 +54,16 @@ SELECTED_FILENAME = paste0('data_', SELECTED_DENDROMETER, FILENAME_EXCESS)
 ### IMPORT DENDRO DATA ###
 
 # importing dendro data #
-db <- read.one.dendro(file.path(PATH,DATA_DIR,SELECTED_FILENAME), SELECTED_DENDROMETER, date_format = DATE_FORMAT)
+db <- read.one.dendro(file.path(PATH,DATA_DIR,SELECTED_FILENAME),
+                      SELECTED_DENDROMETER, 
+                      ts_start, ts_end,
+                      date_format = DATE_FORMAT)
 
 ### CLEAN & PREPARE DATA ###
 
-# Keep data of dates we're interested in:
-db <- db[which(db$ts>=as_datetime(ts_start, tz = TZ) & db$ts<=as_datetime(ts_end, tz = TZ)),]
-
 #! Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
-TreeList<-read.table("TreeList.txt",header=T)
-db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+# TreeList<-read.table("TreeList.txt",header=T)
+# db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 # dim(db)
 
@@ -120,8 +120,8 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot,
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-#! db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
+db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+# db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -221,6 +221,7 @@ grow_seas(dendro_L2 = final_processed_data, agg_yearly=TRUE, tz="Europe/Madrid")
 ### SAVE PROCESSED DATA ###
 if (SAVE) {
   print('Saving processed file...')
+  if (!dir.exists(file.path(PATH, 'processed'))) {dir.create(file.path(PATH, 'processed'))}  
   OUTPUT_PATH = file.path(PATH, OUTPUT_DATA_DIR)
   if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
   ### SAVE IN PROCESSED FORMAT ###

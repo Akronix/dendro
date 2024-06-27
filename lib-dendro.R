@@ -5,7 +5,9 @@ library(treenetproc)
 
 # import one csv data
 # Examples of date_format: "%Y.%m.%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S"
-read.one.dendro <- function(nameFile, series.no, date_format = "%d.%m.%Y %H:%M:%S",
+read.one.dendro <- function(nameFile, series.no, 
+                            ts_start, ts_end,
+                            date_format = "%d.%m.%Y %H:%M:%S",
                             timezone = "Europe/Madrid"){
   
   File <- read.csv(nameFile,  
@@ -24,6 +26,8 @@ read.one.dendro <- function(nameFile, series.no, date_format = "%d.%m.%Y %H:%M:%
   File$ts<-as.POSIXct(ts, format=date_format, tz="Europe/Madrid")
   
   File$date <- as.Date(File$ts)
+  # Keep data of dates we're interested in:
+  File<-File[which(File$ts>=as.POSIXct(ts_start, tz = TZ) & File$ts<=as.POSIXct(ts_end, tz = TZ)),]
   File$um<-as.numeric(File$V7)
   File$value<-File$um-File$um[1] #zeroing variations in diameter
   File$temp<-as.numeric(File$V4)
@@ -34,7 +38,7 @@ read.one.dendro <- function(nameFile, series.no, date_format = "%d.%m.%Y %H:%M:%
 
 
 # import all csv data and put it altogether in one dataframe
-read.all.dendro <- function(nameFiles, date_format = "%d.%m.%Y %H:%M:%S"){
+read.all.dendro <- function(nameFiles, ts_start, ts_end, date_format = "%d.%m.%Y %H:%M:%S"){
   FileList <- list()
   # print(nameFiles)
   for (i in 1:length(nameFiles)){
@@ -46,7 +50,7 @@ read.all.dendro <- function(nameFiles, date_format = "%d.%m.%Y %H:%M:%S"){
     series.no <- gsub(".*data_([^_]*).*","\\1",series.no)
     # print(series.no)
     
-    File <- read.one.dendro(nameFiles[i], series.no, date_format = date_format)
+    File <- read.one.dendro(nameFiles[i], series.no, ts_start, ts_end, date_format = date_format)
     # print(File)
     FileList[[i]] <- File
   }
