@@ -46,7 +46,6 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 ! desde mediados nov22 a finales ene23 hay una meseta muy prolongada.
 
 
-
 == 92222324 ==
 - Pinus sylvestris - ND - params:
 
@@ -61,6 +60,25 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - subidón pcpios sept-23 -> parece OK.
 - datos nuevos de 2024 parecen todos OK.
   
+
+== 92222325 ==
+- Qi - params:
+
+  ts_start <- "2022-04-02 09:00:00"
+
+  TOL_JUMP = 15
+  TOL_OUT = 10
+
+- Comienzo demasiado estable -> cambio ts start a 2abril22
+- Baja 14 junio al medio día y sube un poco raramente, pero lo dejamos como OK.
+- Bajón desde finales feb-23 hasta pcpios mar-23 (baja y sube de vuelta a donde estaba) -> congelaciones
+- cierta inestabilidad el 2023-04-23, pero OK.
+- Corrige bte del ruido que hay a finales de may-23 como outliers.
+- 16jun23 hay una pequeña meseta
+- Subidón a pcpios sept-23 -> OK
+- Salato 16oct23 -> bajo TOLJUMP a 15 y ya lo pilla.
+- Piquito abajo ene24 y mar24 -> son congelaciones. treenetproc marca un jump en enero que no es. Lo revierto.
+- mayo y junio de 2024 treenetproc elimina varios outliers, que a mí tb me lo parcen.
 
 
 
