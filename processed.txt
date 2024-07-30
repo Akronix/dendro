@@ -68,6 +68,8 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 
   TOL_JUMP = 15
   TOL_OUT = 10
+  
+  reverse = 23,
 
 - Comienzo demasiado estable -> cambio ts start a 2abril22
 - Baja 14 junio al medio día y sube un poco raramente, pero lo dejamos como OK.
@@ -81,7 +83,37 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - mayo y junio de 2024 treenetproc elimina varios outliers, que a mí tb me lo parcen.
 
 
+== 92222326 ==
+- Pinus sylvestris - D - params:
 
+  TOL_JUMP = 13
+  TOL_OUT = 10
+  
+   force.now = c("2023-10-16 11:00:00", "2023-12-07 09:45:00"),
+   force = "2022-05-19",
+   delete = c("2024-03-24 11:15:00", "2024-03-24 11:30:00"),
+  
+! Dendrómetro muy inestable y campana no en 2022 como anterior, pero sí desde jun-23 a sept-23.
+! Las subidas son muy pronunciadas y las bajadas más suaves.
+
+- missing data del 19 de mayo 22 -> pongo salto
+- Subidón finales jun-22 -> OK. parece que coincide con un descenso de temperaturas en jun-22.
+- subidón pcpios ago-22 -> parece OK.
+- baja-sube el 22-ago-22 -> para mí son outliers pero treenetproc no los pilla...es poco significativo así que lo dejo.
+- subidón mediados sept-22 -> parece OK.
+- subidones mediados nov-22 -> bajando tol_jump treenetproc pilla el salto.
+- bajón finales nov-22 -> es brusco pero OK.
+- piquitos abajo 2ª mitad ene-23 -> conge-descon
+- piquitos abajo finales feb-23 y pcpios mar-23 -> Idem
+- Subidón finales may-23 -> OK
+- subidón / salto pcpios jul-23 -> OK
+- subidón mediados sept-23 -> OK
+- salto sin detectar mediados oct23? y otro el 2023-12-07T09:45:00Z -> los fuerzo a mano.
+- dos outliers que treenetproc no pilló: 2024-03-24T11:15:00Z y 2024-03-24T11:30:00Z -> los borro a mano.
+- may24 muy inestable.  
+  
+  
+  
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
 ** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.
