@@ -45,6 +45,25 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - subidón 2ª mitad feb-23 y bajón pcpios marz-23 -> corrijo el jump a mano xq solo lo marcaba como outliers.
 ! desde mediados nov22 a finales ene23 hay una meseta muy prolongada.
 
+
+
+== 92222324 ==
+- Pinus sylvestris - ND - params:
+
+  TOL_JUMP = 12
+  TOL_OUT = 10
+  
+  force = "2022-05-19",
+
+- Missing data en 19-mayo-22 -> lo cambio por salto
+- subidón arriba finales a jun-22 -> puede que sea correcto. Coincide con que bajan las temperaturas (días previos habían sido demasiado altas)
+- salto arriba mediados nov-22 -> corregido
+- subidón pcpios sept-23 -> parece OK.
+- datos nuevos de 2024 parecen todos OK.
+  
+
+
+
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
 ** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.

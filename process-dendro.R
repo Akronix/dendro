@@ -15,7 +15,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = 92222322
+  SELECTED_DENDROMETER = 92222324
 }
 
 # Default values for global control vars:
@@ -162,7 +162,7 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = 15
+TOL_JUMP = 12
 TOL_OUT = 10
 
 print("process-dendro script running with the next parameters:")
@@ -201,9 +201,9 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
 
                                        # reverse = X,
-                                       force.now = "2023-02-20 10:15:00",
+                                       # force.now = "2023-02-20 10:15:00",
                                        force = "2022-05-19",
-                                       delete = c("2023-02-20 10:30:00", "2023-02-20 10:45:00"),
+                                       # delete = c("2023-02-20 10:30:00", "2023-02-20 10:45:00"),
 
                                        plot = T,
                                        plot_export = T,
