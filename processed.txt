@@ -175,7 +175,35 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 
 ! De los pocos pinos de Corbalán que a estas alturas ya han sacado crecimiento en 2024.
 
+
+== 92222329 ==
+! Datos incompletos en la descarga.
+
+
+== 92222330 ==
+- Pinus sylvestris - D - params:
+
+  ts_start <- "2022-04-02 09:00:00"
+
+  TOL_JUMP = 10
+  TOL_OUT = 10
+
+  - retrasamos el ts start unos días hasta que empieza a tomar datos.
+
+!! Lo primero que llama la atención es la forma de campana tan grande que tiene desde mediados de abril-22 a finales junio (casi 1º de jul-22). Muy llamativo y creo que no lo he visto antes. Coincide con un periodo de aumento de temperatura aunque sin llegar a los máximos anuales.
+
+!! Otra campana llamativa aunque menos brusca al siguiente año de jun-23 a sept-23
+
+  - missing data 19may22 -> pongo salto
+  - piquito abajo a finales jun-22 -> es pequeño.
+  - Salto sin corregir por treenetproc 22ago22 -> Lo corrijo a mano.
+  - subidón / salto mediados nov-22 -> corregido.
+  - picos abajo a pcpios mar-23 -> cong-descong.
+  - 20feb23 hay unos datos raros que se van (del 2023-02-20T11:00:00Z al 2023-02-20T12:45:00Z), los borro e introduzco un salto para dejarlo en línea a cómo estaría con una tendencia más similar a otros días.
+  - subidón de vuelta a pcpios sept-23 -> parece OK. Aunque curiosamente los primeros días de septiembre hay una meseta antes de ir hacia arriba.
+  - algunas mesetillas en dic23 y ene24
   
+
   
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
