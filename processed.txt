@@ -138,6 +138,45 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - Mesetilla el 6-7abril2024, pero de poca importancia.
 
   
+== 92222328 ==  
+- Pinus sylvestris - ND - params:
+
+    TOL_JUMP = 15
+    TOL_OUT = 10
+
+     reverse = c(5),
+     force.now = c("2024-03-24 15:00:00"),
+     force = c("2022-05-19", "2022-11-15 13:00:00"),
+     delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
+
+! En raw veo muchísimas mesetas hasta enero 2023
+
+- bajón a pcpios de abril-22 -> Es brusco pero es OK (Supongo descongelación).
+- subidón a mediados de mayo-22 -> diría que es OK.
+- tb está el missing data del 19-may -> añado salto pero este último.
+- subidón a finales de jun-22 -> Es brusco pero es OK.
+- Larga meseta desde pcpios sept22 hasta mediados sept22
+- subidón a mediados sept-22 -> parece OK, aunque me parece curioso que al final de la tarde-anochecer y bajar la temperatura el 17-sept-2022 el tronco se deshinca en lugar de hincharse.
+- Otra larga meseta desde pcpios nov22 hasta el 12/13 de nov22.
+- subidón a mediados de nov-22 -> ! salto que no pilla treenetproc. Corrección manual:
+            force = "2022-11-15 13:00:00",
+            n_days = 1,
+            delete = c("2022-11-16 11:15:00", "2022-11-16 13:00:00"),
+
+- piquito abajo a finales de nov-22 -> OK
+- piquito abajo a finales de ene-23 -> congelación y descongelación.
+- super salto hacia arriba 2ª mitad de feb-23 -> treenetproc corrije.
+- el 1mar23 treenetproc marca como salto pero no es tal (es congelación) -> revierto: reverse(5)
+- subidón a final de mayo-23 -> parece OK, en un momento de subida de temperaturas antes del verano.
+- subidón a pcpios de sept-23 -> OK
+- subidón a mediados de sept-23 -> OK
+- baja-sube entorno a 24mar24 -> parece que falta un saltito por correjir. Lo fuerzo: 2024-03-24T15:00:00Z
+- bajón 22abril24 -> es OK
+
+! De los pocos pinos de Corbalán que a estas alturas ya han sacado crecimiento en 2024.
+
+  
+  
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
 ** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.
