@@ -15,7 +15,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = X
+  SELECTED_DENDROMETER = 92222321
 }
 
 # Default values for global control vars:
@@ -32,12 +32,12 @@ getwd()
 
 source("lib-dendro.R")
 
-# VARIABLES TO SET OR EVERY SITE #
-PLACE = X
-ts_start <- X
-ts_end <- X
-DATE_FORMAT = "%d.%m.%Y %H:%M:%S" # Default
-FILENAME_EXCESS = X
+# VARIABLES TO SET FOR EVERY SITE #
+PLACE = 'Corbalan'
+ts_start <- "2022-03-29 09:00:00" # from March 29 (1 day after installation)
+ts_end <- "2024-07-02 00:00:00"
+DATE_FORMAT = "%Y.%m.%d %H:%M"
+FILENAME_EXCESS = "_2024_07_02_0.csv"
 
 # OTHER GLOBAL VARIABLES DEFINED BASED ON THE PREVIOUS ONES #
 
@@ -62,8 +62,8 @@ db <- read.one.dendro(file.path(PATH,DATA_DIR,SELECTED_FILENAME),
 ### CLEAN & PREPARE DATA ###
 
 #! Add tree information to each dendrometer (series) -> Comment next 2 lines if there's no TreeList.txt
-# TreeList<-read.table("TreeList.txt",header=T)
-# db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
+TreeList <- read.table("TreeList.txt",header=T)
+db <- merge(db,TreeList[,c(1:4,6)],  by = "series")
 
 # dim(db)
 
@@ -120,8 +120,8 @@ if (!file.exists(raw.output.fn)) {ggsave( raw.output.fn, plot = dendro_raw_plot,
 ## TREENETPROC: Prepare data ##
 
 # Subset the columns we want for treenetproc
-db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
-# db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
+# db <- subset(db, select = c(ts, value, series, temp)) # -> Without TreeList.txt file
+db <- subset(db, select = c(ts, value, series, ID, site, sp, class, temp)) # -> With TreeList.txt file
 
 # define dendro_data_L0 to work with. Here we will use the "wide" format.
 dendro_data_L0 = subset(db, select = c(series, ts, value))
@@ -162,8 +162,8 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 
-TOL_JUMP = X
-TOL_OUT = X
+TOL_JUMP = 15
+TOL_OUT = 10
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n", 
@@ -199,12 +199,12 @@ final_processed_data <- dendro_data_L2;
 # DANGER! Only use next line if you want to do MANUAL CORRECTIONS #
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
-                                       
-                                       reverse = X,
-                                       force.now = X,
-                                       force = X,
-                                       delete = X,
-                                       
+
+                                       # reverse = X,
+                                       # force.now = X,
+                                       # force = X,
+                                       delete = c("2023-09-28 11:15:00", "2023-09-28 12:00:00"),
+
                                        plot = T,
                                        plot_export = T,
                                        plot_name = file.path(OUTPUT_ASSETS_DIR, paste0( "CORRECTED-", db$series[1] ,"-proc_L2_plot")),

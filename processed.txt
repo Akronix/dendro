@@ -1,6 +1,34 @@
+=== DATOS CORBALAN HASTA JUL-24 ===
+** Datos descargados el 2 de julio 2024
+** Error en lectura de los dendrométros: 92223482 (missing) y 92222329 (datos descargados incompletos)
+** Instalación posterior de 92223481 y 92223483
+** Acaban todos el 2 de jul excepto 92223483 que acaba el 1 jul, 92222331 que acaba el 30 de jun.
+
+PLACE = 'Corbalan'
+ts_start <- "2022-03-29 09:00:00" # from March 29 (1 day after installation)
+ts_end <- "2024-07-02 00:00:00"
+DATE_FORMAT = "%Y.%m.%d %H:%M"
+FILENAME_EXCESS = "_2024_07_02_0.csv"
+
+== 92222321 ==
+- Quercus Ilex - params:
+  TOL_JUMP = 15
+  TOL_OUT = 10
+
+- Raw:
+  - Bajón finales de febrero-23 -> congelación 
+  - Subidón a finales de mayo-23 y a pcpios jul-23 y a pcpios sept-23
+  - Pico abajo mediados enero-24 -> conge-descongelación
+- treenetproc:
+  - subidón finales jun-22 -> ok
+  - feb23 y mar23 varios eventos congelación y descongelación en poco tiempo (treenetproc los marca como outliers)
+  - subidón finales may-23 -> el "estirón" del verano.
+  - algunos outliers sin pillar en 2023-09-28, los elimino a mano: delete=c("2023-09-28 11:15:00", "2023-09-28 12:00:00")
+  - algunos periodos de meseta (plano) el 7mar24 y 8mar24. Luego crecida vertiginosa. -> Coincide con días de mucho frío, y que a partir del 8 las temperaturas suben vertigionosamente.
+
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
-** Varias terminaciones _number antes de data_*.csv. Me quedo con la última que es la que tiene más datos.
+** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.
 
 Solo datos de dos hayas.
 
