@@ -113,6 +113,30 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - may24 muy inestable.  
   
   
+== 92222327 ==
+- Pinus sylvestris - D - params:
+
+  TOL_JUMP = 12
+  TOL_OUT = 8
+
+ reverse = c(1,4,10),
+ force.now = c("2022-08-22 10:00:00", "2023-02-20 10:15:00", "2023-10-16 11:00:00"),
+ force = c("2022-05-19", "2023-09-27 11:45:00"),
+ delete = c("2023-02-20 10:30:00", "2023-02-20 10:45:00",
+            "2023-09-28 08:30:00", "2023-09-28 11:45:00"),
+
+- minipiquito arriba 2ª mitad mayo-22 -> coincide con missing data de mayo -> pongo salto
+- otro 2ª mitad ago-22 -> lo pone como out, sería jump en realidad? -> lo corrijo a mano.
+- salto arriba mediados nov-22 -> corregido
+- bajones  2ª mitad y finales de ene-23 -> congelación y descongelación
+- bajón final febr23 > había dos outliers que he quitado y he puesto el salto en su sitio.
+- baja sube a finales de sept23 -> me parece que hay un salto sin corregir aquí. -> Lo corrijo a mano con:
+      force = "2023-09-27 11:45:00",
+      n_days = 1,
+      delete = c("2023-09-28 08:30:00", "2023-09-28 11:45:00"),
+- Pone como un outlier el 2023-10-16 11:15:00, cuando en realidad es salto. Lo corrijo: reverse(10) y force.now: 2023-10-16 11:00:00
+- Mesetilla el 6-7abril2024, pero de poca importancia.
+
   
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
