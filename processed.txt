@@ -14,6 +14,8 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - Quercus Ilex - params:
   TOL_JUMP = 15
   TOL_OUT = 10
+  
+  delete = c("2023-09-28 11:15:00", "2023-09-28 12:00:00"),
 
 - Raw:
   - Bajón finales de febrero-23 -> congelación 
@@ -25,6 +27,23 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
   - subidón finales may-23 -> el "estirón" del verano.
   - algunos outliers sin pillar en 2023-09-28, los elimino a mano: delete=c("2023-09-28 11:15:00", "2023-09-28 12:00:00")
   - algunos periodos de meseta (plano) el 7mar24 y 8mar24. Luego crecida vertiginosa. -> Coincide con días de mucho frío, y que a partir del 8 las temperaturas suben vertigionosamente.
+
+
+== 92222322 ==
+- Pinus sylvestris - ND - params:
+  TOL_JUMP = 15
+  TOL_OUT = 10
+  
+  force.now = "2023-02-20 10:15:00",
+  force = "2022-05-19",
+  delete = c("2023-02-20 10:30:00", "2023-02-20 10:45:00"),
+
+! Dendrómetro con una tendencia muy descendente casi casi todo el año... raro que no haya nada de crecimiento. -> en 2024 retoma y vuelve a subir.
+! En el momento de crecida que tienen todos en nov-22 el dendro está parado sin cambiar datos -> es raro y muy diferente a los demás.
+- Después del último procesamiento (oct23), los datos parecen bastante OK.
+- Corrijo missing data de may22 con salto: force = "2022-05-19",
+- subidón 2ª mitad feb-23 y bajón pcpios marz-23 -> corrijo el jump a mano xq solo lo marcaba como outliers.
+! desde mediados nov22 a finales ene23 hay una meseta muy prolongada.
 
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24

@@ -15,7 +15,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = 92222321
+  SELECTED_DENDROMETER = 92222322
 }
 
 # Default values for global control vars:
@@ -201,9 +201,9 @@ final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
 
                                        # reverse = X,
-                                       # force.now = X,
-                                       # force = X,
-                                       delete = c("2023-09-28 11:15:00", "2023-09-28 12:00:00"),
+                                       force.now = "2023-02-20 10:15:00",
+                                       force = "2022-05-19",
+                                       delete = c("2023-02-20 10:30:00", "2023-02-20 10:45:00"),
 
                                        plot = T,
                                        plot_export = T,
