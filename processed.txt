@@ -233,6 +233,35 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
   - En junio24 detecta un salto pero que de cerca me convence que el muelle se haya movido demasiado, pero que en los siguientes instantes se ha ido reajustando. Así que revierto el cambio.
 
 
+== 92222333 ==
+- Qi - params:
+
+  ts_start <- "2022-04-01 09:00:00"
+
+  TOL_JUMP = 10
+  TOL_OUT = 12
+
+  reverse = c(1,4,11,14,18),
+  force.now = c("2022-05-25 09:15:00", "2023-04-27 15:15:00",
+                "2024-01-17 07:45:00"),
+  force = c("2022-05-19", "2022-11-16", "2024-03-09"),
+  
+
+  - Bajo tol_jump a 10 para que pille saltos que no pillaba, aunque pone una congelación a pcpios abril22 como salto que tengo que revertir (reverse(1)).
+  - Salto bien pillado a mediados abril-22
+  - Missing data en 19-mayo-22 -> ponemos salto.
+  - treenetproc encuentra outlier el 2022-05-25 pero en realidad es salto -> Lo corrijo.
+  - Fuerzo salto finales nov22 que no detecta autom.
+  - pilla bien un salto a pcpios de marz-23
+  - Revertimos congelación detectada como salto a finales feb-23: reverse(11)
+  - El 2023-04-27 Detecta un outlier que en realidad es jump, revierto el out (reverse(14) y fuerzo salto a las: 2023-04-27T15:15:00Z
+  - subidon pcpios sept-23 -> parece OK
+  - Añado salto donde se detectaba outlier el 2024-01-17T07:45:00Z.
+- Añado salto en mar24 -> force(2024-03-09)
+
+
+
+
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
 ** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.
