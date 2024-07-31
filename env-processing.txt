@@ -172,7 +172,8 @@ ts_start = "2022-03-15 12:30:00"
 
 SELECTED_TMS  <- c(94231943)
 
-SOIL_TYPE = "sandy loam B"
+SOIL_TYPE = list(a=-1.7567E-08,	b = 0.00027249,	c = -0.180617717) o (menos preciso): SOIL_TYPE = "sandy loam B"
+
 ts_start = "2022-03-28 14:15:00"
 
 Los datos empiezan a partir del 2022-03-28T13:30:00Z (antes es 0)

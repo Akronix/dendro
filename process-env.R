@@ -14,12 +14,12 @@ setwd(PATH)
 # ts_start<-"2022-03-16 11:00:00" # # from March 16 (1 day after installation)
 # ts_end<-"2023-09-27 08:00:00" # last timestamp of downloaded data
 
-PLACE = 'PacoEzpela'
+PLACE = 'Corbalan'
 ENVIRONMENT_DIR = glue('raw/{PLACE}-env')
 OUTPUT_ENV_DIR = glue('processed/{PLACE}-env-buffer-toclear')
 
 # SOIL_TYPE = "sandy loam B" # according to your clay, silt and sand concentrations, select the best fit from here: https://github.com/ibot-geoecology/myClim/blob/a06730359da80cd962f3709097f619236fcd5d29/data-raw/mc_data_vwc_parameters.R
-SOIL_TYPE = list(a=-2.7822E-08,	b = 0.000380321,	c = -0.282628151)
+SOIL_TYPE = list(a=-1.7567E-08,	b = 0.00027249,	c = -0.180617717)
 
 OUTPUT_PATH = file.path(PATH, OUTPUT_ENV_DIR)
 if (!dir.exists(OUTPUT_PATH)) {dir.create(OUTPUT_PATH)}
