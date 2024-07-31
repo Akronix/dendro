@@ -308,16 +308,19 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
   TOL_JUMP = 15
   TOL_OUT = 15
 
-reverse = c(2),
-
-! campana mismas fechas que el anterior.
-! árbol que crece muy poco (40um), el que menos de todos los decaídos.
+  reverse = c(1,2),
+  force.now = c("2023-09-28 10:15:00"),
+               # "2024-01-17 07:45:00"),
+  force = c("2023-06-29", "2023-07-03", "2023-10-16"),
+  delete = c("2023-09-28 10:30:00", "2023-09-28 10:45:00"),
 
 - Subidón may-23 -> OK
-- subidón 1ª mitad y finales jun-23 -> el de finales treenetproc lo marca como salto y sí me lo parece.
-- parece salto pcpios jul-23 -> un poco rara la corrección, porque si lo considera salto pero tampoco cambia mucho el dibujo (revisar) -> No me parece que haya salto ahí, así que lo revierto en corr: reverse = c(2), Además los otros dendrómetros también pegan un estirón justo en esas fechas.
-- subidón mediados sept-23 -> OK
-- salto finales sept-23 -> corregido.
+- subidón 1ª mitad y finales jun-23 -> el de finales es un salto. Lo pongo a mano.
+- parece salto pcpios jul-23 -> salto (hay un episodio de lluvias y debería haber incremento, pero no tan brusco, seguramente es un artefacto provocado por la lluvia)
+- salto finales sept-23 -> corregido por treenetproc pero mal (hay dos outliers que borrar). revierto esos cambios: reverse(1,2) y aplico el salto en el lugar que toca.
+- salto mediados oct23: "2023-10-16", lo fuerzo xq treenetproc no lo pilla.
+
+
 
 
 === DATOS PINETA HASTA JUN-24 ===
