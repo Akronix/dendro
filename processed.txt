@@ -187,6 +187,11 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 
   TOL_JUMP = 10
   TOL_OUT = 10
+  
+   reverse = c(5),
+   force.now = c("2022-08-22 10:15:00", "2023-02-20 10:45:00"),
+   force = c("2022-05-19"),
+   delete = c("2023-02-20 11:00:00", "2023-02-20 12:45:00"),
 
   - retrasamos el ts start unos días hasta que empieza a tomar datos.
 
@@ -204,7 +209,30 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
   - algunas mesetillas en dic23 y ene24
   
 
-  
+== 92222331 ==
+- Qi - params:
+
+  ts_start <- "2022-04-01 09:00:00"
+
+  TOL_JUMP = 10
+  TOL_OUT = 15
+
+   reverse = c(3,4:6,13,14),
+   force = c("2022-05-19"),
+
+! Muchos datos duplicados; más allá de los habituales por cambio de hora.
+
+  - missing data 19may22 -> pongo salto
+  - Salto finales de junio22 -> Viene de una subida brusca que parece correcta. Quizás está bien ese salto y no habría que corregirlo, pero después la tendencia es muy plana (no hay más subida), por lo que me parece correcto corregirlo, aunque hay espacio para la discusión.
+  - Pilla varios saltos de cong-descong que no corresponden en ene y feb23 -> Los deshago
+  - El 21nov22 hay unos datos raros que se van (del 2022-11-21T19:00:00Z al 2022-11-21T21:00:00Z), los borro e introduzco un salto para dejarlo en línea a cómo estaría con una tendencia más similar a otros días.
+  - No pilla salto del 2023-03-06 15:00:00 y tampoco la vuelta 2023-04-05T06:45:00Z -> toca forzarlos.
+  - Fuerzo otro salto a finales de junio23 que he visto de cerca: 2023-06-28 19:00:00
+  - En sept-23 hay un par de saltos de 25um que podrían considerarse saltos?, igualmente como uno sube y el otro lo deshace unos días más tarde los voy a dejar ahí.
+  - Congelación brusca a mediados ene24 -> revertir salto treenetproc
+  - En junio24 detecta un salto pero que de cerca me convence que el muelle se haya movido demasiado, pero que en los siguientes instantes se ha ido reajustando. Así que revierto el cambio.
+
+
 === DATOS PINETA HASTA JUN-24 ===
 ** Datos descargados el 20 de junio 24
 ** Varias terminaciones _number después de data_*.csv. Me quedo con la última que es la que tiene más datos.
