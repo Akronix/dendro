@@ -260,6 +260,24 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
 - Añado salto en mar24 -> force(2024-03-09)
 
 
+== 92222336 ==
+- Qi - params:
+
+  ts_start <- "2022-04-01 09:00:00"
+
+  TOL_JUMP = 10
+  TOL_OUT = 10
+
+  - piquito abajo pcpios abril-22 -> congelación
+  - Missing data en 19-mayo-22 -> salto
+  - subidón finales jun-22 y pcpios ago-22 -> OK. Crecimiento vertiginoso
+  - salto a mediados nov-22 no lo pilla incluso bajando tol_jump. Me toca corregirlo a mano: reverse(3) y force("2022-11-15")
+  - piquito abajo finales ene-23 -> congelación. Revierto salto treenetproc (4)
+  - Coge un piquito a finales de sept-23 que era incorrecto y eran dos outliers.
+  - Salto bien pillado a mediados oct23
+  - revierto congelación pillada como salto en ene24 (11) 
+
+
 
 
 === DATOS PINETA HASTA JUN-24 ===
