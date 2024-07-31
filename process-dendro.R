@@ -15,7 +15,7 @@ if (length(args) > 0 & !is.na(as.numeric(args[1]))){
   INTERACTIVE <- F
   SAVE <- T # to save output csv processed file at the end of the script
 } else {
-  SELECTED_DENDROMETER = 92222336
+  SELECTED_DENDROMETER = 92223481
 }
 
 # Default values for global control vars:
@@ -35,7 +35,7 @@ source("lib-dendro.R")
 # VARIABLES TO SET FOR EVERY SITE #
 PLACE = 'Corbalan'
 # ts_start <- "2022-03-29 09:00:00" # from March 29 (1 day after installation)
-ts_start <- "2022-04-01 09:00:00"
+ts_start <- "2023-02-22 09:00:00"
 ts_end <- "2024-07-02 00:00:00"
 DATE_FORMAT = "%Y.%m.%d %H:%M"
 FILENAME_EXCESS = "_2024_07_02_0.csv"
@@ -163,7 +163,7 @@ temp_data_L1 <- proc_L1(data_L0 = temp_data_L0,
 
 ## TREENETPROC: Error detection and processing of the L1 data (L2) ##
 TOL_JUMP = 10
-TOL_OUT = 12
+TOL_OUT = 13
 
 print("process-dendro script running with the next parameters:")
 cat(paste0("\t SELECTED DENDROMETER: ", SELECTED_DENDROMETER, "\n", 
@@ -200,11 +200,11 @@ final_processed_data <- dendro_data_L2;
 final_processed_data <- corr_dendro_L2(dendro_L1 = dendro_data_L1,
                                        dendro_L2 = dendro_data_L2,
 
-                                       reverse = c(3,4,11),
-                                       # force.now = c("2022-05-25 09:15:00", "2023-04-27 15:30:00",
+                                       # reverse = c(3,4,11),
+                                       force.now = c("2024-01-12 12:00:00"),
                                                      # "2024-01-17 07:45:00"),
-                                       force = c("2022-05-19", "2022-11-15"),
-                                       # delete = c("2022-11-21 19:00:00", "2022-11-21 21:00:00"),
+                                       # force = c("2022-05-19", "2022-11-15"),
+                                       delete = c("2024-01-12 12:15:00", "2024-01-12 12:30:00"),
 
                                        plot = T,
                                        plot_export = T,

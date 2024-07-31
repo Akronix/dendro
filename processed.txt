@@ -278,6 +278,46 @@ FILENAME_EXCESS = "_2024_07_02_0.csv"
   - revierto congelación pillada como salto en ene24 (11) 
 
 
+== 92223481 ==
+- Pinus sylvestris - D - params:
+  
+  ts_start <- "2023-02-22 09:00:00"
+  
+  TOL_JUMP = 10
+  TOL_OUT = 13
+  
+  force.now = c("2024-01-12 12:00:00"),
+  delete = c("2024-01-12 12:15:00", "2024-01-12 12:30:00"),
+
+- subidón finales may-23 -> OK. coincide con final heladas y tendencia ascendente temperaturas.
+- subidón antes mediados jun-23 y 2ª mitad jun-23 -> OK y no son tan grandes.
+- subidón pcpios jul-23 -> OK. Coincide con descenso de la temperatura mínima.
+- subidones pcpios, medio y final sept-23 -> OK. Excepto final sept-23 que sí me parece salto. Se corrije bajando tol_jump a 10.
+- salto en 3 pasos: 2024-01-12T12:00:00Z. Se borran datos intermedios y se fija salto.
+
+== 92223482 ==
+- Pinus sylvestris - D
+! Sin datos (missing)
+
+
+== 92223483 ==
+- Pinus sylvestris - ND - params:
+
+  ts_start <- "2023-02-22 09:00:00"
+  
+  TOL_JUMP = 15
+  TOL_OUT = 15
+
+reverse = c(2),
+
+! campana mismas fechas que el anterior.
+! árbol que crece muy poco (40um), el que menos de todos los decaídos.
+
+- Subidón may-23 -> OK
+- subidón 1ª mitad y finales jun-23 -> el de finales treenetproc lo marca como salto y sí me lo parece.
+- parece salto pcpios jul-23 -> un poco rara la corrección, porque si lo considera salto pero tampoco cambia mucho el dibujo (revisar) -> No me parece que haya salto ahí, así que lo revierto en corr: reverse = c(2), Además los otros dendrómetros también pegan un estirón justo en esas fechas.
+- subidón mediados sept-23 -> OK
+- salto finales sept-23 -> corregido.
 
 
 === DATOS PINETA HASTA JUN-24 ===
